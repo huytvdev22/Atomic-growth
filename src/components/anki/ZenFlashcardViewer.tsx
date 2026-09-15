@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { AnkiCard, AnkiDeck } from '../../types/anki';
 import { indexedDbService } from '../../services/indexedDbService';
+import { ankiFirestoreSync } from '../../services/ankiFirestoreSync';
+import { useAuth } from '../../context/AuthContext';
 import { triggerCelebrationConfetti } from '../../utils/soundEffects';
 import { BottomSheet } from '../BottomSheet';
 import {
@@ -33,6 +35,7 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
   onClose,
   onCompleteSession
 }) => {
+  const { user } = useAuth();
   const [deck, setDeck] = useState<AnkiDeck | null>(null);
   const [cards, setCards] = useState<AnkiCard[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -233,6 +236,11 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
       setIsCompleted(true);
       triggerCelebrationConfetti();
       onCompleteSession?.();
+
+      // Tự động đồng bộ tiến độ ghi nhớ lên Cloud Firestore nếu đã đăng nhập
+      if (user?.uid && deckId) {
+        ankiFirestoreSync.syncDeckProgressToFirestore(user.uid, deckId);
+      }
     }
   };
 

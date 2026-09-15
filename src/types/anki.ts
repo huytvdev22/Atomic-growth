@@ -72,3 +72,53 @@ export interface ReviewSession {
   againCount: number;
   isCompleted: boolean;
 }
+
+/**
+ * 3 Cấp độ ghi nhớ trực quan (Memory Vitality) theo phong cách Botanical Zen
+ * - fragile: Hạt mầm mong manh (1 vạch) - Thẻ mới học hoặc vừa bị quên
+ * - growing: Đang sinh trưởng (2 vạch) - Đang ngấm dần vào trí nhớ ngắn hạn
+ * - steady: Rễ sâu vững chắc (3 vạch) - Đã bước vào trí nhớ dài hạn (interval >= 14 ngày)
+ */
+export type MemoryVitality = 'fragile' | 'growing' | 'steady';
+
+/**
+ * Hàm tính toán cấp độ ghi nhớ từ thông số Spaced Repetition (SRS)
+ */
+export function calculateCardVitality(card: AnkiCard): MemoryVitality {
+  if (card.reps === 0 || card.state === 'new' || (card.lapses > 0 && card.interval <= 1)) {
+    return 'fragile';
+  }
+  if (card.interval >= 14 || card.state === 'mastered') {
+    return 'steady';
+  }
+  return 'growing';
+}
+
+/**
+ * Cấu trúc thông tin tiến độ của một thẻ để đồng bộ lên Cloud Firestore
+ */
+export interface CardProgressItem {
+  state: CardState;
+  interval: number;
+  reps: number;
+  lapses: number;
+  dueDate: string;
+  vitality: MemoryVitality;
+}
+
+/**
+ * Document tiến độ đồng bộ siêu nhẹ trên Cloud Firestore:
+ * Đường dẫn: users/{userId}/anki_progress/{deckId}
+ */
+export interface DeckProgressDoc {
+  deckId: string;
+  lastStudiedAt: string;
+  totalCards: number;
+  stats: {
+    fragile: number;
+    growing: number;
+    steady: number;
+  };
+  cardsProgress: Record<string, CardProgressItem>;
+}
+

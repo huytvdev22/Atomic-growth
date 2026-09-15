@@ -6,6 +6,7 @@ import { googleDriveService, DriveDeckItem } from '../../services/googleDriveSer
 import { AnkiImportModal } from './AnkiImportModal';
 import { ZenFlashcardViewer } from './ZenFlashcardViewer';
 import { DriveSyncModal } from './DriveSyncModal';
+import { DeckWordsModal } from './DeckWordsModal';
 import { cn } from '../../utils/cn';
 import {
   Layers,
@@ -44,6 +45,7 @@ export const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ onSessionCompleted
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isDriveModalOpen, setIsDriveModalOpen] = useState(false);
   const [activeReviewDeckId, setActiveReviewDeckId] = useState<string | null>(null);
+  const [activeWordsDeckId, setActiveWordsDeckId] = useState<string | null>(null);
 
   // Tải danh sách bộ thẻ từ IndexedDB
   const loadDecks = useCallback(async () => {
@@ -401,15 +403,26 @@ export const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ onSessionCompleted
                     )}
                   </div>
 
-                  {/* Nút Ôn Tập 2 Phút */}
-                  <button
-                    type="button"
-                    onClick={() => setActiveReviewDeckId(deck.id)}
-                    className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-canvas border border-border py-2.5 px-4 text-xs font-semibold text-text-primary hover:bg-accent-sprout/60 hover:text-primary hover:border-accent-sage/40 active:scale-98 transition-all cursor-pointer shadow-2xs"
-                  >
-                    <Play className="w-3.5 h-3.5 fill-primary text-primary" />
-                    <span>Ôn Tập Ngay (10 Thẻ)</span>
-                  </button>
+                  {/* Cụm nút hành động: Xem danh sách từ & Ôn tập 2 phút */}
+                  <div className="grid grid-cols-2 gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setActiveWordsDeckId(deck.id)}
+                      className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-canvas border border-border py-2.5 px-3 text-xs font-semibold text-text-secondary hover:text-text-primary hover:bg-surface hover:border-primary/40 active:scale-98 transition-all cursor-pointer shadow-2xs"
+                    >
+                      <BookOpen className="w-3.5 h-3.5 text-text-tertiary" />
+                      <span>Xem từ vựng</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setActiveReviewDeckId(deck.id)}
+                      className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-primary py-2.5 px-3 text-xs font-semibold text-white hover:bg-primary-hover active:scale-98 transition-all cursor-pointer shadow-xs"
+                    >
+                      <Play className="w-3.5 h-3.5 fill-white" />
+                      <span>Ôn 2 phút</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             );
@@ -432,6 +445,19 @@ export const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ onSessionCompleted
           onClose={() => setActiveReviewDeckId(null)}
           onCompleteSession={() => {
             onSessionCompleted?.();
+          }}
+        />
+      )}
+
+      {/* Modal Duyệt Danh Sách Từ Vựng Của Bộ Thẻ */}
+      {activeWordsDeckId && (
+        <DeckWordsModal
+          deckId={activeWordsDeckId}
+          isOpen={!!activeWordsDeckId}
+          onClose={() => setActiveWordsDeckId(null)}
+          onStartReview={(deckId) => {
+            setActiveWordsDeckId(null);
+            setActiveReviewDeckId(deckId);
           }}
         />
       )}

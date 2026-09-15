@@ -1,4 +1,4 @@
-import { AnkiDeck, AnkiCard, AnkiMediaItem } from '../types/anki';
+import { AnkiDeck, AnkiCard, AnkiMediaItem, CardProgressItem } from '../types/anki';
 
 const DB_NAME = 'AtomicGrowthAnkiDB';
 const DB_VERSION = 1;
@@ -300,5 +300,36 @@ export const indexedDbService = {
   async hasDeckApkgBlob(deckId: string): Promise<boolean> {
     const blob = await this.getDeckApkgBlob(deckId);
     return blob !== null;
+  },
+
+  /**
+   * Cập nhật hàng loạt tiến độ thẻ từ Cloud Firestore vào IndexedDB
+   */
+  async updateCardsProgressBatch(
+    cardsProgressMap: Record<string, CardProgressItem>
+  ): Promise<void> {
+    const db = await openAnkiDatabase();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORES.CARDS, 'readwrite');
+      const store = tx.objectStore(STORES.CARDS);
+
+      for (const [cardId, progress] of Object.entries(cardsProgressMap)) {
+        const getReq = store.get(cardId);
+        getReq.onsuccess = () => {
+          const card = getReq.result as AnkiCard | undefined;
+          if (card) {
+            card.state = progress.state;
+            card.interval = progress.interval;
+            card.reps = progress.reps;
+            card.lapses = progress.lapses;
+            card.dueDate = progress.dueDate;
+            store.put(card);
+          }
+        };
+      }
+
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
   }
 };

@@ -224,6 +224,20 @@ Mỗi người dùng được phân vùng riêng biệt theo đường dẫn: `/
 
 ---
 
+#### 3.1.6. Collection: `users/{userId}/anki_progress/{deckId}`
+* **Mô tả:** Bản đồ tiến độ ghi nhớ siêu nhẹ (Lightweight Progress Sync) của bộ thẻ Anki. Mỗi bộ thẻ chỉ là 1 Document duy nhất, giúp đồng bộ trạng thái 3 vạch (`Fragile` / `Growing` / `Steady`) giữa điện thoại và máy tính mà không tốn dung lượng lưu trữ tệp đa phương tiện.
+* **Document ID:** `deckId` (Trùng với ID của bộ thẻ).
+* **Cấu trúc trường:**
+  | Tên Trường | Kiểu Dữ Liệu | Bắt Buộc | Mô Tả & Ý Nghĩa |
+  | :--- | :--- | :---: | :--- |
+  | `deckId` | `string` | Có | Mã định danh của bộ thẻ |
+  | `lastStudiedAt` | `string` | Có | Thời điểm kết thúc phiên học gần nhất (ISO 8601 string) |
+  | `totalCards` | `number` | Có | Tổng số thẻ trong bộ bài |
+  | `stats` | `map` | Có | Thống kê số lượng: `{ fragile: number, growing: number, steady: number }` |
+  | `cardsProgress` | `map` | Có | Bản đồ tiến độ chi tiết từng thẻ: `key = cardId`, `value = { state, interval, reps, lapses, dueDate, vitality }` |
+
+---
+
 ### 3.2. Tầng 2: Client IndexedDB (`AtomicGrowthAnkiDB`)
 Sử dụng chuẩn Web API IndexedDB phiên bản 1 (`DB_VERSION = 1`).
 
