@@ -45,6 +45,8 @@ export interface AnkiCard {
   reps: number;
   // Số lần bị quên (lapses)
   lapses: number;
+  // Thẻ tags phân loại chủ đề (nếu có)
+  tags?: string[];
   // Trạng thái hiện tại của thẻ
   state: CardState;
 }

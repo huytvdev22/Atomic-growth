@@ -27,7 +27,7 @@ export const INITIAL_NOTES: MicroNote[] = [
   }
 ];
 
-// Dữ liệu mẫu khởi đầu mang tinh thần Botanical Zen & Atomic Habits
+// Dữ liệu mẫu khởi đầu mang tinh thần Botanical Zen & Atomic Habits (Sạch, trung thực, streak bắt đầu từ 0)
 export const INITIAL_HABITS: Habit[] = [
   {
     id: 'habit-1',
@@ -36,9 +36,8 @@ export const INITIAL_HABITS: Habit[] = [
     ritual: 'morning',
     category: 'health',
     twoMinuteVersion: 'Uống ngay 1 ly nước lọc đặt sẵn cạnh đầu giường',
-    currentStreak: 18,
-    bestStreak: 25,
-    lastCompletedDate: getYesterdayString(),
+    currentStreak: 0,
+    bestStreak: 0,
     order: 1,
     createdAt: new Date().toISOString()
   },
@@ -49,9 +48,8 @@ export const INITIAL_HABITS: Habit[] = [
     ritual: 'morning',
     category: 'mind',
     twoMinuteVersion: 'Nhắm mắt ngồi thẳng lưng hít thở sâu 3 nhịp',
-    currentStreak: 9,
-    bestStreak: 14,
-    lastCompletedDate: getYesterdayString(),
+    currentStreak: 0,
+    bestStreak: 0,
     order: 2,
     createdAt: new Date().toISOString()
   },
@@ -63,9 +61,8 @@ export const INITIAL_HABITS: Habit[] = [
     category: 'focus',
     twoMinuteVersion: 'Đọc chỉ 1 trang sách sau bữa trưa',
     temptationBundle: 'Pha một tách trà thảo mộc yêu thích khi đọc',
-    currentStreak: 24,
-    bestStreak: 30,
-    lastCompletedDate: getYesterdayString(),
+    currentStreak: 0,
+    bestStreak: 0,
     order: 3,
     createdAt: new Date().toISOString()
   },
@@ -76,9 +73,8 @@ export const INITIAL_HABITS: Habit[] = [
     ritual: 'evening',
     category: 'gratitude',
     twoMinuteVersion: 'Ghi 1 điều khiến bạn mỉm cười hôm nay',
-    currentStreak: 5,
-    bestStreak: 12,
-    lastCompletedDate: getYesterdayString(),
+    currentStreak: 0,
+    bestStreak: 0,
     order: 4,
     createdAt: new Date().toISOString()
   }
@@ -94,39 +90,10 @@ export const DEFAULT_PROFILE: UserProfile = {
 };
 
 /**
- * Tạo sẵn dữ liệu nhật ký cho 14 ngày qua để ma trận Heatmap hiển thị khu vườn sinh trưởng
+ * Trả về mảng rỗng cho logs ban đầu để phản ánh trung thực tiến độ (Clean Slate)
  */
 function createInitialLogs(): HabitLog[] {
-  const logs: HabitLog[] = [];
-  const today = new Date();
-
-  for (let i = 13; i >= 1; i--) {
-    const d = new Date(today);
-    d.setDate(d.getDate() - i);
-    const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    
-    // Tạo ngẫu nhiên 2 - 4 thói quen hoàn thành mỗi ngày để minh họa các sắc thái xanh
-    const completedCount = i % 4 === 0 ? 2 : i % 3 === 0 ? 3 : 4;
-    for (let j = 0; j < completedCount; j++) {
-      logs.push({
-        id: `log-${dateStr}-${INITIAL_HABITS[j].id}`,
-        habitId: INITIAL_HABITS[j].id,
-        date: dateStr,
-        completed: true,
-        timestamp: d.getTime()
-      });
-    }
-  }
-
-  // Hôm qua hoàn thành 3/4
-  const yesterdayStr = getYesterdayString();
-  logs.push(
-    { id: `log-${yesterdayStr}-1`, habitId: 'habit-1', date: yesterdayStr, completed: true, timestamp: Date.now() },
-    { id: `log-${yesterdayStr}-2`, habitId: 'habit-2', date: yesterdayStr, completed: true, timestamp: Date.now() },
-    { id: `log-${yesterdayStr}-3`, habitId: 'habit-3', date: yesterdayStr, completed: true, timestamp: Date.now() }
-  );
-
-  return logs;
+  return [];
 }
 
 export const habitStorage = {

@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import { Habit, HabitLog, UserProfile, RitualTime, MicroNote } from '../types/habit';
 import { habitStorage } from '../services/habitStorage';
-import { getTodayString, evaluateStreakOnCheckIn } from '../utils/habitCalculations';
+import { getTodayString, evaluateStreakOnCheckIn, calculateEffectiveHabitStreak } from '../utils/habitCalculations';
 import { playZenTapSound, triggerCelebrationConfetti } from '../utils/soundEffects';
 import { useAuth } from './AuthContext';
 import {
@@ -151,8 +151,11 @@ export const HabitProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, [completedTodayCount, totalActiveHabits]);
 
   const topStreak = useMemo(() => {
-    return habits.reduce((max, h) => Math.max(max, h.currentStreak), 0);
-  }, [habits]);
+    return habits.reduce(
+      (max, h) => Math.max(max, calculateEffectiveHabitStreak(h, todayDate)),
+      0
+    );
+  }, [habits, todayDate]);
 
   const hasNeverMissTwiceAlert = useMemo(() => {
     return habits.some(h => h.inGracePeriod && !isHabitCompletedToday(h.id));

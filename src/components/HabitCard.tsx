@@ -1,6 +1,7 @@
 import React from 'react';
 import { Habit } from '../types/habit';
 import { useHabits } from '../context/HabitContext';
+import { calculateEffectiveHabitStreak } from '../utils/habitCalculations';
 import { Check, Flame, Trash2, Zap, Brain } from 'lucide-react';
 import { cn } from '../utils/cn';
 
@@ -11,6 +12,7 @@ interface HabitCardProps {
 export const HabitCard: React.FC<HabitCardProps> = ({ habit }) => {
   const { isHabitCompletedToday, toggleHabit, deleteHabit, setActiveTab } = useHabits();
   const completed = isHabitCompletedToday(habit.id);
+  const effectiveStreak = calculateEffectiveHabitStreak(habit);
 
   const isFlashcardHabit =
     habit.title.toLowerCase().includes('thẻ') ||
@@ -101,13 +103,13 @@ export const HabitCard: React.FC<HabitCardProps> = ({ habit }) => {
         <div
           className={cn(
             'inline-flex items-center gap-1 font-mono text-xs font-semibold px-2.5 py-1 rounded-sm border transition-colors',
-            habit.currentStreak > 0
+            effectiveStreak > 0
               ? 'bg-[#FEF6EC] text-accent-amber border-[#FCE4C8]'
               : 'bg-canvas-subtle text-text-tertiary border-border'
           )}
         >
-          <Flame className={cn('w-3.5 h-3.5', habit.currentStreak > 0 ? 'fill-accent-amber' : '')} />
-          <span>{habit.currentStreak}d</span>
+          <Flame className={cn('w-3.5 h-3.5', effectiveStreak > 0 ? 'fill-accent-amber' : '')} />
+          <span>{effectiveStreak}d</span>
         </div>
 
         <button

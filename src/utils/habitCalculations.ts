@@ -118,3 +118,91 @@ export function generateGardenHeatmap(
 
   return cells;
 }
+
+/**
+ * Tính toán chuỗi Streak hiệu lực thực tế của 1 thói quen (Dynamic Effective Streak)
+ * Tránh việc streak cũ bị đóng băng tĩnh khi người dùng đã bỏ lỡ nhiều ngày
+ */
+export function calculateEffectiveHabitStreak(
+  habit: { currentStreak: number; lastCompletedDate?: string },
+  todayStr: string = getTodayString()
+): number {
+  if (!habit.lastCompletedDate || habit.currentStreak <= 0) {
+    return 0;
+  }
+
+  const daysDiff = getDaysDifference(habit.lastCompletedDate, todayStr);
+
+  // Hôm nay đã hoàn thành (0) hoặc hôm qua đã hoàn thành (1)
+  if (daysDiff === 0 || daysDiff === 1) {
+    return habit.currentStreak;
+  }
+
+  // Bỏ lỡ 1 ngày hôm qua (2) -> Đang trong ân hạn "Never Miss Twice"
+  if (daysDiff === 2) {
+    return habit.currentStreak;
+  }
+
+  // Đã bỏ lỡ từ 2 ngày trở lên -> Chuỗi thực tế là 0
+  return 0;
+}
+
+/**
+ * Tính số ngày kiên trì liên tiếp của toàn bộ Khu Vườn (Garden Heatmap Streak)
+ * Quét ngược từ hôm nay/hôm qua dựa trên mảng logs thực tế, khớp 100% với ô vuông trên ma trận
+ */
+export function calculateGardenActiveStreak(
+  logs: HabitLog[],
+  todayStr: string = getTodayString()
+): number {
+  if (!logs || logs.length === 0) return 0;
+
+  // Lấy danh sách các ngày duy nhất có ít nhất 1 thói quen được hoàn thành
+  const completedDates = new Set(
+    logs.filter((l) => l.completed).map((l) => l.date)
+  );
+
+  if (completedDates.size === 0) return 0;
+
+  const yesterdayStr = getYesterdayString();
+  const hasCompletedToday = completedDates.has(todayStr);
+  const hasCompletedYesterday = completedDates.has(yesterdayStr);
+
+  // Nếu cả hôm nay và hôm qua đều chưa hoàn thành gì
+  if (!hasCompletedToday && !hasCompletedYesterday) {
+    const dBeforeYesterday = new Date();
+    dBeforeYesterday.setDate(dBeforeYesterday.getDate() - 2);
+    const dayBeforeYesterdayStr = `${dBeforeYesterday.getFullYear()}-${String(dBeforeYesterday.getMonth() + 1).padStart(2, '0')}-${String(dBeforeYesterday.getDate()).padStart(2, '0')}`;
+    
+    // Nếu cả 2 ngày qua đều trống -> Chuỗi kết thúc, trả về 0
+    if (!completedDates.has(dayBeforeYesterdayStr)) {
+      return 0;
+    }
+  }
+
+  // Bắt đầu đếm ngược từ ngày có hoạt động gần nhất
+  let streak = 0;
+  let missedGraceUsed = false;
+  const curr = new Date();
+  if (!hasCompletedToday) {
+    curr.setDate(curr.getDate() - 1);
+  }
+
+  for (let i = 0; i < 365; i++) {
+    const dStr = `${curr.getFullYear()}-${String(curr.getMonth() + 1).padStart(2, '0')}-${String(curr.getDate()).padStart(2, '0')}`;
+    if (completedDates.has(dStr)) {
+      streak++;
+      missedGraceUsed = false;
+    } else {
+      // Quy tắc Never Miss Twice: cho phép bỏ qua 1 ngày nếu trước đó có chuỗi
+      if (!missedGraceUsed && streak > 0) {
+        missedGraceUsed = true;
+      } else {
+        break;
+      }
+    }
+    curr.setDate(curr.getDate() - 1);
+  }
+
+  return streak;
+}

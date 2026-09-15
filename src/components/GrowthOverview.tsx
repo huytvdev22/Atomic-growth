@@ -1,23 +1,23 @@
 import React, { useMemo } from 'react';
 import { useHabits } from '../context/HabitContext';
-import { generateGardenHeatmap } from '../utils/habitCalculations';
+import { generateGardenHeatmap, calculateGardenActiveStreak } from '../utils/habitCalculations';
 import { Flame, Sprout } from 'lucide-react';
 
 /**
  * Component Tổng Quan Tiến Độ & Khu Vườn Kiên Trì (Garden Heatmap)
  */
 export const GrowthOverview: React.FC = () => {
-  const { logs, habits, completionRate, completedTodayCount, totalActiveHabits } = useHabits();
+  const { logs, completionRate, completedTodayCount, totalActiveHabits } = useHabits();
 
   // Bán kính và chu vi vòng tròn SVG
   const radius = 32;
   const circumference = 2 * Math.PI * radius; // ~201.06
   const strokeDashoffset = circumference - (completionRate / 100) * circumference;
 
-  // Tính chuỗi ngày cao nhất hiện tại trong tất cả thói quen
-  const topStreak = useMemo(() => {
-    return habits.reduce((max, h) => Math.max(max, h.currentStreak), 0);
-  }, [habits]);
+  // Tính chuỗi ngày kiên trì thực tế của Khu Vườn từ lịch sử logs (khớp 100% với ma trận ô vuông)
+  const gardenStreak = useMemo(() => {
+    return calculateGardenActiveStreak(logs);
+  }, [logs]);
 
   // Sinh danh sách 14 ô vuông ma trận
   const heatmapCells = useMemo(() => {
@@ -88,7 +88,7 @@ export const GrowthOverview: React.FC = () => {
           </div>
           <div className="inline-flex items-center gap-1 font-mono text-xs font-semibold bg-[#FEF6EC] text-accent-amber px-2.5 py-1 rounded-sm border border-[#FCE4C8]">
             <Flame className="w-3.5 h-3.5 fill-accent-amber" />
-            <span>{topStreak} Ngày liên tục</span>
+            <span>{gardenStreak} Ngày liên tục</span>
           </div>
         </div>
 

@@ -22,18 +22,22 @@ interface ZenFlashcardViewerProps {
   isOpen: boolean;
   onClose: () => void;
   onCompleteSession?: () => void;
+  targetCardIds?: string[];
+  customSubtitle?: string;
 }
 
 /**
  * Component Trình Lật Thẻ Zen (ZenFlashcardViewer)
  * Sử dụng Common BottomSheet component để chuẩn hóa trải nghiệm PWA / Mobile & Desktop.
- * Tập trung vào nghiệp vụ học từ vựng 2 phút, Spaced Repetition (SRS) và tương tác thị giác thanh nhã.
+ * Hỗ trợ ôn tập mặc định 10 thẻ hoặc ôn riêng danh sách mục tiêu (targetCardIds).
  */
 export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
   deckId,
   isOpen,
   onClose,
-  onCompleteSession
+  onCompleteSession,
+  targetCardIds,
+  customSubtitle
 }) => {
   const { user } = useAuth();
   const [deck, setDeck] = useState<AnkiDeck | null>(null);
@@ -56,7 +60,7 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
   const [renderedBackHtml, setRenderedBackHtml] = useState<string>('');
   const activeBlobUrlsRef = useRef<string[]>([]);
 
-  // Tải danh sách thẻ đến hạn cho phiên 2 phút (tối đa 10 thẻ)
+  // Tải danh sách thẻ đến hạn cho phiên 2 phút (hoặc theo danh sách targetCardIds)
   const loadDeckAndCards = useCallback(async () => {
     setIsLoading(true);
     setIsCompleted(false);
@@ -69,10 +73,21 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
       const fetchedDeck = await indexedDbService.getDeckById(deckId);
       setDeck(fetchedDeck);
 
-      // Lấy danh sách thẻ cần ôn (tối đa 10 thẻ theo quy tắc 2 phút)
-      let sessionCards = await indexedDbService.getDueCards(deckId, 10);
+      let sessionCards: AnkiCard[] = [];
 
-      // Nếu không có thẻ nào đến hạn, lấy 10 thẻ bất kỳ để người dùng ôn thêm
+      // Nếu có danh sách thẻ mục tiêu (Ví dụ: 5 từ Fragile cần ôn cấp bách)
+      if (targetCardIds && targetCardIds.length > 0) {
+        const allCards = await indexedDbService.getCardsByDeckId(deckId);
+        const targetSet = new Set(targetCardIds);
+        sessionCards = allCards.filter((c) => targetSet.has(c.id));
+      }
+
+      // Nếu không có mục tiêu cụ thể, lấy danh sách thẻ đến hạn theo SRS (tối đa 10 thẻ)
+      if (sessionCards.length === 0) {
+        sessionCards = await indexedDbService.getDueCards(deckId, 10);
+      }
+
+      // Nếu vẫn không có thẻ nào đến hạn, lấy 10 thẻ bất kỳ để người dùng ôn thêm
       if (sessionCards.length === 0) {
         const allCards = await indexedDbService.getCardsByDeckId(deckId);
         sessionCards = allCards.slice(0, 10);
@@ -84,7 +99,7 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
     } finally {
       setIsLoading(false);
     }
-  }, [deckId]);
+  }, [deckId, targetCardIds]);
 
   useEffect(() => {
     if (isOpen && deckId) {
@@ -281,7 +296,9 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
       icon={<Brain className="h-4.5 w-4.5" />}
       title={deck?.title || 'Bộ thẻ Flashcards'}
       subtitle={
-        cards.length > 0 && !isCompleted
+        customSubtitle
+          ? `${customSubtitle} (${cards.length > 0 && !isCompleted ? `${currentIndex + 1}/${cards.length}` : 'Hoàn thành'})`
+          : cards.length > 0 && !isCompleted
           ? `Thẻ ${currentIndex + 1} / ${cards.length} (Phiên 2 phút)`
           : 'Phiên ôn tập vi mô'
       }

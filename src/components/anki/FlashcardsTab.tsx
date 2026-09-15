@@ -45,6 +45,8 @@ export const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ onSessionCompleted
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isDriveModalOpen, setIsDriveModalOpen] = useState(false);
   const [activeReviewDeckId, setActiveReviewDeckId] = useState<string | null>(null);
+  const [reviewTargetCardIds, setReviewTargetCardIds] = useState<string[] | undefined>(undefined);
+  const [reviewCustomSubtitle, setReviewCustomSubtitle] = useState<string | undefined>(undefined);
   const [activeWordsDeckId, setActiveWordsDeckId] = useState<string | null>(null);
 
   // Tải danh sách bộ thẻ từ IndexedDB
@@ -416,7 +418,11 @@ export const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ onSessionCompleted
 
                     <button
                       type="button"
-                      onClick={() => setActiveReviewDeckId(deck.id)}
+                      onClick={() => {
+                        setReviewTargetCardIds(undefined);
+                        setReviewCustomSubtitle(undefined);
+                        setActiveReviewDeckId(deck.id);
+                      }}
                       className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-primary py-2.5 px-3 text-xs font-semibold text-white hover:bg-primary-hover active:scale-98 transition-all cursor-pointer shadow-xs"
                     >
                       <Play className="w-3.5 h-3.5 fill-white" />
@@ -442,7 +448,13 @@ export const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ onSessionCompleted
         <ZenFlashcardViewer
           deckId={activeReviewDeckId}
           isOpen={!!activeReviewDeckId}
-          onClose={() => setActiveReviewDeckId(null)}
+          targetCardIds={reviewTargetCardIds}
+          customSubtitle={reviewCustomSubtitle}
+          onClose={() => {
+            setActiveReviewDeckId(null);
+            setReviewTargetCardIds(undefined);
+            setReviewCustomSubtitle(undefined);
+          }}
           onCompleteSession={() => {
             onSessionCompleted?.();
           }}
@@ -455,8 +467,10 @@ export const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ onSessionCompleted
           deckId={activeWordsDeckId}
           isOpen={!!activeWordsDeckId}
           onClose={() => setActiveWordsDeckId(null)}
-          onStartReview={(deckId) => {
+          onStartReview={(deckId, targetCardIds, customSubtitle) => {
             setActiveWordsDeckId(null);
+            setReviewTargetCardIds(targetCardIds);
+            setReviewCustomSubtitle(customSubtitle);
             setActiveReviewDeckId(deckId);
           }}
         />
