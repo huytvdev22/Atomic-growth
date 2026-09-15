@@ -265,5 +265,40 @@ export const indexedDbService = {
       tx.oncomplete = () => resolve();
       tx.onerror = () => reject(tx.error);
     });
+  },
+
+  /**
+   * Lưu tệp gói .apkg gốc vào IndexedDB để hỗ trợ đồng bộ 1 chạm lên Google Drive
+   */
+  async saveDeckApkgBlob(deckId: string, fileBlob: Blob | File): Promise<void> {
+    const db = await openAnkiDatabase();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORES.MEDIA, 'readwrite');
+      const store = tx.objectStore(STORES.MEDIA);
+      const mediaItem: AnkiMediaItem = {
+        id: `__apkg__${deckId}`,
+        deckId,
+        mimeType: 'application/octet-stream',
+        blob: fileBlob
+      };
+      store.put(mediaItem);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  },
+
+  /**
+   * Lấy tệp gói .apkg gốc đã lưu trong IndexedDB của một bộ thẻ
+   */
+  async getDeckApkgBlob(deckId: string): Promise<Blob | null> {
+    return this.getMediaBlob(`__apkg__${deckId}`);
+  },
+
+  /**
+   * Kiểm tra xem bộ thẻ đã có tệp .apkg gốc trong IndexedDB chưa
+   */
+  async hasDeckApkgBlob(deckId: string): Promise<boolean> {
+    const blob = await this.getDeckApkgBlob(deckId);
+    return blob !== null;
   }
 };

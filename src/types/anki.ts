@@ -10,6 +10,11 @@ export interface AnkiDeck {
   lastReviewedAt?: string;
   // ID của Thói quen trên Timeline được liên kết với bộ thẻ này (nếu có)
   linkedHabitId?: string;
+  // Metadata đồng bộ Google Drive
+  driveFileId?: string;
+  driveFileName?: string;
+  driveSyncedAt?: string;
+  rawFileName?: string;
 }
 
 /**

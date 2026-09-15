@@ -2,6 +2,8 @@ import React, { useState, useRef, useMemo } from 'react';
 import { parseAnkiPackage, ParseAnkiResult } from '../../services/ankiParser';
 import { indexedDbService } from '../../services/indexedDbService';
 import { useHabits } from '../../context/HabitContext';
+import { useAuth } from '../../context/AuthContext';
+import { googleDriveService } from '../../services/googleDriveService';
 import {
   UploadCloud,
   X,
@@ -10,7 +12,8 @@ import {
   Volume2,
   AlertCircle,
   Loader2,
-  Check
+  Check,
+  Cloud
 } from 'lucide-react';
 import { cn } from '../../utils/cn';
 
@@ -26,6 +29,7 @@ export const AnkiImportModal: React.FC<AnkiImportModalProps> = ({
   onImportSuccess
 }) => {
   const { addHabit } = useHabits();
+  const { driveToken } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [isDragging, setIsDragging] = useState(false);
@@ -33,6 +37,11 @@ export const AnkiImportModal: React.FC<AnkiImportModalProps> = ({
   const [progressPercent, setProgressPercent] = useState(0);
   const [progressMessage, setProgressMessage] = useState('');
   const [error, setError] = useState<string | null>(null);
+
+  // File .apkg gốc được chọn
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  // Tự động đồng bộ Drive nếu đã kết nối
+  const [autoSyncDrive, setAutoSyncDrive] = useState<boolean>(true);
 
   // Kết quả parse xem trước
   const [previewResult, setPreviewResult] = useState<ParseAnkiResult | null>(null);
@@ -74,6 +83,7 @@ export const AnkiImportModal: React.FC<AnkiImportModalProps> = ({
         setProgressMessage(message);
       });
 
+      setUploadedFile(file);
       setPreviewResult(result);
       setDeckTitle(result.deck.title);
 
@@ -120,7 +130,8 @@ export const AnkiImportModal: React.FC<AnkiImportModalProps> = ({
     try {
       const finalDeck = {
         ...previewResult.deck,
-        title: deckTitle.trim() || previewResult.deck.title
+        title: deckTitle.trim() || previewResult.deck.title,
+        rawFileName: uploadedFile ? uploadedFile.name : undefined
       };
 
       // Xử lý liên kết Thói quen
@@ -136,13 +147,39 @@ export const AnkiImportModal: React.FC<AnkiImportModalProps> = ({
         });
       }
 
-      // Lưu Deck vào IndexedDB
+      // 1. Lưu tệp gốc .apkg vào IndexedDB để sau này đồng bộ 1 chạm không cần chọn lại file
+      if (uploadedFile) {
+        await indexedDbService.saveDeckApkgBlob(finalDeck.id, uploadedFile);
+      }
+
+      // 2. Nếu đã có Drive Token và được bật tuỳ chọn sao lưu tự động -> tải lên Drive ngay
+      if (driveToken && autoSyncDrive && uploadedFile) {
+        setProgressMessage('Đang sao lưu bộ thẻ lên Google Drive...');
+        try {
+          const driveFileId = await googleDriveService.uploadDeckFile(
+            driveToken,
+            uploadedFile,
+            uploadedFile.name,
+            (percent, message) => {
+              setProgressPercent(percent);
+              setProgressMessage(message);
+            }
+          );
+          finalDeck.driveFileId = driveFileId;
+          finalDeck.driveFileName = uploadedFile.name;
+          finalDeck.driveSyncedAt = new Date().toISOString();
+        } catch (driveErr) {
+          console.warn('Lỗi khi tự động tải lên Google Drive (vẫn lưu cục bộ thành công):', driveErr);
+        }
+      }
+
+      // 3. Lưu Deck vào IndexedDB
       await indexedDbService.saveDeck(finalDeck);
 
-      // Lưu Cards vào IndexedDB
+      // 4. Lưu Cards vào IndexedDB
       await indexedDbService.saveCardsBatch(previewResult.cards);
 
-      // Lưu Media Blobs vào IndexedDB
+      // 5. Lưu Media Blobs vào IndexedDB
       if (previewResult.mediaItems.length > 0) {
         await indexedDbService.saveMediaItemsBatch(previewResult.mediaItems);
       }
@@ -160,6 +197,7 @@ export const AnkiImportModal: React.FC<AnkiImportModalProps> = ({
   };
 
   const handleReset = () => {
+    setUploadedFile(null);
     setPreviewResult(null);
     setDeckTitle('');
     setError(null);
@@ -362,6 +400,24 @@ export const AnkiImportModal: React.FC<AnkiImportModalProps> = ({
                 </label>
               </div>
             </div>
+
+            {/* Tùy chọn sao lưu Google Drive */}
+            {driveToken && (
+              <div className="pt-2 border-t border-border-subtle">
+                <label className="flex items-center gap-2.5 text-xs text-text-primary cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={autoSyncDrive}
+                    onChange={(e) => setAutoSyncDrive(e.target.checked)}
+                    className="rounded accent-primary h-4 w-4"
+                  />
+                  <span className="flex items-center gap-1.5 font-medium">
+                    <Cloud className="w-3.5 h-3.5 text-accent-sage" />
+                    <span>Tự động sao lưu lên Google Drive (Atomic Growth/Anki Decks/)</span>
+                  </span>
+                </label>
+              </div>
+            )}
 
             {/* Nút hành động */}
             <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-border-subtle">

@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { googleDriveService, DriveDeckItem } from '../../services/googleDriveService';
 import { parseAnkiPackage } from '../../services/ankiParser';
 import { indexedDbService } from '../../services/indexedDbService';
+import { AnkiDeck } from '../../types/anki';
 import {
   Cloud,
   FolderSync,
@@ -14,7 +15,8 @@ import {
   CheckCircle2,
   AlertCircle,
   Loader2,
-  HardDrive
+  HardDrive,
+  BookOpen
 } from 'lucide-react';
 import { cn } from '../../utils/cn';
 
@@ -33,12 +35,25 @@ export const DriveSyncModal: React.FC<DriveSyncModalProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [decksOnDrive, setDecksOnDrive] = useState<DriveDeckItem[]>([]);
+  const [localDecks, setLocalDecks] = useState<AnkiDeck[]>([]);
+  const [legacyDeckTarget, setLegacyDeckTarget] = useState<AnkiDeck | null>(null);
+
   const [isLoadingList, setIsLoadingList] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [progressPercent, setProgressPercent] = useState(0);
   const [progressMessage, setProgressMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  // Tải danh sách bộ thẻ trên thiết bị
+  const loadLocalDecks = useCallback(async () => {
+    try {
+      const fetched = await indexedDbService.getAllDecks();
+      setLocalDecks(fetched);
+    } catch (err) {
+      console.error('Lỗi khi lấy danh sách bộ thẻ cục bộ:', err);
+    }
+  }, []);
 
   // Tải danh sách các file sao lưu trên Google Drive
   const loadDriveList = useCallback(async (token: string) => {
@@ -61,10 +76,13 @@ export const DriveSyncModal: React.FC<DriveSyncModalProps> = ({
   }, []);
 
   useEffect(() => {
-    if (isOpen && driveToken) {
-      loadDriveList(driveToken);
+    if (isOpen) {
+      loadLocalDecks();
+      if (driveToken) {
+        loadDriveList(driveToken);
+      }
     }
-  }, [isOpen, driveToken, loadDriveList]);
+  }, [isOpen, driveToken, loadDriveList, loadLocalDecks]);
 
   // Kết nối xin quyền Google Drive
   const handleConnectDrive = async () => {
@@ -176,9 +194,60 @@ export const DriveSyncModal: React.FC<DriveSyncModalProps> = ({
 
       setSuccessMessage(`Đã sao lưu thành công "${file.name}" lên thư mục Atomic Growth/Anki Decks trên Google Drive!`);
       await loadDriveList(driveToken);
+      await loadLocalDecks();
     } catch (err: any) {
       console.error('Lỗi khi sao lưu lên Drive:', err);
       setErrorMessage(err?.message || 'Không thể tải tệp lên Google Drive.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // Sao lưu một bộ thẻ đã có sẵn trên máy lên Google Drive
+  const handleBackupLocalDeck = async (deck: AnkiDeck) => {
+    if (!driveToken) return;
+
+    // Kiểm tra xem đã có tệp gốc .apkg trong IndexedDB chưa
+    const cachedBlob = await indexedDbService.getDeckApkgBlob(deck.id);
+    if (!cachedBlob) {
+      // Bộ thẻ cũ chưa có blob -> mở file picker để chọn 1 lần duy nhất
+      setLegacyDeckTarget(deck);
+      fileInputRef.current?.click();
+      return;
+    }
+
+    setActionLoading(true);
+    setErrorMessage(null);
+    setSuccessMessage(null);
+    setProgressPercent(0);
+    setProgressMessage(`Đang chuẩn bị sao lưu "${deck.title}"...`);
+
+    try {
+      const filename = deck.rawFileName || `${deck.title}.apkg`;
+      const fileId = await googleDriveService.uploadDeckFile(
+        driveToken,
+        cachedBlob,
+        filename,
+        (percent, message) => {
+          setProgressPercent(percent);
+          setProgressMessage(message);
+        }
+      );
+
+      // Cập nhật metadata của deck trong IndexedDB
+      const updatedDeck: AnkiDeck = {
+        ...deck,
+        driveFileId: fileId,
+        driveFileName: filename,
+        driveSyncedAt: new Date().toISOString()
+      };
+      await indexedDbService.saveDeck(updatedDeck);
+      setSuccessMessage(`Đã sao lưu thành công "${deck.title}" lên Google Drive!`);
+      await loadLocalDecks();
+      await loadDriveList(driveToken);
+    } catch (err: any) {
+      console.error('Lỗi khi sao lưu bộ thẻ cục bộ lên Drive:', err);
+      setErrorMessage(err?.message || 'Không thể sao lưu bộ thẻ lên Google Drive.');
     } finally {
       setActionLoading(false);
     }
@@ -296,8 +365,72 @@ export const DriveSyncModal: React.FC<DriveSyncModalProps> = ({
               </div>
             )}
 
+            {/* Danh sách các bộ thẻ trên thiết bị này */}
+            {localDecks.length > 0 && (
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between text-xs font-semibold text-text-secondary">
+                  <span className="flex items-center gap-1.5">
+                    <BookOpen className="w-3.5 h-3.5" />
+                    <span>Bộ thẻ trên máy ({localDecks.length})</span>
+                  </span>
+                </div>
+
+                <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                  {localDecks.map((deck) => {
+                    const isSynced = decksOnDrive.some((d) => {
+                      if (deck.driveFileId && d.id === deck.driveFileId) return true;
+                      if (deck.rawFileName && d.name.toLowerCase() === deck.rawFileName.toLowerCase()) return true;
+                      if (deck.driveFileName && d.name.toLowerCase() === deck.driveFileName.toLowerCase()) return true;
+                      const normDeckTitle = deck.title.toLowerCase().trim();
+                      const normDriveTitle = d.name.toLowerCase().replace(/\.apkg$/i, '').trim();
+                      return normDeckTitle === normDriveTitle || d.name.toLowerCase() === `${normDeckTitle}.apkg`;
+                    });
+
+                    return (
+                      <div
+                        key={deck.id}
+                        className="flex items-center justify-between gap-3 rounded-xl border border-border bg-canvas p-3 text-xs"
+                      >
+                        <div className="min-w-0 flex-1">
+                          <h4 className="font-serif font-bold text-text-primary truncate" title={deck.title}>
+                            {deck.title}
+                          </h4>
+                          <div className="text-[11px] font-mono text-text-tertiary mt-0.5">
+                            <span>{deck.cardCount} thẻ</span>
+                            {deck.driveSyncedAt && (
+                              <span> • Đã đồng bộ {new Date(deck.driveSyncedAt).toLocaleDateString('vi-VN')}</span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="shrink-0">
+                          {isSynced ? (
+                            <span className="inline-flex items-center gap-1 text-accent-sage font-medium text-[11px] bg-accent-sprout/70 px-2.5 py-1 rounded-full border border-accent-sage/20">
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              <span>Đã lưu Drive</span>
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              disabled={actionLoading}
+                              onClick={() => handleBackupLocalDeck(deck)}
+                              className="inline-flex items-center gap-1 rounded-lg bg-surface border border-border px-2.5 py-1.5 font-semibold text-primary hover:bg-accent-sprout/60 transition-colors cursor-pointer shadow-2xs text-[11px]"
+                              title="Sao lưu bộ thẻ này lên Google Drive"
+                            >
+                              <UploadCloud className="w-3.5 h-3.5 text-accent-sage" />
+                              <span>Sao lưu lên Drive</span>
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Danh sách các bộ thẻ trên Google Drive */}
-            <div className="space-y-2.5">
+            <div className="space-y-2.5 pt-2 border-t border-border-subtle">
               <div className="flex items-center justify-between text-xs font-semibold text-text-secondary">
                 <span className="flex items-center gap-1.5">
                   <HardDrive className="w-3.5 h-3.5" />
@@ -370,9 +503,17 @@ export const DriveSyncModal: React.FC<DriveSyncModalProps> = ({
                 ref={fileInputRef}
                 type="file"
                 accept=".apkg"
-                onChange={(e) => {
+                onChange={async (e) => {
                   if (e.target.files && e.target.files[0]) {
-                    handleUploadNewFile(e.target.files[0]);
+                    const file = e.target.files[0];
+                    if (legacyDeckTarget) {
+                      // Lưu vào IndexedDB cho bộ thẻ đang cần cache
+                      await indexedDbService.saveDeckApkgBlob(legacyDeckTarget.id, file);
+                      legacyDeckTarget.rawFileName = file.name;
+                      await indexedDbService.saveDeck(legacyDeckTarget);
+                      setLegacyDeckTarget(null);
+                    }
+                    await handleUploadNewFile(file);
                   }
                 }}
                 className="hidden"
