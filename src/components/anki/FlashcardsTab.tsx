@@ -3,13 +3,15 @@ import { AnkiDeck } from '../../types/anki';
 import { indexedDbService } from '../../services/indexedDbService';
 import { AnkiImportModal } from './AnkiImportModal';
 import { ZenFlashcardViewer } from './ZenFlashcardViewer';
+import { DriveSyncModal } from './DriveSyncModal';
 import {
   Layers,
   Plus,
   Play,
   Trash2,
   Sparkles,
-  BookOpen
+  BookOpen,
+  Cloud
 } from 'lucide-react';
 
 interface FlashcardsTabProps {
@@ -22,6 +24,7 @@ export const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ onSessionCompleted
 
   // Modal quản lý
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [isDriveModalOpen, setIsDriveModalOpen] = useState(false);
   const [activeReviewDeckId, setActiveReviewDeckId] = useState<string | null>(null);
 
   // Tải danh sách bộ thẻ từ IndexedDB
@@ -71,14 +74,27 @@ export const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ onSessionCompleted
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={() => setIsImportModalOpen(true)}
-          className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3.5 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-primary-hover active:scale-95 transition-all cursor-pointer"
-        >
-          <Plus className="w-3.5 h-3.5" />
-          <span>Nhập Bộ Thẻ (.apkg)</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setIsDriveModalOpen(true)}
+            className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-xs font-semibold text-text-secondary hover:border-primary/40 hover:text-primary transition-all cursor-pointer shadow-2xs"
+            title="Sao lưu và đồng bộ với Google Drive cá nhân"
+          >
+            <Cloud className="w-3.5 h-3.5 text-accent-sage" />
+            <span className="hidden sm:inline">Google Drive</span>
+            <span className="sm:hidden">Drive</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setIsImportModalOpen(true)}
+            className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3.5 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-primary-hover active:scale-95 transition-all cursor-pointer"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Nhập Bộ Thẻ (.apkg)</span>
+          </button>
+        </div>
       </div>
 
       {/* Danh sách Bộ Thẻ hoặc Clean Empty State */}
@@ -179,6 +195,16 @@ export const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ onSessionCompleted
           }}
         />
       )}
+
+      {/* Modal Đồng Bộ Google Drive */}
+      <DriveSyncModal
+        isOpen={isDriveModalOpen}
+        onClose={() => setIsDriveModalOpen(false)}
+        onDeckRestored={(deckId) => {
+          loadDecks();
+          setActiveReviewDeckId(deckId);
+        }}
+      />
     </div>
   );
 };

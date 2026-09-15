@@ -46,6 +46,7 @@ if (isFirebaseConfigured()) {
     app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
     auth = getAuth(app);
     googleProvider = new GoogleAuthProvider();
+    googleProvider.addScope('https://www.googleapis.com/auth/drive.file');
     googleProvider.setCustomParameters({ prompt: 'select_account' });
 
     // Kích hoạt IndexedDB Persistent Cache cho Firestore để hỗ trợ Offline-First
@@ -63,7 +64,7 @@ if (isFirebaseConfigured()) {
 }
 
 /**
- * Đăng nhập bằng tài khoản Google (Pop-up)
+ * Đăng nhập bằng tài khoản Google (Pop-up) kèm theo Scope Google Drive
  */
 export async function signInWithGoogle(): Promise<User | null> {
   if (!auth || !googleProvider) {
@@ -71,11 +72,49 @@ export async function signInWithGoogle(): Promise<User | null> {
   }
   try {
     const result = await signInWithPopup(auth, googleProvider);
+    const credential = GoogleAuthProvider.credentialFromResult(result);
+    if (credential?.accessToken) {
+      localStorage.setItem('atomic_google_drive_token', credential.accessToken);
+    }
     return result.user;
   } catch (error) {
     console.error('Lỗi khi đăng nhập bằng Google:', error);
     throw error;
   }
+}
+
+/**
+ * Yêu cầu hoặc làm mới quyền truy cập Google Drive (OAuth Access Token)
+ */
+export async function requestGoogleDriveAccess(): Promise<string> {
+  if (!auth) {
+    throw new Error('Firebase Auth chưa được khởi tạo');
+  }
+
+  const driveProvider = new GoogleAuthProvider();
+  driveProvider.addScope('https://www.googleapis.com/auth/drive.file');
+  driveProvider.setCustomParameters({ prompt: 'consent' });
+
+  try {
+    const result = await signInWithPopup(auth, driveProvider);
+    const credential = GoogleAuthProvider.credentialFromResult(result);
+    const token = credential?.accessToken;
+    if (token) {
+      localStorage.setItem('atomic_google_drive_token', token);
+      return token;
+    }
+    throw new Error('Không nhận được mã truy cập OAuth từ Google');
+  } catch (error) {
+    console.error('Lỗi khi xin quyền Google Drive:', error);
+    throw error;
+  }
+}
+
+/**
+ * Lấy Access Token Google Drive đã lưu
+ */
+export function getStoredDriveToken(): string | null {
+  return localStorage.getItem('atomic_google_drive_token');
 }
 
 /**
