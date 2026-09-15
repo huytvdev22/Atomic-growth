@@ -9,8 +9,9 @@ import { ReflectionsFeed } from './components/ReflectionsFeed';
 import { AddHabitModal } from './components/AddHabitModal';
 import { UpdateToast } from './components/UpdateToast';
 import { FlashcardsTab } from './components/anki/FlashcardsTab';
+import { AnkiDecoderView } from './components/anki/AnkiDecoderView';
 import { RitualTime } from './types/habit';
-import { Menu, Search, Plus, Sparkles, Heart, Sprout, Calendar, BookOpen, Brain } from 'lucide-react';
+import { Menu, Search, Plus, Sparkles, Heart, Sprout, Calendar, BookOpen, Brain, FileCode } from 'lucide-react';
 
 export const App: React.FC = () => {
   const {
@@ -72,10 +73,12 @@ export const App: React.FC = () => {
                 {activeTab === 'timeline' && <Calendar className="w-3.5 h-3.5" />}
                 {activeTab === 'reflections' && <BookOpen className="w-3.5 h-3.5" />}
                 {activeTab === 'flashcards' && <Brain className="w-3.5 h-3.5" />}
+                {activeTab === 'anki-decoder' && <FileCode className="w-3.5 h-3.5 text-accent-amber" />}
                 <span>
                   {activeTab === 'timeline' && 'Timeline'}
                   {activeTab === 'reflections' && 'Nhật ký Phản tư'}
                   {activeTab === 'flashcards' && 'Góc Ôn Tập (Anki)'}
+                  {activeTab === 'anki-decoder' && 'Giải Mã Anki Deck (Studio)'}
                   {activeTab === 'archive' && 'Lưu trữ'}
                 </span>
               </button>
@@ -206,7 +209,16 @@ export const App: React.FC = () => {
             />
           )}
 
-          {/* E. Xem Lưu Trữ (Archive) */}
+          {/* E. Xem Giải Mã & Chẩn Đoán Anki Deck (Decoder Studio) */}
+          {activeTab === 'anki-decoder' && (
+            <AnkiDecoderView
+              onImportCompleted={() => {
+                setActiveTab('flashcards');
+              }}
+            />
+          )}
+
+          {/* F. Xem Lưu Trữ (Archive) */}
           {activeTab === 'archive' && (
             <div className="rounded-xl border border-dashed border-border bg-surface p-12 text-center">
               <Sprout className="w-10 h-10 text-accent-sage mx-auto mb-3 opacity-60" />

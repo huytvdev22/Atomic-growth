@@ -9,6 +9,7 @@ import {
   BookOpen,
   Archive,
   Brain,
+  FileCode,
   Hash,
   X,
   LogOut,
@@ -226,6 +227,29 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
           </div>
           <span className="font-mono text-[10px] bg-accent-sage/20 text-primary px-1.5 py-0.2 rounded-full font-semibold">
             2m
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setActiveTab('anki-decoder');
+            setActiveTag(null);
+            onCloseMobile();
+          }}
+          className={cn(
+            'w-full flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-md transition-all cursor-pointer',
+            activeTab === 'anki-decoder'
+              ? 'bg-accent-sprout/60 text-primary border-l-[3px] border-primary font-bold shadow-2xs'
+              : 'text-text-secondary hover:bg-canvas-subtle hover:text-text-primary'
+          )}
+        >
+          <div className="flex items-center gap-2.5">
+            <FileCode className="h-4 w-4" />
+            <span>Giải Mã Anki Deck</span>
+          </div>
+          <span className="font-mono text-[10px] bg-accent-amber/20 text-accent-amber px-1.5 py-0.2 rounded-full font-semibold">
+            Studio
           </span>
         </button>
 

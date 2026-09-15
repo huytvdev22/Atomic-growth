@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { AnkiDeck } from '../../types/anki';
 import { indexedDbService } from '../../services/indexedDbService';
 import { useAuth } from '../../context/AuthContext';
+import { useHabits } from '../../context/HabitContext';
 import { googleDriveService, DriveDeckItem } from '../../services/googleDriveService';
 import { AnkiImportModal } from './AnkiImportModal';
 import { ZenFlashcardViewer } from './ZenFlashcardViewer';
@@ -19,7 +20,8 @@ import {
   UploadCloud,
   CheckCircle2,
   RefreshCw,
-  Loader2
+  Loader2,
+  FileCode
 } from 'lucide-react';
 
 interface FlashcardsTabProps {
@@ -28,6 +30,7 @@ interface FlashcardsTabProps {
 
 export const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ onSessionCompleted }) => {
   const { driveToken, requestDriveAccess } = useAuth();
+  const { setActiveTab } = useHabits();
 
   const [decks, setDecks] = useState<AnkiDeck[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -268,6 +271,16 @@ export const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ onSessionCompleted
 
           <button
             type="button"
+            onClick={() => setActiveTab('anki-decoder')}
+            className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-xs font-semibold text-text-secondary hover:border-primary/40 hover:text-primary transition-all cursor-pointer shadow-2xs"
+            title="Mở phòng thí nghiệm bóc tách và giải mã lỗi file Anki"
+          >
+            <FileCode className="w-3.5 h-3.5 text-accent-amber" />
+            <span className="hidden sm:inline">Giải Mã Deck</span>
+          </button>
+
+          <button
+            type="button"
             onClick={() => setIsImportModalOpen(true)}
             className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3.5 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-primary-hover active:scale-95 transition-all cursor-pointer"
           >
@@ -295,14 +308,24 @@ export const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ onSessionCompleted
               Bạn có thể nhập trực tiếp các tệp <span className="font-mono font-semibold text-primary">.apkg</span> từ Anki (từ vựng, thuật ngữ, động từ bất quy tắc) để ôn tập 2 phút mỗi ngày.
             </p>
           </div>
-          <button
-            type="button"
-            onClick={() => setIsImportModalOpen(true)}
-            className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-white hover:bg-primary-hover active:scale-95 transition-all cursor-pointer shadow-xs"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>Nhập bộ thẻ Anki đầu tiên</span>
-          </button>
+          <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+            <button
+              type="button"
+              onClick={() => setIsImportModalOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-white hover:bg-primary-hover active:scale-95 transition-all cursor-pointer shadow-xs"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Nhập bộ thẻ Anki đầu tiên</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('anki-decoder')}
+              className="inline-flex items-center gap-1.5 rounded-full border border-border bg-canvas px-4 py-2 text-xs font-semibold text-text-secondary hover:text-text-primary hover:bg-canvas-subtle transition-all cursor-pointer"
+            >
+              <FileCode className="w-3.5 h-3.5 text-accent-amber" />
+              <span>Công Cụ Giải Mã Deck (Studio)</span>
+            </button>
+          </div>
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">

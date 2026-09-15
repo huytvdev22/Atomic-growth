@@ -47,6 +47,8 @@ export interface AnkiCard {
   lapses: number;
   // Thẻ tags phân loại chủ đề (nếu có)
   tags?: string[];
+  // Tên phân nhóm/chủ đề bài học (Subdeck, ví dụ: "01. Contract")
+  subdeckName?: string;
   // Trạng thái hiện tại của thẻ
   state: CardState;
 }
@@ -122,5 +124,99 @@ export interface DeckProgressDoc {
     steady: number;
   };
   cardsProgress: Record<string, CardProgressItem>;
+}
+
+/**
+ * Thông tin file bên trong gói nén .apkg (ZIP archive)
+ */
+export interface AnkiZipFileInfo {
+  name: string;
+  sizeBytes: number;
+  compressedSizeBytes?: number;
+  isDatabaseFile: boolean;
+  isMediaMapFile: boolean;
+}
+
+/**
+ * Cấu trúc một trường dữ liệu trong mẫu ghi chú (Note Type Field)
+ */
+export interface AnkiModelField {
+  index: number;
+  name: string;
+}
+
+/**
+ * Định nghĩa một loại ghi chú (Note Model / Note Type) trong cơ sở dữ liệu Anki
+ */
+export interface AnkiModelDefinition {
+  id: string;
+  name: string;
+  fields: AnkiModelField[];
+  templateNames: string[];
+}
+
+/**
+ * Thông tin một bộ thẻ hoặc bộ thẻ con (Subdeck) phát hiện trong Anki
+ */
+export interface AnkiSubdeckInfo {
+  id: string;
+  name: string;
+  cleanTitle: string;
+  cardCount: number;
+  isParent: boolean;
+}
+
+/**
+ * Dữ liệu thô của một ghi chú (Raw Note) đọc trực tiếp từ bảng notes
+ */
+export interface AnkiRawNote {
+  id: string;
+  modelId: string;
+  deckId?: string;
+  fields: string[];
+  tags: string[];
+}
+
+/**
+ * Cảnh báo hoặc khuyến nghị chẩn đoán khi kiểm tra gói Anki
+ */
+export interface AnkiDiagnosticIssue {
+  id: string;
+  level: 'info' | 'warning' | 'error';
+  title: string;
+  description: string;
+  solution?: string;
+}
+
+/**
+ * Cấu hình tùy biến ánh xạ trường (Custom Field Mapping)
+ */
+export interface AnkiFieldMappingConfig {
+  modelId: string;
+  frontFieldIndex?: number; // Tương thích cũ
+  frontFieldIndices: number[]; // Danh sách các trường hiển thị ở mặt trước
+  backFieldIndices: number[];
+  audioFieldIndex?: number;
+  imageFieldIndex?: number;
+}
+
+/**
+ * Báo cáo kiểm tra và giải mã toàn diện gói Anki
+ */
+export interface AnkiInspectionReport {
+  fileName: string;
+  fileSizeBytes: number;
+  zipFiles: AnkiZipFileInfo[];
+  dbType: 'anki21' | 'anki2' | 'anki21b_zstd' | 'not_found';
+  sqliteTables: string[];
+  decks: AnkiSubdeckInfo[];
+  models: Record<string, AnkiModelDefinition>;
+  totalNotes: number;
+  totalCards: number;
+  mediaCount: number;
+  mediaMap: Record<string, string>; // Số thứ tự -> Tên tệp đa phương tiện
+  rawNotes: AnkiRawNote[];
+  issues: AnkiDiagnosticIssue[];
+  defaultMapping: Record<string, AnkiFieldMappingConfig>; // modelId -> config
 }
 

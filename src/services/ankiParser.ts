@@ -6,7 +6,7 @@ import { AnkiDeck, AnkiCard, AnkiMediaItem } from '../types/anki';
 /**
  * Xác định định dạng MIME Type dựa theo phần mở rộng của file
  */
-function getMimeType(filename: string): string {
+export function getMimeType(filename: string): string {
   const ext = filename.split('.').pop()?.toLowerCase();
   switch (ext) {
     case 'mp3':
@@ -38,7 +38,7 @@ function getMimeType(filename: string): string {
  * - Loại bỏ các thẻ [sound:filename.mp3] để tách riêng ra nút phát âm
  * - Trả về audioName nếu có
  */
-function cleanAnkiField(text: string): { cleanText: string; audioNames: string[]; imageNames: string[] } {
+export function cleanAnkiField(text: string): { cleanText: string; audioNames: string[]; imageNames: string[] } {
   let cleanText = text || '';
   const audioNames: string[] = [];
   const imageNames: string[] = [];
@@ -89,7 +89,7 @@ export type ProgressCallback = (percent: number, message: string) => void;
  * Ngăn chặn tuyệt đối lỗi "WebAssembly.instantiate(): expected magic word 00 61 73 6d, found 3c 21 64 6f"
  * (nguyên nhân do Service Worker/PWA hoặc Vite dev server trả về HTML index.html thay vì wasm)
  */
-async function getSqlJsInstance() {
+export async function getSqlJsInstance() {
   const sources = [
     sqlWasmUrl,
     '/sql-wasm.wasm',
