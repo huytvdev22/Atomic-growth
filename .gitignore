@@ -31,3 +31,8 @@ dist-ssr
 *-firebase-adminsdk-*.json
 service-account*.json
 *.pem
+
+# Anki local deck packages
+.anki/
+*.apkg
+*.opdownload

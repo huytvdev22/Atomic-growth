@@ -8,11 +8,15 @@ import { NeverMissTwiceCard } from './components/NeverMissTwiceCard';
 import { ReflectionsFeed } from './components/ReflectionsFeed';
 import { AddHabitModal } from './components/AddHabitModal';
 import { UpdateToast } from './components/UpdateToast';
+import { FlashcardsTab } from './components/anki/FlashcardsTab';
 import { RitualTime } from './types/habit';
-import { Menu, Search, Plus, Sparkles, Heart, Sprout, Calendar, BookOpen } from 'lucide-react';
+import { Menu, Search, Plus, Sparkles, Heart, Sprout, Calendar, BookOpen, Brain } from 'lucide-react';
 
 export const App: React.FC = () => {
   const {
+    habits,
+    toggleHabit,
+    isHabitCompletedToday,
     getHabitsByRitual,
     totalActiveHabits,
     activeTab,
@@ -67,9 +71,11 @@ export const App: React.FC = () => {
               >
                 {activeTab === 'timeline' && <Calendar className="w-3.5 h-3.5" />}
                 {activeTab === 'reflections' && <BookOpen className="w-3.5 h-3.5" />}
+                {activeTab === 'flashcards' && <Brain className="w-3.5 h-3.5" />}
                 <span>
                   {activeTab === 'timeline' && 'Timeline'}
                   {activeTab === 'reflections' && 'Nhật ký Phản tư'}
+                  {activeTab === 'flashcards' && 'Góc Ôn Tập (Anki)'}
                   {activeTab === 'archive' && 'Lưu trữ'}
                 </span>
               </button>
@@ -183,7 +189,24 @@ export const App: React.FC = () => {
             </div>
           )}
 
-          {/* D. Xem Lưu Trữ (Archive) */}
+          {/* D. Xem Góc Ôn Tập Thẻ Nhớ (Flashcards) */}
+          {activeTab === 'flashcards' && (
+            <FlashcardsTab
+              onSessionCompleted={() => {
+                // Tự động tìm habit nào có liên quan đến ôn thẻ hoặc từ vựng để check-in
+                const flashcardHabit = habits.find((h) =>
+                  h.title.toLowerCase().includes('thẻ') ||
+                  h.title.toLowerCase().includes('anki') ||
+                  h.title.toLowerCase().includes('từ vựng')
+                );
+                if (flashcardHabit && !isHabitCompletedToday(flashcardHabit.id)) {
+                  toggleHabit(flashcardHabit.id);
+                }
+              }}
+            />
+          )}
+
+          {/* E. Xem Lưu Trữ (Archive) */}
           {activeTab === 'archive' && (
             <div className="rounded-xl border border-dashed border-border bg-surface p-12 text-center">
               <Sprout className="w-10 h-10 text-accent-sage mx-auto mb-3 opacity-60" />

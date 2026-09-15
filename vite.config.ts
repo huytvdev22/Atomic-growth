@@ -11,7 +11,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'prompt',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'vite.svg'],
+      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'vite.svg', 'sql-wasm.wasm'],
       manifest: {
         name: 'Atomic Growth — Xây Dựng Thói Quen & Phát Triển Bản Thân',
         short_name: 'Atomic Growth',
@@ -34,7 +34,8 @@ export default defineConfig({
         ]
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,webmanifest}'],
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,webmanifest,wasm}'],
+        navigateFallbackDenylist: [/^\/.*\.wasm$/, /\.wasm$/],
         runtimeCaching: [
           {
             // Cache Google Fonts Stylesheet & WebFonts cho trải nghiệm offline trọn vẹn

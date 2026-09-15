@@ -1,7 +1,7 @@
 import React from 'react';
 import { Habit } from '../types/habit';
 import { useHabits } from '../context/HabitContext';
-import { Check, Flame, Trash2, Zap } from 'lucide-react';
+import { Check, Flame, Trash2, Zap, Brain } from 'lucide-react';
 import { cn } from '../utils/cn';
 
 interface HabitCardProps {
@@ -9,8 +9,13 @@ interface HabitCardProps {
 }
 
 export const HabitCard: React.FC<HabitCardProps> = ({ habit }) => {
-  const { isHabitCompletedToday, toggleHabit, deleteHabit } = useHabits();
+  const { isHabitCompletedToday, toggleHabit, deleteHabit, setActiveTab } = useHabits();
   const completed = isHabitCompletedToday(habit.id);
+
+  const isFlashcardHabit =
+    habit.title.toLowerCase().includes('thẻ') ||
+    habit.title.toLowerCase().includes('anki') ||
+    habit.title.toLowerCase().includes('từ vựng');
 
   // Nhãn danh mục tiếng Việt
   const categoryLabels: Record<string, string> = {
@@ -71,6 +76,21 @@ export const HabitCard: React.FC<HabitCardProps> = ({ habit }) => {
                 <Zap className="w-3 h-3" />
                 <span>2-phút: {habit.twoMinuteVersion}</span>
               </span>
+            )}
+
+            {isFlashcardHabit && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setActiveTab('flashcards');
+                }}
+                className="inline-flex items-center gap-1 rounded-xs bg-accent-sprout/70 px-2 py-0.5 font-semibold text-[11px] text-primary hover:bg-accent-sprout transition-colors cursor-pointer"
+                title="Mở Góc Ôn Tập Thẻ Nhớ"
+              >
+                <Brain className="w-3 h-3" />
+                <span>Ôn thẻ 2m</span>
+              </button>
             )}
           </div>
         </div>

@@ -38,8 +38,8 @@ interface HabitContextType {
   topStreak: number;
   hasNeverMissTwiceAlert: boolean;
   getHabitsByRitual: (ritual: RitualTime) => Habit[];
-  activeTab: 'timeline' | 'reflections' | 'archive';
-  setActiveTab: (tab: 'timeline' | 'reflections' | 'archive') => void;
+  activeTab: 'timeline' | 'reflections' | 'flashcards' | 'archive';
+  setActiveTab: (tab: 'timeline' | 'reflections' | 'flashcards' | 'archive') => void;
   activeTag: string | null;
   setActiveTag: (tag: string | null) => void;
   searchQuery: string;
@@ -56,7 +56,7 @@ export const HabitProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [logs, setLogs] = useState<HabitLog[]>(() => habitStorage.getLogs());
   const [notes, setNotes] = useState<MicroNote[]>(() => habitStorage.getNotes());
   const [profile, setProfile] = useState<UserProfile>(() => habitStorage.getProfile());
-  const [activeTab, setActiveTab] = useState<'timeline' | 'reflections' | 'archive'>('timeline');
+  const [activeTab, setActiveTab] = useState<'timeline' | 'reflections' | 'flashcards' | 'archive'>('timeline');
   const [activeTag, setActiveTag] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
 

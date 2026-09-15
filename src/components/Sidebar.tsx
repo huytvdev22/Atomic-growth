@@ -8,6 +8,7 @@ import {
   Calendar,
   BookOpen,
   Archive,
+  Brain,
   Hash,
   X,
   LogOut,
@@ -202,6 +203,29 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
           </div>
           <span className="font-mono text-[11px] bg-white/80 text-text-secondary px-2 py-0.2 rounded-full border border-border">
             {notes.length}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setActiveTab('flashcards');
+            setActiveTag(null);
+            onCloseMobile();
+          }}
+          className={cn(
+            'w-full flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-md transition-all cursor-pointer',
+            activeTab === 'flashcards'
+              ? 'bg-accent-sprout/60 text-primary border-l-[3px] border-primary font-bold shadow-2xs'
+              : 'text-text-secondary hover:bg-canvas-subtle hover:text-text-primary'
+          )}
+        >
+          <div className="flex items-center gap-2.5">
+            <Brain className="h-4 w-4" />
+            <span>Góc Ôn Tập (Anki)</span>
+          </div>
+          <span className="font-mono text-[10px] bg-accent-sage/20 text-primary px-1.5 py-0.2 rounded-full font-semibold">
+            2m
           </span>
         </button>
 
