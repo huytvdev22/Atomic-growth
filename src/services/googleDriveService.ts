@@ -3,11 +3,36 @@
  * Quản lý sao lưu và khôi phục các bộ thẻ Anki (.apkg) theo cấu trúc thư mục mở rộng
  */
 
+import { clearStoredDriveToken } from './firebase';
+
 export interface DriveDeckItem {
   id: string;
   name: string;
   size: number;
   modifiedTime: string;
+}
+
+/**
+ * Lỗi định danh phiên xác thực Google Drive hết hạn hoặc không hợp lệ (HTTP 401)
+ */
+export class GoogleDriveAuthError extends Error {
+  constructor(message = 'Phiên làm việc Google Drive đã hết hạn (HTTP 401). Vui lòng cấp lại quyền truy cập.') {
+    super(message);
+    this.name = 'GoogleDriveAuthError';
+  }
+}
+
+/**
+ * Kiểm tra mã phản hồi từ Google Drive API, tự động dọn dẹp token hỏng khi gặp lỗi 401
+ */
+function assertDriveResponse(res: Response, defaultMessage: string): void {
+  if (res.status === 401) {
+    clearStoredDriveToken();
+    throw new GoogleDriveAuthError();
+  }
+  if (!res.ok) {
+    throw new Error(`${defaultMessage}: HTTP ${res.status}`);
+  }
 }
 
 const APP_ROOT_FOLDER_NAME = 'Atomic Growth';
@@ -35,9 +60,7 @@ async function getOrCreateFolder(
     headers: { Authorization: `Bearer ${token}` }
   });
 
-  if (!searchRes.ok) {
-    throw new Error(`Lỗi tìm kiếm thư mục trên Google Drive: HTTP ${searchRes.status}`);
-  }
+  assertDriveResponse(searchRes, 'Lỗi tìm kiếm thư mục trên Google Drive');
 
   const searchData = await searchRes.json();
   if (searchData.files && searchData.files.length > 0) {
@@ -58,9 +81,7 @@ async function getOrCreateFolder(
     })
   });
 
-  if (!createRes.ok) {
-    throw new Error(`Lỗi tạo thư mục "${folderName}" trên Google Drive: HTTP ${createRes.status}`);
-  }
+  assertDriveResponse(createRes, `Lỗi tạo thư mục "${folderName}" trên Google Drive`);
 
   const createData = await createRes.json();
   return createData.id;
@@ -110,9 +131,7 @@ export const googleDriveService = {
       }
     );
 
-    if (!initRes.ok) {
-      throw new Error(`Lỗi khởi tạo phiên upload Google Drive: HTTP ${initRes.status}`);
-    }
+    assertDriveResponse(initRes, 'Lỗi khởi tạo phiên upload Google Drive');
 
     const uploadUrl = initRes.headers.get('Location');
     if (!uploadUrl) {
@@ -152,6 +171,9 @@ export const googleDriveService = {
       } else if (chunkRes.status === 308) {
         // Khối đã nhận thành công, tiếp tục khối tiếp theo
         offset = chunkEnd;
+      } else if (chunkRes.status === 401) {
+        clearStoredDriveToken();
+        throw new GoogleDriveAuthError();
       } else {
         throw new Error(`Lỗi upload khối dữ liệu tới Google Drive: HTTP ${chunkRes.status}`);
       }
@@ -175,9 +197,7 @@ export const googleDriveService = {
       headers: { Authorization: `Bearer ${token}` }
     });
 
-    if (!res.ok) {
-      throw new Error(`Lỗi lấy danh sách tệp từ Google Drive: HTTP ${res.status}`);
-    }
+    assertDriveResponse(res, 'Lỗi lấy danh sách tệp từ Google Drive');
 
     const data = await res.json();
     return (data.files || []).map((f: any) => ({
@@ -203,9 +223,7 @@ export const googleDriveService = {
       headers: { Authorization: `Bearer ${token}` }
     });
 
-    if (!res.ok) {
-      throw new Error(`Lỗi tải tệp từ Google Drive: HTTP ${res.status}`);
-    }
+    assertDriveResponse(res, 'Lỗi tải tệp từ Google Drive');
 
     const contentLength = Number(res.headers.get('Content-Length')) || 0;
 
@@ -248,6 +266,11 @@ export const googleDriveService = {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token}` }
     });
+
+    if (res.status === 401) {
+      clearStoredDriveToken();
+      throw new GoogleDriveAuthError();
+    }
 
     if (!res.ok && res.status !== 204) {
       throw new Error(`Lỗi xóa tệp trên Google Drive: HTTP ${res.status}`);

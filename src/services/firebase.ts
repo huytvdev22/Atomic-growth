@@ -63,6 +63,48 @@ if (isFirebaseConfigured()) {
   console.info('[Atomic Growth] Chế độ Offline Mock Mode đang hoạt động (chưa cấu hình Firebase API Key trong .env).');
 }
 
+// Khóa lưu trữ token và thời điểm cấp quyền trong LocalStorage
+const DRIVE_TOKEN_KEY = 'atomic_google_drive_token';
+const DRIVE_TOKEN_SAVED_AT = 'atomic_google_drive_token_saved_at';
+// OAuth Access Token của Google hết hạn sau 60 phút (3600s). Ta đặt ngưỡng an toàn 50 phút (3000s).
+const DRIVE_TOKEN_TTL_MS = 50 * 60 * 1000;
+
+/**
+ * Lưu Access Token Google Drive kèm mốc thời gian
+ */
+export function setStoredDriveToken(token: string): void {
+  localStorage.setItem(DRIVE_TOKEN_KEY, token);
+  localStorage.setItem(DRIVE_TOKEN_SAVED_AT, Date.now().toString());
+}
+
+/**
+ * Xóa vĩnh viễn Access Token Google Drive khỏi bộ nhớ cục bộ
+ */
+export function clearStoredDriveToken(): void {
+  localStorage.removeItem(DRIVE_TOKEN_KEY);
+  localStorage.removeItem(DRIVE_TOKEN_SAVED_AT);
+}
+
+/**
+ * Lấy Access Token Google Drive đã lưu, tự động dọn dẹp nếu token đã quá hạn 50 phút
+ */
+export function getStoredDriveToken(): string | null {
+  const token = localStorage.getItem(DRIVE_TOKEN_KEY);
+  const savedAtStr = localStorage.getItem(DRIVE_TOKEN_SAVED_AT);
+  if (!token) return null;
+
+  if (savedAtStr) {
+    const savedAt = parseInt(savedAtStr, 10);
+    if (!isNaN(savedAt) && Date.now() - savedAt > DRIVE_TOKEN_TTL_MS) {
+      console.info('[Atomic Growth] Google Drive token đã hết hạn bảo mật (TTL > 50 phút). Tự động dọn dẹp.');
+      clearStoredDriveToken();
+      return null;
+    }
+  }
+
+  return token;
+}
+
 /**
  * Đăng nhập bằng tài khoản Google (Pop-up) kèm theo Scope Google Drive
  */
@@ -74,7 +116,7 @@ export async function signInWithGoogle(): Promise<User | null> {
     const result = await signInWithPopup(auth, googleProvider);
     const credential = GoogleAuthProvider.credentialFromResult(result);
     if (credential?.accessToken) {
-      localStorage.setItem('atomic_google_drive_token', credential.accessToken);
+      setStoredDriveToken(credential.accessToken);
     }
     return result.user;
   } catch (error) {
@@ -93,14 +135,14 @@ export async function requestGoogleDriveAccess(): Promise<string> {
 
   const driveProvider = new GoogleAuthProvider();
   driveProvider.addScope('https://www.googleapis.com/auth/drive.file');
-  driveProvider.setCustomParameters({ prompt: 'consent' });
+  driveProvider.setCustomParameters({ prompt: 'select_account' });
 
   try {
     const result = await signInWithPopup(auth, driveProvider);
     const credential = GoogleAuthProvider.credentialFromResult(result);
     const token = credential?.accessToken;
     if (token) {
-      localStorage.setItem('atomic_google_drive_token', token);
+      setStoredDriveToken(token);
       return token;
     }
     throw new Error('Không nhận được mã truy cập OAuth từ Google');
@@ -111,18 +153,12 @@ export async function requestGoogleDriveAccess(): Promise<string> {
 }
 
 /**
- * Lấy Access Token Google Drive đã lưu
- */
-export function getStoredDriveToken(): string | null {
-  return localStorage.getItem('atomic_google_drive_token');
-}
-
-/**
- * Đăng xuất khỏi tài khoản hiện tại
+ * Đăng xuất khỏi tài khoản hiện tại và xóa token Drive
  */
 export async function signOutUser(): Promise<void> {
   if (!auth) return;
   try {
+    clearStoredDriveToken();
     await signOut(auth);
   } catch (error) {
     console.error('Lỗi khi đăng xuất:', error);

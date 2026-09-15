@@ -3,7 +3,7 @@ import { AnkiDeck } from '../../types/anki';
 import { indexedDbService } from '../../services/indexedDbService';
 import { useAuth } from '../../context/AuthContext';
 import { useHabits } from '../../context/HabitContext';
-import { googleDriveService, DriveDeckItem } from '../../services/googleDriveService';
+import { googleDriveService, DriveDeckItem, GoogleDriveAuthError } from '../../services/googleDriveService';
 import { AnkiImportModal } from './AnkiImportModal';
 import { ZenFlashcardViewer } from './ZenFlashcardViewer';
 import { DriveSyncModal } from './DriveSyncModal';
@@ -29,7 +29,7 @@ interface FlashcardsTabProps {
 }
 
 export const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ onSessionCompleted }) => {
-  const { driveToken, requestDriveAccess } = useAuth();
+  const { driveToken, requestDriveAccess, clearDriveToken } = useAuth();
   const { setActiveTab } = useHabits();
 
   const [decks, setDecks] = useState<AnkiDeck[]>([]);
@@ -70,10 +70,13 @@ export const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ onSessionCompleted
     try {
       const items = await googleDriveService.listDecksOnDrive(token);
       setDriveItems(items);
-    } catch (err) {
+    } catch (err: any) {
       console.warn('Không thể nạp danh sách tệp Google Drive:', err);
+      if (err instanceof GoogleDriveAuthError || err?.message?.includes('401')) {
+        clearDriveToken();
+      }
     }
-  }, []);
+  }, [clearDriveToken]);
 
   useEffect(() => {
     loadDecks();
@@ -108,7 +111,7 @@ export const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ onSessionCompleted
   };
 
   /**
-   * Tải bộ thẻ lên Google Drive
+   * Tải bộ thẻ lên Google Drive (kèm cơ chế tự động khôi phục khi Token hết hạn)
    */
   const uploadDeckToDrive = async (
     deck: AnkiDeck,
@@ -138,7 +141,24 @@ export const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ onSessionCompleted
       await refreshDriveList(token);
     } catch (err: any) {
       console.error('Lỗi khi sao lưu bộ thẻ lên Google Drive:', err);
-      alert('Không thể sao lưu lên Google Drive: ' + (err?.message || 'Có lỗi xảy ra'));
+      if (err instanceof GoogleDriveAuthError || err?.message?.includes('401')) {
+        clearDriveToken();
+        const shouldReauth = window.confirm(
+          'Phiên làm việc Google Drive đã hết hạn (sau 1 giờ bảo mật của Google OAuth).\n\nBạn có muốn đăng nhập lại Google Drive để tiếp tục sao lưu bộ thẻ này ngay bây giờ không?'
+        );
+        if (shouldReauth) {
+          try {
+            const newToken = await requestDriveAccess();
+            await uploadDeckToDrive(deck, file, filename, newToken);
+            return;
+          } catch (reAuthErr: any) {
+            console.error('Không thể làm mới quyền Google Drive:', reAuthErr);
+            alert('Không thể xác thực lại với Google: ' + (reAuthErr?.message || 'Đã hủy thao tác'));
+          }
+        }
+      } else {
+        alert('Không thể sao lưu lên Google Drive: ' + (err?.message || 'Có lỗi xảy ra'));
+      }
     } finally {
       setSyncingDeckId(null);
       setSyncProgress(0);

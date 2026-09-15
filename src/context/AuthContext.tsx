@@ -6,6 +6,7 @@ import {
   signOutUser,
   onAuthChange,
   getStoredDriveToken,
+  clearStoredDriveToken,
   requestGoogleDriveAccess
 } from '../services/firebase';
 
@@ -17,6 +18,7 @@ interface AuthContextType {
   loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
   requestDriveAccess: () => Promise<string>;
+  clearDriveToken: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -63,10 +65,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
+  const clearDriveToken = useCallback(() => {
+    clearStoredDriveToken();
+    setDriveToken(null);
+  }, []);
+
   const logout = useCallback(async () => {
     try {
       await signOutUser();
-      localStorage.removeItem('atomic_google_drive_token');
+      clearStoredDriveToken();
       setDriveToken(null);
     } catch (err) {
       console.error('Đăng xuất thất bại:', err);
@@ -82,9 +89,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       driveToken,
       loginWithGoogle,
       logout,
-      requestDriveAccess
+      requestDriveAccess,
+      clearDriveToken
     }),
-    [user, loading, isConfigured, driveToken, loginWithGoogle, logout, requestDriveAccess]
+    [user, loading, isConfigured, driveToken, loginWithGoogle, logout, requestDriveAccess, clearDriveToken]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

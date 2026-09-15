@@ -4,7 +4,7 @@ import { parseAnkiPackage, ParseAnkiResult } from '../../services/ankiParser';
 import { indexedDbService } from '../../services/indexedDbService';
 import { useHabits } from '../../context/HabitContext';
 import { useAuth } from '../../context/AuthContext';
-import { googleDriveService } from '../../services/googleDriveService';
+import { googleDriveService, GoogleDriveAuthError } from '../../services/googleDriveService';
 import {
   UploadCloud,
   FileCheck,
@@ -29,7 +29,7 @@ export const AnkiImportModal: React.FC<AnkiImportModalProps> = ({
   onImportSuccess
 }) => {
   const { addHabit } = useHabits();
-  const { driveToken } = useAuth();
+  const { driveToken, clearDriveToken } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [isDragging, setIsDragging] = useState(false);
@@ -168,8 +168,11 @@ export const AnkiImportModal: React.FC<AnkiImportModalProps> = ({
           finalDeck.driveFileId = driveFileId;
           finalDeck.driveFileName = uploadedFile.name;
           finalDeck.driveSyncedAt = new Date().toISOString();
-        } catch (driveErr) {
+        } catch (driveErr: any) {
           console.warn('Lỗi khi tự động tải lên Google Drive (vẫn lưu cục bộ thành công):', driveErr);
+          if (driveErr instanceof GoogleDriveAuthError || driveErr?.message?.includes('401')) {
+            clearDriveToken();
+          }
         }
       }
 

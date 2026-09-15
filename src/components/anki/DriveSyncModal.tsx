@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { BottomSheet } from '../BottomSheet';
 import { useAuth } from '../../context/AuthContext';
-import { googleDriveService, DriveDeckItem } from '../../services/googleDriveService';
+import { googleDriveService, DriveDeckItem, GoogleDriveAuthError } from '../../services/googleDriveService';
 import { parseAnkiPackage } from '../../services/ankiParser';
 import { indexedDbService } from '../../services/indexedDbService';
 import { AnkiDeck } from '../../types/anki';
@@ -31,7 +31,7 @@ export const DriveSyncModal: React.FC<DriveSyncModalProps> = ({
   onClose,
   onDeckRestored
 }) => {
-  const { user, driveToken, requestDriveAccess } = useAuth();
+  const { user, driveToken, requestDriveAccess, clearDriveToken } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [decksOnDrive, setDecksOnDrive] = useState<DriveDeckItem[]>([]);
@@ -64,16 +64,18 @@ export const DriveSyncModal: React.FC<DriveSyncModalProps> = ({
       setDecksOnDrive(items);
     } catch (err: any) {
       console.error('Lỗi khi lấy danh sách tệp Google Drive:', err);
-      // Nếu token hết hạn (401), yêu cầu đăng nhập lại
-      if (err?.message?.includes('401')) {
-        setErrorMessage('Phiên kết nối Google Drive đã hết hạn. Vui lòng bấm Kết nối lại.');
+      // Nếu token hết hạn (401), dọn dẹp và yêu cầu đăng nhập lại
+      if (err instanceof GoogleDriveAuthError || err?.message?.includes('401')) {
+        clearDriveToken();
+        setDecksOnDrive([]);
+        setErrorMessage('Phiên kết nối Google Drive đã hết hạn (sau 1 giờ bảo mật). Vui lòng bấm "Kết nối lại Google Drive".');
       } else {
         setErrorMessage(err?.message || 'Không thể tải danh sách tệp từ Google Drive.');
       }
     } finally {
       setIsLoadingList(false);
     }
-  }, []);
+  }, [clearDriveToken]);
 
   useEffect(() => {
     if (isOpen) {
@@ -139,7 +141,12 @@ export const DriveSyncModal: React.FC<DriveSyncModalProps> = ({
       onDeckRestored(result.deck.id);
     } catch (err: any) {
       console.error('Lỗi khi khôi phục từ Drive:', err);
-      setErrorMessage(err?.message || 'Lỗi trong quá trình khôi phục tệp.');
+      if (err instanceof GoogleDriveAuthError || err?.message?.includes('401')) {
+        clearDriveToken();
+        setErrorMessage('Phiên kết nối Google Drive đã hết hạn (sau 1 giờ bảo mật). Vui lòng kết nối lại để tiếp tục.');
+      } else {
+        setErrorMessage(err?.message || 'Lỗi trong quá trình khôi phục tệp.');
+      }
     } finally {
       setActionLoading(false);
     }
@@ -167,7 +174,12 @@ export const DriveSyncModal: React.FC<DriveSyncModalProps> = ({
       await loadDriveList(driveToken);
     } catch (err: any) {
       console.error('Lỗi khi xóa file trên Drive:', err);
-      setErrorMessage(err?.message || 'Không thể xóa tệp trên Google Drive.');
+      if (err instanceof GoogleDriveAuthError || err?.message?.includes('401')) {
+        clearDriveToken();
+        setErrorMessage('Phiên kết nối Google Drive đã hết hạn (sau 1 giờ bảo mật). Vui lòng kết nối lại.');
+      } else {
+        setErrorMessage(err?.message || 'Không thể xóa tệp trên Google Drive.');
+      }
     } finally {
       setActionLoading(false);
     }
@@ -197,7 +209,12 @@ export const DriveSyncModal: React.FC<DriveSyncModalProps> = ({
       await loadLocalDecks();
     } catch (err: any) {
       console.error('Lỗi khi sao lưu lên Drive:', err);
-      setErrorMessage(err?.message || 'Không thể tải tệp lên Google Drive.');
+      if (err instanceof GoogleDriveAuthError || err?.message?.includes('401')) {
+        clearDriveToken();
+        setErrorMessage('Phiên kết nối Google Drive đã hết hạn (sau 1 giờ bảo mật). Vui lòng kết nối lại.');
+      } else {
+        setErrorMessage(err?.message || 'Không thể tải tệp lên Google Drive.');
+      }
     } finally {
       setActionLoading(false);
     }
@@ -247,7 +264,12 @@ export const DriveSyncModal: React.FC<DriveSyncModalProps> = ({
       await loadDriveList(driveToken);
     } catch (err: any) {
       console.error('Lỗi khi sao lưu bộ thẻ cục bộ lên Drive:', err);
-      setErrorMessage(err?.message || 'Không thể sao lưu bộ thẻ lên Google Drive.');
+      if (err instanceof GoogleDriveAuthError || err?.message?.includes('401')) {
+        clearDriveToken();
+        setErrorMessage('Phiên kết nối Google Drive đã hết hạn (sau 1 giờ bảo mật). Vui lòng kết nối lại.');
+      } else {
+        setErrorMessage(err?.message || 'Không thể sao lưu bộ thẻ lên Google Drive.');
+      }
     } finally {
       setActionLoading(false);
     }
