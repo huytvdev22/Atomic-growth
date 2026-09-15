@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { parseAnkiPackage, ParseAnkiResult } from '../../services/ankiParser';
 import { indexedDbService } from '../../services/indexedDbService';
 import { useHabits } from '../../context/HabitContext';
@@ -39,6 +39,21 @@ export const AnkiImportModal: React.FC<AnkiImportModalProps> = ({
   const [deckTitle, setDeckTitle] = useState('');
   const [linkOption, setLinkOption] = useState<'create_new' | 'none'>('create_new');
   const [previewAudioUrl, setPreviewAudioUrl] = useState<string | null>(null);
+
+  // Tạo HTML xem trước mặt sau đã thay thế ảnh Blob
+  const previewBackHtml = useMemo(() => {
+    if (!previewResult || previewResult.cards.length === 0) return '';
+    let html = previewResult.cards[0].back;
+    const imgRegex = /<img[^>]+src=["']([^"']+)["'][^>]*>/gi;
+    return html.replace(imgRegex, (_fullTag, filename) => {
+      const media = previewResult.mediaItems.find((m) => m.id === filename);
+      if (media) {
+        const url = URL.createObjectURL(media.blob);
+        return `<img src="${url}" alt="${filename}" class="max-w-full max-h-40 h-auto rounded-lg mx-auto my-2 object-contain border border-border shadow-2xs block" />`;
+      }
+      return '';
+    });
+  }, [previewResult]);
 
   if (!isOpen) return null;
 
@@ -313,7 +328,7 @@ export const AnkiImportModal: React.FC<AnkiImportModalProps> = ({
                   </div>
                   <div
                     className="text-xs text-text-secondary leading-relaxed border-t border-border-subtle pt-1.5"
-                    dangerouslySetInnerHTML={{ __html: previewResult.cards[0].back }}
+                    dangerouslySetInnerHTML={{ __html: previewBackHtml || previewResult.cards[0].back }}
                   />
                 </div>
               </div>

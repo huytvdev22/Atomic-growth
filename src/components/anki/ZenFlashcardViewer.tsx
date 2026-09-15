@@ -43,6 +43,11 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
   const [currentAudioUrl, setCurrentAudioUrl] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  // Quản lý HTML đã được phân giải URL hình ảnh từ IndexedDB
+  const [renderedFrontHtml, setRenderedFrontHtml] = useState<string>('');
+  const [renderedBackHtml, setRenderedBackHtml] = useState<string>('');
+  const activeBlobUrlsRef = useRef<string[]>([]);
+
   // Tải danh sách thẻ đến hạn cho phiên 2 phút (tối đa 10 thẻ)
   const loadDeckAndCards = useCallback(async () => {
     setIsLoading(true);
@@ -113,6 +118,71 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
       }
     };
   }, [currentCard]);
+
+  // Phân giải các thẻ ảnh <img src="..."> sang Blob URL từ IndexedDB
+  useEffect(() => {
+    activeBlobUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
+    activeBlobUrlsRef.current = [];
+
+    if (!currentCard) {
+      setRenderedFrontHtml('');
+      setRenderedBackHtml('');
+      return;
+    }
+
+    let isMounted = true;
+
+    async function processCardImages() {
+      if (!currentCard) return;
+
+      const resolveHtml = async (html: string) => {
+        if (!html) return '';
+        const imgRegex = /<img[^>]+src=["']([^"']+)["'][^>]*>/gi;
+        const matches = Array.from(html.matchAll(imgRegex));
+        if (matches.length === 0) return html;
+
+        let resHtml = html;
+        for (const match of matches) {
+          const fullTag = match[0];
+          const filename = match[1];
+          if (/^(https?:|data:|blob:)/i.test(filename)) continue;
+
+          const blob = await indexedDbService.getMediaBlob(filename);
+          if (blob) {
+            const blobUrl = URL.createObjectURL(blob);
+            activeBlobUrlsRef.current.push(blobUrl);
+            const newImg = `<img src="${blobUrl}" alt="${filename}" class="max-w-full max-h-56 h-auto rounded-xl mx-auto my-2.5 object-contain border border-border/60 shadow-2xs block" loading="lazy" />`;
+            resHtml = resHtml.replace(fullTag, newImg);
+          } else {
+            resHtml = resHtml.replace(fullTag, '');
+          }
+        }
+        return resHtml;
+      };
+
+      const front = await resolveHtml(currentCard.front);
+      const back = await resolveHtml(currentCard.back);
+
+      if (isMounted) {
+        setRenderedFrontHtml(front);
+        setRenderedBackHtml(back);
+      }
+    }
+
+    processCardImages();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [currentCard]);
+
+  // Dọn dẹp toàn bộ blob URLs khi đóng component
+  useEffect(() => {
+    return () => {
+      activeBlobUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
+      activeBlobUrlsRef.current = [];
+    };
+  }, []);
 
   // Hàm phát lại âm thanh
   const playAudio = () => {
@@ -304,9 +374,10 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
                 {!isFlipped ? (
                   /* Mặt trước */
                   <div className="space-y-2">
-                    <h2 className="font-serif text-2xl sm:text-3xl font-bold text-text-primary tracking-tight">
-                      {currentCard.front}
-                    </h2>
+                    <div
+                      className="font-serif text-2xl sm:text-3xl font-bold text-text-primary tracking-tight"
+                      dangerouslySetInnerHTML={{ __html: renderedFrontHtml || currentCard.front }}
+                    />
                     <p className="text-[11px] text-text-tertiary italic">
                       (Chạm hoặc nhấn Phím Cách để xem đáp án)
                     </p>
@@ -314,12 +385,13 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
                 ) : (
                   /* Mặt sau */
                   <div className="space-y-3 text-left animate-in fade-in duration-200">
-                    <div className="font-serif text-xl sm:text-2xl font-bold text-primary border-b border-border-subtle pb-2">
-                      {currentCard.front}
-                    </div>
                     <div
-                      className="text-xs sm:text-sm text-text-secondary leading-relaxed space-y-2 max-h-[160px] overflow-y-auto"
-                      dangerouslySetInnerHTML={{ __html: currentCard.back }}
+                      className="font-serif text-xl sm:text-2xl font-bold text-primary border-b border-border-subtle pb-2"
+                      dangerouslySetInnerHTML={{ __html: renderedFrontHtml || currentCard.front }}
+                    />
+                    <div
+                      className="text-xs sm:text-sm text-text-secondary leading-relaxed space-y-2.5 max-h-[280px] overflow-y-auto pr-1"
+                      dangerouslySetInnerHTML={{ __html: renderedBackHtml || currentCard.back }}
                     />
                   </div>
                 )}
