@@ -14,6 +14,7 @@ import { Menu, Search, Plus, Sparkles, Heart, Sprout, Calendar, BookOpen } from 
 export const App: React.FC = () => {
   const {
     getHabitsByRitual,
+    totalActiveHabits,
     activeTab,
     setActiveTab,
     activeTag,
@@ -106,45 +107,61 @@ export const App: React.FC = () => {
           </div>
         </header>
 
-        {/* Luồng Nội Dung Thao Tác (Feed Area) */}
-        <main className="flex-1 max-w-[760px] w-full mx-auto p-4 sm:p-6 space-y-6 pb-24">
-          {/* A. Khung Nhập Phản Tư Vi Mô Nhanh (Flomo Jot Box đầu trang) */}
-          <QuickJotBox />
-
+        {/* Luồng Nội Dung Thao Tác (Feed Area - Tối đa 680px theo chuẩn Zen Minimalist) */}
+        <main className="flex-1 max-w-[680px] w-full mx-auto p-4 sm:p-6 space-y-6 pb-24">
           {/* B. Xem Dòng Thời Gian Chính (Timeline) */}
           {activeTab === 'timeline' && (
-            <div className="space-y-6">
-              {/* Thẻ Định Hình Bản Sắc */}
+            <div className="space-y-5">
+              {/* Câu Đề Tựa Bản Sắc Tinh Tế (Zen Identity Header) */}
               <IdentityCard />
 
-              {/* Thẻ Nhắc Nhở Nhân Ái Never Miss Twice */}
+              {/* Thông Báo Bối Cảnh Never Miss Twice (Chỉ hiện khi có nguy cơ đứt chuỗi) */}
               <NeverMissTwiceCard />
 
-              {/* 3 Khối Nhịp Sinh Học Trong Ngày */}
-              <div className="space-y-6 pt-1">
-                <RitualGroup
-                  ritual="morning"
-                  habits={morningHabits}
-                  onAddHabitClick={handleOpenAddModal}
-                />
+              {/* Danh sách Thói quen hoặc Clean Empty State */}
+              {totalActiveHabits === 0 ? (
+                <div className="rounded-xl border border-border bg-surface p-8 sm:p-10 text-center space-y-3 shadow-2xs">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-accent-sprout text-primary mx-auto">
+                    <Sprout className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-serif text-lg font-semibold text-text-primary">
+                      Khu vườn thói quen đang chờ đón bạn
+                    </h3>
+                    <p className="text-xs text-text-secondary mt-1 max-w-sm mx-auto leading-relaxed">
+                      Bắt đầu bằng một hành động nhỏ chỉ mất 2 phút. Tích lũy 1% mỗi ngày để kiến tạo bản sắc kiên định.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleOpenAddModal('morning')}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-white hover:bg-primary-hover active:scale-95 transition-all cursor-pointer shadow-xs"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Gieo hạt mầm đầu tiên</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-6 pt-1">
+                  <RitualGroup
+                    ritual="morning"
+                    habits={morningHabits}
+                    onAddHabitClick={handleOpenAddModal}
+                  />
 
-                <RitualGroup
-                  ritual="midday"
-                  habits={middayHabits}
-                  onAddHabitClick={handleOpenAddModal}
-                />
+                  <RitualGroup
+                    ritual="midday"
+                    habits={middayHabits}
+                    onAddHabitClick={handleOpenAddModal}
+                  />
 
-                <RitualGroup
-                  ritual="evening"
-                  habits={eveningHabits}
-                  onAddHabitClick={handleOpenAddModal}
-                />
-              </div>
-
-              {/* Dòng thời gian phản tư gần nhất */}
-              <div className="pt-4 border-t border-border-subtle">
-                <ReflectionsFeed />
-              </div>
+                  <RitualGroup
+                    ritual="evening"
+                    habits={eveningHabits}
+                    onAddHabitClick={handleOpenAddModal}
+                  />
+                </div>
+              )}
             </div>
           )}
 
@@ -161,6 +178,7 @@ export const App: React.FC = () => {
                   </p>
                 </div>
               </div>
+              <QuickJotBox />
               <ReflectionsFeed />
             </div>
           )}

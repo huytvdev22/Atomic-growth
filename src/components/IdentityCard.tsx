@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useHabits } from '../context/HabitContext';
-import { Sparkles, Edit3, Check } from 'lucide-react';
+import { Edit3 } from 'lucide-react';
 
 /**
  * Thẻ Bản Sắc (Identity Card)
@@ -20,66 +20,52 @@ export const IdentityCard: React.FC = () => {
   };
 
   return (
-    <section className="relative overflow-hidden rounded-lg bg-surface p-6 sm:p-7 border border-border shadow-[0_4px_20px_-4px_rgba(28,38,33,0.05)] transition-all duration-300 hover:border-accent-sage/60">
-      {/* Hiệu ứng ánh sáng hữu cơ góc thẻ */}
-      <div 
-        className="pointer-events-none absolute -top-10 -right-10 h-36 w-36 rounded-full bg-radial from-accent-sprout to-transparent opacity-80"
-        aria-hidden="true" 
-      />
-
-      <div className="relative z-10">
-        <div className="flex items-center justify-between gap-3 mb-3">
-          <div className="inline-flex items-center gap-1.5 rounded-full bg-accent-sprout px-3 py-1 text-xs font-semibold text-primary">
-            <Sparkles className="w-3.5 h-3.5 text-primary" />
-            <span>Triết Lý Bản Sắc (Identity-First)</span>
+    <div className="py-2 px-1">
+      {isEditing ? (
+        <div className="flex flex-col gap-2">
+          <textarea
+            value={draftStatement}
+            onChange={(e) => setDraftStatement(e.target.value)}
+            className="w-full font-serif italic text-base sm:text-lg text-text-primary bg-surface border border-border-focus rounded-md p-2.5 focus:outline-none focus:ring-1 focus:ring-accent-sage resize-none leading-relaxed"
+            rows={2}
+            placeholder="Tôi là người..."
+            autoFocus
+          />
+          <div className="flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => setIsEditing(false)}
+              className="text-xs px-2.5 py-1 text-text-secondary hover:text-text-primary cursor-pointer"
+            >
+              Hủy
+            </button>
+            <button
+              type="button"
+              onClick={handleSave}
+              className="text-xs px-3 py-1 rounded bg-primary text-white font-medium hover:bg-primary-hover transition-colors cursor-pointer"
+            >
+              Lưu bản sắc
+            </button>
           </div>
-
+        </div>
+      ) : (
+        <div className="group flex items-start justify-between gap-3">
+          <p className="font-serif italic text-sm sm:text-base text-text-secondary leading-relaxed tracking-tight">
+            &ldquo;{profile.coreIdentityStatement}&rdquo;
+          </p>
           <button
+            type="button"
             onClick={() => {
-              if (isEditing) handleSave();
-              else {
-                setDraftStatement(profile.coreIdentityStatement);
-                setIsEditing(true);
-              }
+              setDraftStatement(profile.coreIdentityStatement);
+              setIsEditing(true);
             }}
-            className="flex items-center gap-1 text-xs font-medium text-text-secondary hover:text-primary transition-colors p-1.5 rounded-md hover:bg-canvas-subtle"
-            title={isEditing ? 'Lưu bản sắc' : 'Chỉnh sửa câu tuyên ngôn'}
+            className="opacity-0 group-hover:opacity-100 text-text-tertiary hover:text-primary transition-opacity p-1 rounded hover:bg-canvas-subtle shrink-0"
+            title="Chỉnh sửa câu tuyên ngôn bản sắc"
           >
-            {isEditing ? (
-              <>
-                <Check className="w-3.5 h-3.5 text-primary" />
-                <span className="text-primary font-semibold">Lưu</span>
-              </>
-            ) : (
-              <>
-                <Edit3 className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Chỉnh sửa</span>
-              </>
-            )}
+            <Edit3 className="w-3.5 h-3.5" />
           </button>
         </div>
-
-        {isEditing ? (
-          <div className="mt-2">
-            <textarea
-              value={draftStatement}
-              onChange={(e) => setDraftStatement(e.target.value)}
-              className="w-full font-serif text-xl sm:text-2xl font-medium text-text-primary bg-canvas border border-border-focus rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-accent-sage/30 resize-none leading-relaxed"
-              rows={2}
-              placeholder="Tôi là người..."
-              autoFocus
-            />
-          </div>
-        ) : (
-          <h1 className="font-serif text-xl sm:text-2xl lg:text-[1.65rem] font-medium text-text-primary leading-snug tracking-tight">
-            "{profile.coreIdentityStatement}"
-          </h1>
-        )}
-
-        <p className="mt-2.5 text-xs sm:text-sm text-text-secondary font-sans leading-relaxed">
-          Mỗi thói quen nhỏ được hoàn tất là một lá phiếu bầu cho con người bạn khao khát trở thành.
-        </p>
-      </div>
-    </section>
+      )}
+    </div>
   );
 };

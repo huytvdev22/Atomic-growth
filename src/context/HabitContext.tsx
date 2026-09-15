@@ -8,6 +8,7 @@ import {
   subscribeToHabits,
   subscribeToLogs,
   subscribeToNotes,
+  subscribeToProfile,
   syncHabit,
   removeHabit,
   syncLog,
@@ -75,27 +76,34 @@ export const HabitProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     const userId = user.uid;
 
-    // Kiểm tra & gieo mầm dữ liệu mẫu nếu tài khoản mới chưa có thói quen
-    seedUserDataIfEmpty(userId);
+    // Khởi tạo hồ sơ người dùng sạch trên Cloud nếu là lần đầu đăng nhập
+    seedUserDataIfEmpty(userId, user.displayName || undefined);
 
+    // Lắng nghe danh sách thói quen thực từ Cloud (cho phép mảng rỗng nếu là tài khoản mới)
     const unsubHabits = subscribeToHabits(userId, (cloudHabits) => {
-      if (cloudHabits.length > 0) {
-        setHabits(cloudHabits);
-      }
+      setHabits(cloudHabits);
     });
 
+    // Lắng nghe lịch sử check-in thực từ Cloud
     const unsubLogs = subscribeToLogs(userId, (cloudLogs) => {
       setLogs(cloudLogs);
     });
 
+    // Lắng nghe ghi chép phản tư thực từ Cloud
     const unsubNotes = subscribeToNotes(userId, (cloudNotes) => {
       setNotes(cloudNotes);
+    });
+
+    // Lắng nghe hồ sơ người dùng thực từ Cloud
+    const unsubProfile = subscribeToProfile(userId, (cloudProfile) => {
+      setProfile(cloudProfile);
     });
 
     return () => {
       unsubHabits?.();
       unsubLogs?.();
       unsubNotes?.();
+      unsubProfile?.();
     };
   }, [user]);
 

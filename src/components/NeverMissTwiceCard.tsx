@@ -1,6 +1,6 @@
 import React from 'react';
 import { useHabits } from '../context/HabitContext';
-import { ShieldCheck, HeartHandshake } from 'lucide-react';
+import { ShieldCheck } from 'lucide-react';
 
 /**
  * Thẻ Nhắc Nhở Nhân Ái "Never Miss Twice"
@@ -10,36 +10,27 @@ import { ShieldCheck, HeartHandshake } from 'lucide-react';
 export const NeverMissTwiceCard: React.FC = () => {
   const { hasNeverMissTwiceAlert } = useHabits();
 
+  // Quy tắc Zen Minimalism: Chỉ hiển thị khi người dùng thực sự cần hồi phục thói quen bị lỡ
+  if (!hasNeverMissTwiceAlert) {
+    return null;
+  }
+
   return (
-    <div
-      className={`rounded-md p-4.5 sm:p-5 border transition-all duration-300 ${
-        hasNeverMissTwiceAlert
-          ? 'bg-[#FDF3EE] border-accent-clay/40 shadow-xs'
-          : 'bg-[#F4EFEB] border-dashed border-[#DDD4C8]'
-      }`}
-    >
-      <div className="flex items-start gap-3.5">
-        <div className="rounded-full bg-white/80 p-2 text-accent-clay shrink-0 shadow-2xs">
-          {hasNeverMissTwiceAlert ? (
-            <ShieldCheck className="w-5 h-5 text-accent-clay animate-pulse" />
-          ) : (
-            <HeartHandshake className="w-5 h-5 text-accent-clay" />
-          )}
+    <div className="rounded-lg p-3.5 sm:p-4 bg-[#FDF3EE] border border-accent-clay/30 shadow-2xs transition-all duration-300 animate-in fade-in">
+      <div className="flex items-start gap-3">
+        <div className="rounded-full bg-white/90 p-1.5 text-accent-clay shrink-0 shadow-2xs">
+          <ShieldCheck className="w-4 h-4 text-accent-clay" />
         </div>
 
-        <div className="space-y-1 text-xs sm:text-sm text-[#4A3E38] leading-relaxed">
-          <div className="font-semibold font-serif text-[0.95rem] text-[#332A24] flex items-center gap-2">
-            <span>Quy tắc "Never Miss Twice" (Không Bỏ Lỡ 2 Lần)</span>
-            {hasNeverMissTwiceAlert && (
-              <span className="rounded-full bg-accent-clay text-white text-[10px] font-sans font-bold px-2 py-0.5">
-                Cần phục hồi hôm nay
-              </span>
-            )}
+        <div className="space-y-0.5 text-xs text-[#4A3E38] leading-relaxed flex-1">
+          <div className="font-semibold font-serif text-sm text-[#332A24] flex items-center gap-2">
+            <span>Hồi phục nhân ái (Never Miss Twice)</span>
+            <span className="rounded-full bg-accent-clay text-white text-[10px] font-sans font-bold px-2 py-0.2">
+              Hôm nay
+            </span>
           </div>
-          <p>
-            {hasNeverMissTwiceAlert
-              ? 'Hôm qua bạn đã lỡ một vài nhịp. Đừng tự trách mình! Hãy chắc chắn hoàn tất các thói quen còn lại trong hôm nay để bảo vệ chuỗi sinh trưởng.'
-              : 'Cuộc sống luôn có những ngày bận rộn bất ngờ. Nếu lỡ quên một ngày, chuỗi kiên trì của bạn vẫn được bảo vệ. Hãy tha thứ cho bản thân và quay lại ngay hôm nay.'}
+          <p className="text-[11px] sm:text-xs text-[#6A5A52]">
+            Hôm qua bạn đã lỡ một nhịp. Đừng tự trách mình! Hãy check-in các thói quen hôm nay để bảo vệ chuỗi sinh trưởng.
           </p>
         </div>
       </div>

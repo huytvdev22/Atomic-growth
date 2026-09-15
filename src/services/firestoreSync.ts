@@ -4,13 +4,12 @@ import {
   setDoc,
   deleteDoc,
   onSnapshot,
-  getDocs,
-  query,
+  getDoc,
   type Unsubscribe
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { Habit, HabitLog, UserProfile, MicroNote } from '../types/habit';
-import { INITIAL_HABITS, DEFAULT_PROFILE, INITIAL_NOTES } from './habitStorage';
+import { DEFAULT_PROFILE } from './habitStorage';
 
 /**
  * Lắng nghe thay đổi real-time của thói quen trong Cloud Firestore:
@@ -69,6 +68,26 @@ export function subscribeToNotes(
     onUpdate(list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
   }, (err) => {
     console.warn('Lỗi khi đồng bộ Firestore notes:', err);
+  });
+}
+
+/**
+ * Lắng nghe thay đổi hồ sơ người dùng từ Cloud Firestore
+ * Đường dẫn: users/{userId}/profile/main
+ */
+export function subscribeToProfile(
+  userId: string,
+  onUpdate: (profile: UserProfile) => void
+): Unsubscribe | null {
+  if (!db) return null;
+
+  const profileRef = doc(db, 'users', userId, 'profile', 'main');
+  return onSnapshot(profileRef, (snap) => {
+    if (snap.exists()) {
+      onUpdate(snap.data() as UserProfile);
+    }
+  }, (err) => {
+    console.warn('Lỗi khi đồng bộ Firestore profile:', err);
   });
 }
 
@@ -136,26 +155,25 @@ export async function syncProfile(userId: string, profile: UserProfile): Promise
 }
 
 /**
- * Khởi tạo dữ liệu mẫu lần đầu nếu tài khoản mới chưa có thói quen nào
+ * Khởi tạo hồ sơ ban đầu cho tài khoản mới (Clean Slate - không tự ý inject mock habits/logs)
  */
-export async function seedUserDataIfEmpty(userId: string): Promise<void> {
+export async function seedUserDataIfEmpty(userId: string, userName?: string): Promise<void> {
   if (!db) return;
   try {
-    const habitsRef = collection(db, 'users', userId, 'habits');
-    const q = query(habitsRef);
-    const snap = await getDocs(q);
+    const profileRef = doc(db, 'users', userId, 'profile', 'main');
+    const snap = await getDoc(profileRef);
 
-    if (snap.empty) {
-      console.info('[Atomic Growth] Khởi tạo dữ liệu thói quen ban đầu trên Firestore cho người dùng mới.');
-      for (const h of INITIAL_HABITS) {
-        await syncHabit(userId, h);
-      }
-      for (const n of INITIAL_NOTES) {
-        await syncNote(userId, n);
-      }
-      await syncProfile(userId, { ...DEFAULT_PROFILE, id: userId });
+    if (!snap.exists()) {
+      console.info('[Atomic Growth] Khởi tạo hồ sơ người dùng mới trên Firestore (Clean Slate).');
+      const cleanProfile: UserProfile = {
+        ...DEFAULT_PROFILE,
+        id: userId,
+        name: userName || DEFAULT_PROFILE.name,
+        coreIdentityStatement: 'Tôi là người kiên trì phát triển bản thân 1% mỗi ngày.'
+      };
+      await syncProfile(userId, cleanProfile);
     }
   } catch (err) {
-    console.warn('Lỗi khi kiểm tra dữ liệu khởi đầu Firestore:', err);
+    console.warn('Lỗi khi kiểm tra hồ sơ khởi đầu Firestore:', err);
   }
 }

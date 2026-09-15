@@ -12,61 +12,49 @@ interface RitualGroupProps {
 export const RitualGroup: React.FC<RitualGroupProps> = ({ ritual, habits, onAddHabitClick }) => {
   const meta = {
     morning: {
-      icon: <Sunrise className="w-5 h-5 text-accent-amber" />,
-      title: 'Nghi thức Rạng Đông',
-      subtitle: 'Đánh thức thân tâm & chuẩn bị năng lượng tích cực'
+      icon: <Sunrise className="w-4 h-4 text-accent-amber" />,
+      title: 'Rạng Đông'
     },
     midday: {
-      icon: <Compass className="w-5 h-5 text-accent-sage" />,
-      title: 'Khối Tập Trung & Phát Triển',
-      subtitle: 'Hành động sâu sắc trong học tập, công việc & sức khỏe'
+      icon: <Compass className="w-4 h-4 text-accent-sage" />,
+      title: 'Tập Trung'
     },
     evening: {
-      icon: <Moon className="w-5 h-5 text-primary" />,
-      title: 'Lắng Đọng & Phản Tư',
-      subtitle: 'Xả hơi, ghi chép biết ơn & phục hồi sau ngày dài'
+      icon: <Moon className="w-4 h-4 text-primary" />,
+      title: 'Lắng Đọng'
     }
   }[ritual];
 
   return (
-    <section className="space-y-3">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-canvas-subtle border border-border">
-            {meta.icon}
-          </div>
-          <div>
-            <h2 className="font-serif text-lg sm:text-xl font-semibold text-text-primary">
-              {meta.title}
-            </h2>
-            <p className="text-xs text-text-secondary hidden sm:block">
-              {meta.subtitle}
-            </p>
-          </div>
+    <section className="space-y-2">
+      <div className="flex items-center justify-between py-1">
+        <div className="flex items-center gap-2">
+          {meta.icon}
+          <h2 className="font-sans text-xs sm:text-sm font-semibold text-text-secondary uppercase tracking-wider">
+            {meta.title}
+          </h2>
         </div>
 
-        <span className="font-mono text-xs text-text-tertiary bg-surface px-2.5 py-0.5 rounded-full border border-border">
-          {habits.length} Thói quen
-        </span>
-      </div>
-
-      <div className="space-y-2.5">
         {habits.length > 0 ? (
-          habits.map(habit => <HabitCard key={habit.id} habit={habit} />)
+          <span className="font-mono text-[11px] text-text-tertiary">
+            {habits.length}
+          </span>
         ) : (
-          <div className="rounded-md border border-dashed border-border bg-surface/50 p-6 text-center">
-            <p className="text-xs sm:text-sm text-text-secondary">
-              Chưa có thói quen nào trong khối này.
-            </p>
-            <button
-              onClick={() => onAddHabitClick(ritual)}
-              className="mt-2 text-xs font-semibold text-primary hover:underline cursor-pointer"
-            >
-              + Thêm thói quen đầu tiên
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => onAddHabitClick(ritual)}
+            className="text-[11px] text-text-tertiary hover:text-primary transition-colors cursor-pointer"
+          >
+            + Thêm
+          </button>
         )}
       </div>
+
+      {habits.length > 0 ? (
+        <div className="space-y-2">
+          {habits.map(habit => <HabitCard key={habit.id} habit={habit} />)}
+        </div>
+      ) : null}
     </section>
   );
 };

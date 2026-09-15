@@ -1,59 +1,47 @@
 ---
-version: alpha
-name: Botanical Zen
-description: A biophilic, tranquil design system for habit tracking and personal self-development, inspired by the steady growth of nature and the 1% philosophy of Atomic Habits.
+version: 1.0.0
+name: Botanical Zen Minimalist
+description: Hệ thống thiết kế tối giản tĩnh tại (Zen Minimalism & High Focus) dành cho Atomic Growth, ứng dụng triệt để tâm lý học hành vi James Clear, loại bỏ mọi chi tiết rườm rà để tập trung tối đa vào thói quen cốt lõi.
 colors:
   canvas: "#F8F7F2"
   canvas-subtle: "#F2EFE9"
   surface: "#FFFFFF"
   surface-soft: "#FAFCFA"
   surface-container: "#F2EFE9"
-  surface-container-high: "#EAE6DC"
-  border: "#E6E2D8"
-  border-subtle: "#EEEAE0"
+  border: "#E8E4DA"
+  border-subtle: "#F0ECE2"
   border-focus: "#205A42"
   primary: "#205A42"
   on-primary: "#FFFFFF"
   primary-hover: "#184432"
-  primary-container: "#E4EFE9"
+  primary-container: "#E8F1EC"
   on-primary-container: "#174633"
   text-primary: "#1C2621"
-  text-secondary: "#5E6D66"
-  text-tertiary: "#8E9E96"
+  text-secondary: "#617169"
+  text-tertiary: "#94A39B"
   accent-sage: "#528B70"
   accent-clay: "#C97255"
   accent-amber: "#D89839"
-  accent-sprout: "#E4EFE9"
-  accent-sprout-dark: "#2F6A4F"
+  accent-sprout: "#EBF3EE"
   success: "#205A42"
-  error: "#BA3D2A"
+  error: "#C2412D"
 typography:
-  display-quote:
+  zen-quote:
     fontFamily: Newsreader
-    fontSize: 1.625rem
-    fontWeight: 500
-    lineHeight: 1.35
-    letterSpacing: -0.01em
+    fontSize: 1.125rem
+    fontWeight: 400
+    fontStyle: italic
+    lineHeight: 1.4
   h1:
     fontFamily: Newsreader
-    fontSize: 1.875rem
+    fontSize: 1.5rem
     fontWeight: 600
     lineHeight: 1.25
   h2:
-    fontFamily: Newsreader
-    fontSize: 1.375rem
+    fontFamily: Plus Jakarta Sans
+    fontSize: 1rem
     fontWeight: 600
     lineHeight: 1.3
-  h3:
-    fontFamily: Plus Jakarta Sans
-    fontSize: 1.125rem
-    fontWeight: 600
-    lineHeight: 1.4
-  body-lg:
-    fontFamily: Plus Jakarta Sans
-    fontSize: 1.0625rem
-    fontWeight: 400
-    lineHeight: 1.55
   body-md:
     fontFamily: Plus Jakarta Sans
     fontSize: 0.9375rem
@@ -62,29 +50,29 @@ typography:
   body-sm:
     fontFamily: Plus Jakarta Sans
     fontSize: 0.8125rem
-    fontWeight: 500
+    fontWeight: 400
     lineHeight: 1.4
   label-tag:
     fontFamily: Plus Jakarta Sans
-    fontSize: 0.75rem
+    fontSize: 0.6875rem
     fontWeight: 600
     lineHeight: 1
     letterSpacing: 0.02em
   mono-stat:
     fontFamily: JetBrains Mono
-    fontSize: 1.5rem
+    fontSize: 1.25rem
     fontWeight: 600
     lineHeight: 1.2
   mono-streak:
     fontFamily: JetBrains Mono
-    fontSize: 0.8125rem
+    fontSize: 0.75rem
     fontWeight: 600
     lineHeight: 1
 rounded:
   xs: 4px
-  sm: 8px
-  md: 14px
-  lg: 20px
+  sm: 6px
+  md: 10px
+  lg: 16px
   full: 9999px
 spacing:
   xs: 4px
@@ -92,165 +80,108 @@ spacing:
   md: 16px
   lg: 24px
   xl: 32px
-  container-max: 760px
-components:
-  identity-card:
-    backgroundColor: "{colors.surface}"
-    textColor: "{colors.text-primary}"
-    rounded: "{rounded.lg}"
-    padding: "{spacing.lg}"
-  habit-card:
-    backgroundColor: "{colors.surface}"
-    textColor: "{colors.text-primary}"
-    rounded: "{rounded.md}"
-    padding: 16px 20px
-  habit-card-completed:
-    backgroundColor: "{colors.surface-soft}"
-    textColor: "{colors.text-tertiary}"
-  check-circle:
-    size: 32px
-    rounded: "{rounded.full}"
-    borderColor: "{colors.border}"
-  check-circle-completed:
-    backgroundColor: "{colors.primary}"
-    borderColor: "{colors.primary}"
-  tag-pill:
-    backgroundColor: "{colors.surface-container}"
-    textColor: "{colors.text-secondary}"
-    rounded: "{rounded.sm}"
-  streak-badge:
-    backgroundColor: "#FEF6EC"
-    textColor: "{colors.accent-amber}"
-    rounded: "{rounded.sm}"
+  container-max: 680px
 ---
 
-# Botanical Zen & Organic Growth Design System
+# Botanical Zen Minimalist Design System
 
-## Overview
-**Botanical Zen** là hệ thống thiết kế hòa trộn giữa vẻ đẹp tĩnh tại của thiên nhiên (Biophilic Minimalism) và nghệ thuật chế tác sổ tay thủ công cao cấp.
+## 1. Triết Lý Cốt Lõi: Tối Giản Tĩnh Tại & Tập Trung Cao Độ (Zen Minimalism & High Focus)
 
-Lấy cảm hứng từ triết lý cốt lõi của *Atomic Habits* ("Mỗi thói quen nhỏ như một hạt mầm, kiên trì tích lũy 1% mỗi ngày sẽ lớn mạnh thành cây đại thụ"), giao diện mang đến một không gian số tĩnh lặng, giảm thiểu tối đa căng thẳng và cảm giác tội lỗi (no-guilt tracking). Người dùng bước vào ứng dụng không phải để đối mặt với một bảng việc cần làm khô khan hay áp lực deadline, mà để chăm sóc khu vườn tâm thức và vun bồi bản sắc cá nhân.
+Hệ thống thiết kế **Botanical Zen Minimalist** kết hợp giữa vẻ đẹp tĩnh lặng của thiên nhiên (*Biophilic Aesthetics*) và tinh thần tối giản của các công cụ năng suất kinh điển (*Less, but better*).
 
-### Tinh thần & Nguyên tắc Cảm xúc
-- **Không áp lực (Tranquil & Non-punitive):** Không sử dụng màu đỏ rực cảnh báo hay âm báo gắt gỏng khi lỡ quên một thói quen. Thay vào đó, khuyến khích phục hồi nhẹ nhàng bằng quy tắc *"Never Miss Twice"*.
-- **Tập trung vào Danh tính (Identity-first):** Mọi thói quen đều hướng đến việc củng cố câu khẳng định: *"Tôi muốn trở thành con người như thế nào?"*.
-- **Xúc giác hữu cơ (Tactile Organic Quality):** Bề mặt gợi nhớ chất liệu giấy lụa Alabaster ấm áp, kết hợp các nét vẽ mực rêu sẫm và điểm xuyết đất nung nhạt.
+Lấy cảm hứng sâu sắc từ quy luật số 3 của James Clear trong cuốn *Atomic Habits* — **"Make it Easy" (Làm cho nó trở nên dễ dàng và tối giản mọi rào cản)**:
+- **Loại bỏ triệt để Visual Noise (Ô nhiễm thị giác):** Không xếp lớp thẻ lồng thẻ (no card-inside-card), không dùng các đường viền dày hay bóng đổ nặng nề, không biến mọi triết lý thành một khối hộp lớn thường trực.
+- **1 Màn Hình — 1 Tiêu Điểm Tối Thượng (Single Core Focus):** Khi người dùng mở ứng dụng, 90% không gian thị giác và sự chú ý phải dành trọn vẹn cho việc **hoàn thành các thói quen trong ngày**.
+- **Hiển thị theo Ngữ cảnh (Contextual / Progressive Disclosure):** Chỉ hiển thị các lời nhắc nhở hoặc cảnh báo khi có sự kiện thực tế phát sinh. Không trưng bày các bảng hướng dẫn dài dòng chiếm chỗ của danh sách hành động.
+- **Khoảng thở tự nhiên (Breathing Whitespace):** Tạo khoảng cách thoáng đãng, dễ chịu cho mắt, mang lại cảm giác bình yên như lật giở từng trang sổ tay cao cấp.
 
 ---
 
-## Colors
-Hệ màu được tuyển chọn từ sắc thái cây cỏ, đất mẹ và ánh nắng sớm mai, triệt để tránh màu trắng tinh khiết (`#FFFFFF` gắt) trên nền lớn và màu đen tuyệt đối (`#000000`).
+## 2. Hệ Màu Zen & Ánh Sáng (Zen Palette)
 
-- **Canvas ({colors.canvas} - `#F8F7F2`):** Nền chính mô phỏng giấy sợi tự nhiên (Alabaster Linen), êm dịu cho mắt ngay cả khi nhìn vào ban đêm hoặc buổi sáng sớm.
-- **Deep Cypress Ink ({colors.primary} - `#205A42`):** Mực xanh bách sẫm mang lại sự tĩnh tại, được dùng cho các tiêu đề chính, nút hành động then chốt và trạng thái check-in thành công.
-- **Text Primary ({colors.text-primary} - `#1C2621`):** Màu mực đen pha sắc rêu rừng, thay thế hoàn toàn đen thuần để giữ cho văn bản sắc nét nhưng mềm mại.
-- **Sage Leaf Accent ({colors.accent-sage} - `#528B70`):** Sắc xanh lá xô thơm dịu dàng, đại diện cho quá trình sinh trưởng và trạng thái hover/focus.
-- **Terracotta Clay ({colors.accent-clay} - `#C97255`):** Màu đất nung ấm cúng, dành riêng cho các trích dẫn triết lý, phản tư nội tâm và các điểm chạm cảm xúc.
-- **Warm Amber Ochre ({colors.accent-amber} - `#D89839`):** Ánh hoàng kim ấm áp của mật ong rừng, sử dụng cho huy hiệu chuỗi ngày kiên trì (streak) và thành quả tích lũy.
-- **Sprout Mist ({colors.accent-sprout} - `#E4EFE9`):** Màu mầm non mới nhú, dùng làm nền cho các thẻ danh tính hoặc nhãn trạng thái đặc biệt.
+Hệ màu lấy từ tự nhiên (gỗ bách sẫm, lá xô thơm, đất nung mộc và giấy lụa Alabaster), kiên quyết tránh nền trắng tinh gắt mắt (`#FFFFFF` trên diện rộng) và màu đen tuyệt đối (`#000000`):
 
----
-
-## Typography
-Sự kết hợp hài hòa giữa chất thơ học thuật của font Serif và tính trực quan, hiện đại của font Sans-serif:
-
-- **Phông Tiêu đề & Trích dẫn — Newsreader:** Font serif đương đại tinh tế, giàu tính văn học. Dành cho câu khẳng định danh tính (`display-quote`), tiêu đề các nghi thức hàng ngày (`h1`, `h2`) và lời khuyên phản tư.
-- **Phông Giao diện & Thao tác — Plus Jakarta Sans:** Font sans-serif tròn trịa, hiện đại với độ đọc cao. Dành cho nội dung tên thói quen, nhãn phân loại, mô tả và các nút bấm.
-- **Phông Số liệu & Đo lường — JetBrains Mono:** Phông monospace kỹ thuật chuẩn xác, dành riêng cho tỉ lệ phần trăm sinh trưởng, số đo chuỗi ngày (streak count) và thời gian thực hiện.
+- **Nền Canvas (`#F8F7F2` - Alabaster Linen):** Nền chính êm dịu, ấm áp, giảm mỏi mắt khi sử dụng sáng sớm hoặc đêm muộn.
+- **Mực Bách Sẫm (`#205A42` - Deep Cypress Ink):** Màu thương hiệu cốt lõi, sử dụng cho điểm nhấn check-in thành công, nút hành động chính và các tiêu đề trang trọng.
+- **Chữ Chính (`#1C2621` - Rêu than sẫm):** Nét mực than pha sắc rêu rừng, tương phản cao trên nền giấy nhưng giữ độ mềm mắt tự nhiên.
+- **Chữ Phụ (`#617169` & `#94A39B`):** Dành cho nhãn thời gian, mô tả phụ và trạng thái hoàn thành mờ nhẹ.
+- **Lá Xô Thơm (`#528B70` - Sage Leaf):** Dành cho các chỉ báo sinh trưởng, đường viền khi hover/focus.
+- **Đất Nung Ấm (`#C97255` - Terracotta Clay):** Dành riêng cho các lời nhắc nhở hồi phục nhân ái hoặc phản tư quan trọng.
+- **Hoàng Kim Hổ Phách (`#D89839` - Warm Amber):** Dành riêng cho ngọn lửa chuỗi kiên trì (`Streak`).
 
 ---
 
-## Layout
-Bố cục ứng dụng được xây dựng theo mô hình **Master-Detail Responsive Workspace** (lấy cảm hứng từ Flomo / FlareMo) kết hợp dòng đọc tự nhiên:
+## 3. Nghệ Thuật Typography (Zen Typography)
 
-- **Bản Desktop (Màn hình rộng ≥ 768px):**
-  - **Sidebar Cố định bên trái (`w-[260px]` - `w-[280px]`):** Chứa Logo thương hiệu, trạng thái đồng bộ, 3 chỉ số lớn (Thói quen, Kỷ lục Streak, Tỉ lệ hôm nay), Ma trận ô vuông Khu vườn (Garden Heatmap mini), Menu điều hướng có thanh chỉ báo bên trái (`border-l-3 border-primary`), và danh sách thẻ `#Tags`.
-  - **Khu vực Nội dung Chính (Main Feed Stream - tối đa 760px):** Thanh tìm kiếm & Breadcrumb, Hộp ghi chép phản tư nhanh (Quick Jot Box), và Dòng thời gian các thói quen phân nhóm theo nhịp sinh học.
-- **Bản Mobile (Màn hình điện thoại < 768px):**
-  - Sidebar được thu gọn thành **Off-canvas Drawer trượt từ bên trái ra** khi bấm nút menu Hamburger trên Header, có lớp nền mờ backdrop-blur và nút đóng `X`.
-  - Giao diện chính ưu tiên 1 chạm (1-tap check-in) và hỗ trợ vùng đệm an toàn iOS (`pb-safe`).
+* **Newsreader (Serif đương đại):** Được sử dụng tiết chế cho các câu đề tựa bản sắc (`zen-quote`), tạo nét trang nhã, thiền định nhưng không phô trương.
+* **Plus Jakarta Sans (Sans-serif hiện đại):** Dành cho tên thói quen, nhãn thời điểm, các nút bấm thao tác và nội dung nhật ký với độ đọc cao nhất.
+* **JetBrains Mono (Monospace):** Dành riêng cho các thông số định lượng: đếm số thói quen, số chuỗi ngày streak (`18d`), tỉ lệ phần trăm sinh trưởng (`%`).
 
 ---
 
-## Iconography (Hệ Thống Biểu Tượng Chuẩn Hóa)
-Để bảo đảm tính thẩm mỹ cao cấp, đồng bộ và chuyên nghiệp trên mọi thiết bị (iOS, Android, Windows, macOS):
+## 4. Kiến Trúc Thông Tin & Bố Cục (Information Architecture)
 
-- **Thư viện duy nhất:** Toàn bộ biểu tượng trong giao diện **BẮT BUỘC sử dụng thư viện Lucide React (`lucide-react`)** hoặc SVG vector chuẩn hóa (viewBox `0 0 24 24`, `stroke-width: 1.75px` đến `2px`, `strokeLinecap: round`, `strokeLinejoin: round`).
-- **CẤM DÙNG EMOJI MẶC ĐỊNH HỆ ĐIỀU HÀNH:** Tuyệt đối không sử dụng raw emoji của hệ điều hành (như 🌅, 🌿, 🌙, 🔥, 🍃, 🌱) làm biểu tượng trên các nút bấm, menu điều hướng, nhãn phân loại hoặc header cards. Emojis hiển thị sai lệch sắc thái giữa các hệ điều hành, làm mất đi vẻ thanh lịch tĩnh tại của phong cách Botanical Zen.
-- **Bảng ánh xạ biểu tượng chuẩn (Semantic Icon Mapping):**
-  - *Mầm sinh trưởng & Bản sắc:* `<Sprout />` (kích thước 16-20px, màu `{colors.primary}`)
-  - *Nghi thức Rạng Đông (Morning):* `<Sunrise />` hoặc `<SunMedium />` (màu `{colors.accent-amber}`)
-  - *Khối Tập Trung (Midday):* `<Compass />` hoặc `<Target />` (màu `{colors.accent-sage}`)
-  - *Lắng Đọng Hoàng Hôn (Evening):* `<Moon />` (màu `{colors.primary}`)
-  - *Chuỗi ngày kiên trì (Streak):* `<Flame />` (màu `{colors.accent-amber}`)
-  - *Quy tắc 2 phút (Micro-habit):* `<Zap />` (màu `{colors.accent-clay}`)
-  - *Nhật ký Phản tư & Bài học:* `<PenLine />` hoặc `<BookOpen />`
-  - *Bản sắc khẳng định:* `<Sparkles />` (màu `{colors.primary}`)
-  - *Danh mục (Tags):* `<Hash />` (màu `{colors.text-tertiary}`)
-  - *Phục hồi nhân ái (Never Miss Twice):* `<HeartHandshake />` hoặc `<ShieldCheck />`
-  - *Điều hướng & Thao tác:* `<Search />`, `<Settings />`, `<Menu />`, `<X />`, `<Plus />`, `<Check />`, `<Trash2 />`, `<Send />`.
+Ứng dụng tuân thủ nghiêm ngặt nguyên tắc **Phân Tầng Thông Tin Độc Lập**, tuyệt đối không trộn lẫn các khối chức năng vào một màn hình duy nhất:
 
----
+### A. Màn hình Thao tác Chính (`Timeline` — Hôm Nay)
+*Độ rộng tối đa container:* `680px` (thay vì 760px cồng kềnh trước đây) để tầm mắt tập trung hoàn hảo vào danh sách thói quen.
+1. **Zen Identity Monologue (Đề tựa Bản Sắc Tinh Tế):** Một câu trích dẫn khẳng định bản sắc ngắn gọn nằm thanh lịch dưới Header (`font-serif italic text-text-secondary text-sm`), không đóng khung hộp to tướng.
+2. **Contextual Never Miss Twice Banner (Chỉ hiện khi cần thiết):** 
+   - *Quy tắc nghiêm ngặt:* **CHỈ HIỂN THỊ** khi người dùng có thói quen bị bỏ lỡ vào ngày hôm qua (`hasMissedYesterday === true`).
+   - Thiết kế dạng dải banner mỏng nhẹ, tinh tế ở đầu danh sách, có nút đóng hoặc tự biến mất khi người dùng hoàn thành check-in thói quen đó. Tuyệt đối không hiển thị thường trực!
+3. **Danh Sách 3 Nhịp Sinh Học Trong Ngày (Morning / Midday / Evening):**
+   - Header mỗi nhịp sinh học tối giản: Tên nhịp + Icon vector nhỏ + Số lượng thói quen. Bỏ toàn bộ các câu giải thích triết lý lê thê.
+   - Thao tác 1 chạm (1-Tap Check-in) tức thì.
+4. **Clean Empty State (Khi chưa có thói quen):**
+   - Giao diện rỗng sạch sẽ, biểu tượng mầm non nhỏ cùng nút mời gọi "Gieo mầm thói quen đầu tiên", không chèn các khung viền nét đứt dày đặc.
 
-## Elevation & Depth
-Hệ thống thiết kế theo đuổi triết lý **Flat Organic Layering**, hạn chế bóng đổ nặng nề:
+### B. Tab Nhật Ký Phản Tư (`Reflections` — Tách Biệt Hoàn Toàn)
+- Toàn bộ khung viết ghi chú nhanh (Quick Jot) và dòng thời gian các ghi chép phản tư (`ReflectionsFeed`) **PHẢI NẰM TẠI TAB NÀY**.
+- **CẤM** đặt `ReflectionsFeed` hoặc `QuickJotBox` cồng kềnh ngay giữa màn hình `Timeline`.
 
-- **Bề mặt (Surfaces):** Thẻ thông tin nằm trên nền Canvas với độ chênh lệch màu tinh tế (`#FFFFFF` trên `#F8F7F2`).
-- **Đường viền (Hairline Borders):** Sử dụng viền siêu mỏng `1px solid {colors.border}` (`#E6E2D8`) tạo cảm giác ranh giới rõ ràng nhưng không thô cứng.
-- **Bóng đổ (Organic Shadows):** Bóng mờ khuếch tán diện rộng nhưng độ mờ rất thấp: `0 4px 20px -4px rgba(28, 38, 33, 0.05)`, mang lại cảm giác tờ giấy đặt nhẹ trên mặt bàn gỗ.
-
----
-
-## Shapes
-- Bo góc thẻ lớn (`identity-card`): `{rounded.lg}` (20px).
-- Bo góc thẻ thói quen (`habit-card`): `{rounded.md}` (14px).
-- Bo góc huy hiệu & nhãn nhỏ (`tag-pill`): `{rounded.sm}` (8px).
-- Nút bấm & Vòng tròn Check-in: `{rounded.full}` (hình tròn hoàn hảo 9999px).
+### C. Sidebar Điều Hướng Tinh Gọn (Distraction-Free Sidebar)
+- **Khu vực 1 (Top):** Logo thương hiệu + Chỉ báo trạng thái Đồng bộ Cloud / Offline gọn gàng.
+- **Khu vực 2 (Bộ đếm & Khu vườn):** Gom gọn 3 chỉ số và lưới Heatmap nhỏ vào một khối trực quan, không chiếm diện tích quá lớn.
+- **Khu vực 3 (Menu):** 3 liên kết rõ ràng: *Dòng thời gian (Hôm nay)*, *Nhật ký Phản tư*, *Khu vườn Lưu trữ*.
+  - *Lược bỏ hoàn toàn:* Các mục nhãn tĩnh "Nhịp sinh học" không thể bấm trong menu.
+- **Khu vực 4 (Tài khoản & Phiên bản):** Đăng nhập Google / Hồ sơ người dùng + Version Badge nhỏ ở đáy.
 
 ---
 
-## Components
+## 5. Quy Chuẩn Thành Phần Giao Diện (Component Specifications)
 
-### 1. Sidebar / Drawer Component (Bản Đồ Điều Hướng & Chỉ Số)
-- Tích hợp 3 khối số liệu đo lường lớn: Số thói quen, Kỷ lục chuỗi, Tỉ lệ sinh trưởng hôm nay.
-- Lưới ma trận đóng góp nhỏ gọn (Mini Garden Heatmap) đặt trực quan ngay dưới các chỉ số.
-- Các liên kết điều hướng có thanh chỉ báo dọc bên trái (`border-l-3`) khi active.
-- Danh mục Tags có ký tự `<Hash />` dẫn đầu.
+### 1. Habit Card (Thẻ Thói Quen Tối Giản)
+- Thiết kế phẳng, 1 lớp viền mỏng hairline `1px solid {colors.border}`.
+- Vòng tròn check-in đường kính `28px - 32px`. Khi hoàn thành: chuyển màu xanh Cypress `{colors.primary}`, icon check trắng hiển thị mượt mà.
+- Tên thói quen: Khi hoàn tất chuyển sang `line-through` và màu rêu mờ `{colors.text-tertiary}`.
+- Badge danh mục và streak hiển thị nhỏ gọn ở góc phải (`JetBrains Mono`, `text-xs`).
+- Không dùng hiệu ứng bóng đổ lòe loẹt; chỉ dùng hiệu ứng chuyển màu viền nhẹ khi hover (`transition: border-color 0.2s`).
 
-### 2. Quick Jot Box (Khung Phản Tư 1 Dòng Nhanh)
-- Nằm ở đầu dòng thời gian, thiết kế như một tấm thẻ giấy ấm Alabaster.
-- Hỗ trợ gõ nhanh 1 dòng suy ngẫm / điều biết ơn trong ngày, gắn thẻ danh mục và nút gửi với icon `<Send />` màu Cypress Ink.
+### 2. Zen Identity Header (Bản Sắc Tối Giản)
+- Thay thế hoàn toàn `IdentityCard` dạng hộp viền cồng kềnh cũ.
+- Thiết kế: Dòng chữ thanh thoát dạng văn bản tự nhiên ở đầu trang Timeline:
+  *Ví dụ:* `"Tôi là người đọc sách và luôn lắng nghe cơ thể mỗi ngày."` (Kèm icon bút chì nhỏ để chỉnh sửa khi cần).
 
-### 3. Identity Card (Thẻ Định Hình Bản Sắc)
-Thẻ nổi bật dẫn đường cho cả ngày:
-- Huy hiệu loại bản sắc với icon `<Sparkles />`.
-- Tiêu đề trích dẫn lớn viết bằng font `Newsreader` in nghiêng nhẹ.
-- Hỗ trợ chỉnh sửa nhanh câu tuyên ngôn danh tính.
+### 3. Contextual Never Miss Twice Banner
+- Dạng banner thông báo ngữ cảnh viền mảnh màu đất nung nhạt (`#FDF3EE`, viền `border-accent-clay/30`).
+- Chỉ hiện khi có điều kiện kích hoạt. Thiết kế mỏng, gọn gàng, mang tính khích lệ thay vì phán xét.
 
-### 4. Habit Card (Thẻ Thói Quen Tương Tác)
-- Vòng tròn check-in bên trái đường kính 32px. Khi hoàn thành: chuyển sang màu xanh Cypress `{colors.primary}`, icon `<Check />` trắng hiện lên với hiệu ứng phóng đại nhẹ nhàng (scale spring).
-- Tên thói quen gạch ngang tinh tế và mờ xuống `{colors.text-tertiary}` khi hoàn tất.
-- Nhãn phân loại mềm mại đi kèm icon vector tương ứng.
-- Huy hiệu chuỗi kiên trì hiển thị bên phải: `<Flame /> 18d` màu vàng ấm Amber.
-
-### 5. Never Miss Twice Card (Thẻ Phục Hồi Nhân Ái)
-- Khung viền nét đứt màu nâu gốm nhạt, nền ấm `#F4EFEB` cùng icon `<HeartHandshake />` hoặc `<ShieldCheck />`.
-- Nhắc nhở người dùng tha thứ cho bản thân nếu lỡ một ngày, nhưng cương quyết quay lại vào ngày hôm sau.
+### 4. Quick Jot Box (Khung Ghi Chú Tối Giản)
+- Nằm trong tab **Nhật ký Phản tư**.
+- Ô nhập liệu sạch, tự động co giãn theo nội dung, thanh công cụ gọn gồm nút chọn tag và nút Lưu.
 
 ---
 
-## Do's and Don'ts
+## 6. Do's and Don'ts (Quy Tắc Sống Còn)
 
-### Do's (Nên làm)
-- Luôn sử dụng icon vector từ thư viện **Lucide React** đồng nhất về nét vẽ (`1.75px` - `2px`).
-- Luôn sử dụng ngôn từ tích cực, khích lệ và tập trung vào sự bền bỉ lâu dài.
-- Luôn kiểm tra độ tương phản văn bản theo tiêu chuẩn WCAG AA đối với mọi sắc độ màu nền.
-- Giữ hiệu ứng chuyển động (animations) ở mức tinh tế (200ms - 400ms ease), mang lại cảm giác hữu cơ, tự nhiên như chiếc lá khẽ lay.
-- Sử dụng số liệu dạng `JetBrains Mono` để đảm bảo độ thẳng hàng khi hiển thị các chuỗi số hoặc thời gian.
+### Do's (Bắt buộc tuân thủ)
+- Giữ giao diện luôn có **khoảng thở (whitespace)** rộng rãi, thanh tao.
+- Thao tác check-in thói quen phải là hành động nhanh nhất, không bị cản trở bởi bất kỳ cửa sổ hay popup nào.
+- Luôn sử dụng icon vector chuẩn mực từ **Lucide React** (kích thước `16px - 20px`, nét vẽ mỏng `1.75px`).
+- Đảm bảo hiển thị hoàn hảo và phản hồi mượt mà trên cả thiết bị di động (Mobile-first) và máy tính bàn.
 
-### Don'ts (Không làm)
-- **TUYỆT ĐỐI KHÔNG sử dụng raw emoji hệ điều hành** làm icon giao diện trong ứng dụng.
-- Không dùng màu đỏ tươi cảnh báo lỗi kiểu hệ thống (`#FF0000`). Nếu cần cảnh báo, dùng sắc son đất Terracotta hoặc Vermilion trầm.
-- Không áp dụng giao diện kính bóng bẩy (Glassmorphism) hay đèn neon dạ quang vào phong cách này, vì sẽ phá vỡ cảm giác mộc mạc và tĩnh lặng của thiên nhiên.
-- Không xóa sạch chuỗi ngày tích lũy của người dùng về số 0 một cách tàn nhẫn khi họ lỡ quên 1 ngày; hãy kích hoạt cơ chế phục hồi tích cực.
-- Không đặt các nút bấm góc nhọn 90 độ; tất cả thành phần phải có độ bo góc tối thiểu từ 8px trở lên.
+### Don'ts (Nghiêm cấm tuyệt đối)
+- **CẤM RƯỜM RÀ (Anti-Clutter):** Tuyệt đối không tự ý thêm các thẻ quote, banner triết lý, card thống kê cố định vào màn hình chính `Timeline`.
+- **CẤM CARD LỒNG CARD:** Không bọc card bên trong một container có viền khác, gây cảm giác nặng nề, bí bách.
+- **CẤM RAW EMOJI:** Không sử dụng raw emoji hệ điều hành (như 🌿, 🌙, ☀️) làm biểu tượng nút bấm hoặc nhãn giao diện.
+- **CẤM HIỂN THỊ DỮ LIỆU GIẢ VÀO TÀI KHOẢN THẬT:** Khi người dùng đã đăng nhập Google, không tự ý gieo mầm dữ liệu mock hay streak giả vào cơ sở dữ liệu của họ.

@@ -8,10 +8,6 @@ import {
   Calendar,
   BookOpen,
   Archive,
-  Trash2,
-  Sunrise,
-  Compass,
-  Moon,
   Hash,
   X,
   LogOut,
@@ -229,43 +225,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
           <span className="font-mono text-[11px] text-text-tertiary">0</span>
         </button>
 
-        <button
-          type="button"
-          className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-md text-text-tertiary hover:bg-canvas-subtle hover:text-text-secondary transition-all"
-        >
-          <div className="flex items-center gap-2.5">
-            <Trash2 className="h-4 w-4" />
-            <span>Thùng rác</span>
-          </div>
-          <span className="font-mono text-[11px] text-text-tertiary">0</span>
-        </button>
-
         {/* Phân cách */}
-        <div className="pt-3 pb-1 px-3">
-          <div className="h-px bg-border-subtle" />
-        </div>
-
-        {/* Khối Nhịp Sinh Học */}
-        <div className="px-3 pt-1 pb-1 text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
-          Nhịp sinh học
-        </div>
-
-        <div className="space-y-0.5">
-          <div className="flex items-center gap-2.5 px-3 py-1.5 text-xs text-text-secondary">
-            <Sunrise className="h-4 w-4 text-accent-amber" />
-            <span>Rạng Đông</span>
-          </div>
-          <div className="flex items-center gap-2.5 px-3 py-1.5 text-xs text-text-secondary">
-            <Compass className="h-4 w-4 text-accent-sage" />
-            <span>Tập Trung</span>
-          </div>
-          <div className="flex items-center gap-2.5 px-3 py-1.5 text-xs text-text-secondary">
-            <Moon className="h-4 w-4 text-primary" />
-            <span>Lắng Đọng</span>
-          </div>
-        </div>
-
-        {/* Phân cách Tags */}
         <div className="pt-3 pb-1 px-3">
           <div className="h-px bg-border-subtle" />
         </div>

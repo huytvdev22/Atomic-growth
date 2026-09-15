@@ -1,6 +1,6 @@
 # Hướng Dẫn Dành Cho Coding Agents (AGENTS.md)
 
-Tài liệu này định nghĩa các nguyên tắc hoạt động, quy chuẩn kiến trúc, môi trường thực thi và tiêu chuẩn chất lượng dành cho tất cả AI Coding Agents (Antigravity, Gemini, Cursor, Copilot...) khi tham gia phát triển và bảo trì repository **Atomic Growth**.
+Tài liệu này định nghĩa các nguyên tắc hoạt động, quy chuẩn kiến trúc, môi trường thực thi, tiêu chuẩn thẩm mỹ và an toàn dữ liệu dành cho tất cả AI Coding Agents (Antigravity, Gemini, Cursor, Copilot...) khi tham gia phát triển và bảo trì repository **Atomic Growth**.
 
 ---
 
@@ -19,9 +19,20 @@ Tài liệu này định nghĩa các nguyên tắc hoạt động, quy chuẩn k
 
 ---
 
-## 2. Kim Chỉ Nam Thiết Kế (Design System Authority)
+## 2. Kim Chỉ Nam Thiết Kế & Chống Rườm Rà (Anti-Clutter & Zen Minimalism)
 
-* **Nguồn chân lý duy nhất (Single Source of Truth):** Toàn bộ giao diện người dùng (UI), mã màu, khoảng cách, bo góc và phông chữ **PHẢI tuân thủ nghiêm ngặt theo đặc tả [DESIGN.md](./DESIGN.md)** (*Phong cách Botanical Zen & Organic Growth*).
+* **Nguồn chân lý duy nhất (Single Source of Truth):** Toàn bộ giao diện người dùng (UI), mã màu, khoảng cách, bo góc và phông chữ **PHẢI tuân thủ nghiêm ngặt theo đặc tả [DESIGN.md](./DESIGN.md)** (*Phong cách Botanical Zen Minimalist*).
+* **Quy Tắc Chống Giao Diện Rườm Rà (Anti-Clutter Guardrails — BẮT BUỘC):**
+  1. **1 Màn hình — 1 Tiêu điểm Tối thượng (Single Core Focus):**
+     * Màn hình chính (`Timeline`) dành 90% không gian và sự chú ý cho việc **Check-in thói quen trong ngày**.
+     * Tuyệt đối không nhồi nhét nhật ký phản tư, trích dẫn triết lý khổng lồ, hay các bảng đếm số rườm rà lên cùng màn hình `Timeline`.
+  2. **Hiển thị theo Ngữ cảnh (Contextual Rendering):**
+     * Thẻ nhắc nhở *Never Miss Twice* **CHỈ ĐƯỢC PHÉP HIỂN THỊ** khi người dùng thực sự có thói quen bị bỏ lỡ từ hôm trước (`hasMissedYesterday === true`). Nghiêm cấm trưng bày thẻ này thường trực như một bảng chữ tĩnh.
+  3. **Cấm Card lồng Card (No Nested Cards):**
+     * Không bọc thẻ thói quen bên trong các khung viền/container phân nhóm dày đặc hoặc lồng nhiều lớp viền nét đứt.
+  4. **Tách biệt Không gian (Clear Separation of Concerns):**
+     * Tính năng Ghi chép / Viết suy ngẫm (Quick Jot) và Lịch sử phản tư (`ReflectionsFeed`) nằm riêng trong tab **Nhật ký Phản tư**.
+     * Tính năng Thống kê chuyên sâu nằm trong tab/drawer **Khu vườn sinh trưởng**.
 * **Màu sắc cốt lõi:**
   * Nền Canvas: `#F8F7F2` (Alabaster Linen) — *Không dùng màu trắng tinh gắt mắt `#FFFFFF` làm nền chính.*
   * Mực chính (Primary): `#205A42` (Deep Cypress Ink).
@@ -30,14 +41,24 @@ Tài liệu này định nghĩa các nguyên tắc hoạt động, quy chuẩn k
   * Nhấn đất nung: `#C97255` (Terracotta Clay).
   * Nhấn chuỗi kiên trì: `#D89839` (Warm Amber Ochre).
 * **Typography:**
-  * Tiêu đề & Trích dẫn danh tính: `Newsreader` (Serif).
+  * Tiêu đề & Trích dẫn danh tính ngắn: `Newsreader` (Serif).
   * Nội dung & Thao tác UI: `Plus Jakarta Sans` (Sans-serif).
   * Đo lường, Tỉ lệ %, Chuỗi Streak: `JetBrains Mono` (Monospace).
-* **Trải nghiệm mẫu:** Tham khảo file [demo/1-botanical-zen.html](./demo/1-botanical-zen.html) và [demo/index.html](./demo/index.html).
 
 ---
 
-## 3. Quy Tắc Giao Tiếp & Quy Chuẩn Code (Coding Standards)
+## 3. Quy Chuẩn Quản Lý Dữ Liệu & Toàn Vẹn (Data Integrity & Lifecycle)
+
+* **NGHIÊM CẤM TỰ INJECT DỮ LIỆU MOCK VÀO TÀI KHOẢN THẬT:**
+  * Khi người dùng đăng nhập bằng tài khoản Google (Cloud Firestore), tài khoản mới phải là **tài khoản sạch hoàn toàn (Clean Slate / 0 thói quen)**.
+  * Tuyệt đối **KHÔNG** tự ý chạy hàm gieo mầm dữ liệu giả (`seedUserDataIfEmpty`) để nạp các thói quen mẫu kèm streak ảo (ví dụ: 18 ngày, 9 ngày) hay lịch sử check-in giả vào Firestore của người dùng.
+* **Phân định rõ ranh giới Guest vs Authenticated User:**
+  * *Guest / Offline Mode:* Lưu trữ cục bộ trong LocalStorage. Có thể cung cấp các mẫu thói quen khởi đầu để người dùng khám phá nếu họ chưa đăng nhập.
+  * *Authenticated Cloud Mode:* Dữ liệu của người dùng trên Cloud là chân lý tuyệt đối. Nếu Cloud trả về danh sách rỗng (`0 thói quen`), hệ thống phải render **Clean Empty State** thanh nhã kèm nút "Gieo mầm thói quen đầu tiên", **tuyệt đối không fallback về mock data trong LocalStorage**.
+
+---
+
+## 4. Quy Tắc Giao Tiếp & Quy Chuẩn Code (Coding Standards)
 
 1. **Ngôn ngữ:**
    * Luôn giao tiếp, giải thích và lập kế hoạch (plan) bằng **Tiếng Việt**.
@@ -54,7 +75,7 @@ Tài liệu này định nghĩa các nguyên tắc hoạt động, quy chuẩn k
 
 ---
 
-## 4. Cấu Hình Môi Trường & Thực Thi Lệnh (Environment Setup)
+## 5. Cấu Hình Môi Trường & Thực Thi Lệnh (Environment Setup)
 
 * **Hệ điều hành:** Antigravity đang chạy trên Windows.
 * **WSL2 (Windows Subsystem for Linux):** Toàn bộ các công cụ phát triển (Node.js, npm, Java, Docker, Git) được cài đặt và vận hành trong WSL.
@@ -71,32 +92,6 @@ Tài liệu này định nghĩa các nguyên tắc hoạt động, quy chuẩn k
   * NPM: `11.16.0`
   * Java: OpenJDK 17 (`17.0.15`)
 * **Docker:** Khi cần dùng Docker trong WSL, cần kiểm tra và khởi động service trước: `wsl bash -ic "service docker start"`.
-
----
-
-## 5. Cấu Trúc Thư Mục Chuẩn (Project Structure)
-
-```
-Atomic-growth/
-├── .agents/                 # Cấu hình agents & skills mở rộng
-├── demo/                    # Các trang demo HTML showcase 4 phong cách
-│   ├── index.html           # Trung tâm chuyển đổi & so sánh thiết bị (Design Lab Hub)
-│   ├── 1-botanical-zen.html # Bản mẫu Hướng 1 (Botanical Zen & Organic Growth)
-│   ├── 2-neo-brutalism.html # Bản mẫu Hướng 2 (High-Performance Neo-Brutalism)
-│   ├── 3-editorial-heritage.html # Bản mẫu Hướng 3 (Editorial Broadsheet)
-│   └── 4-atmospheric-glass.html  # Bản mẫu Hướng 4 (Atmospheric Glass)
-├── src/
-│   ├── components/          # Các UI components tái sử dụng (HabitCard, Heatmap, Ring...)
-│   ├── context/             # Quản lý trạng thái toàn cục (HabitState, UserProfile...)
-│   ├── services/            # Xử lý lưu trữ dữ liệu (IndexedDB, LocalStorage, Sync...)
-│   ├── styles/              # CSS tokens, theme variables kế thừa từ DESIGN.md
-│   ├── types/               # Type definitions TypeScript (Habit, Log, Identity...)
-│   └── utils/               # Hàm trợ giúp (tính streak, ngày tháng, định dạng số...)
-├── public/                  # Static assets, favicon, manifest PWA
-├── DESIGN.md                # Đặc tả hệ thống thiết kế chuẩn Google Labs
-├── AGENTS.md                # Tài liệu quy chuẩn này
-└── README.md                # Giới thiệu tổng quan dự án
-```
 
 ---
 
