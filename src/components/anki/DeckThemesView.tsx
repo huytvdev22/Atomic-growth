@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { AnkiCard, calculateCardVitality } from '../../types/anki';
 import {
   Sparkles,
@@ -8,7 +8,9 @@ import {
   Play,
   ArrowRight,
   BookOpen,
-  Layers
+  Layers,
+  Search,
+  X
 } from 'lucide-react';
 
 export interface ThemeGroup {
@@ -186,6 +188,17 @@ export const DeckThemesView: React.FC<DeckThemesViewProps> = ({
     return groups;
   }, [cards]);
 
+  // Bộ lọc tìm kiếm nhanh bài học
+  const [lessonQuery, setLessonQuery] = useState('');
+
+  const filteredLessons = useMemo(() => {
+    if (!lessonQuery.trim()) return lessonGroups;
+    const q = lessonQuery.toLowerCase().trim();
+    return lessonGroups.filter(
+      (l) => l.title.toLowerCase().includes(q) || (l.subtitle && l.subtitle.toLowerCase().includes(q))
+    );
+  }, [lessonGroups, lessonQuery]);
+
   if (cards.length === 0) {
     return null;
   }
@@ -199,17 +212,20 @@ export const DeckThemesView: React.FC<DeckThemesViewProps> = ({
     return (
       <div
         key={theme.id}
-        className={`p-4 rounded-2xl border transition-all duration-200 flex flex-col justify-between space-y-3 cursor-pointer shadow-2xs group ${theme.bgClass} ${theme.borderClass}`}
+        className={`p-4 rounded-2xl border transition-all duration-200 flex flex-col justify-between space-y-3 cursor-pointer shadow-2xs group hover:shadow-xs ${theme.bgClass} ${theme.borderClass}`}
         onClick={() => onSelectTheme(theme)}
       >
         {/* Header của thẻ chủ đề */}
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="p-2 rounded-xl bg-canvas/80 backdrop-blur-xs border border-border-subtle shrink-0">
+        <div className="flex items-start justify-between gap-2.5">
+          <div className="flex items-start gap-2.5 min-w-0 flex-1">
+            <div className="p-2 rounded-xl bg-canvas/80 backdrop-blur-xs border border-border-subtle shrink-0 mt-0.5">
               {theme.icon}
             </div>
-            <div className="min-w-0">
-              <h5 className="font-serif text-sm sm:text-base font-bold text-text-primary leading-tight group-hover:text-primary transition-colors truncate">
+            <div className="min-w-0 flex-1">
+              <h5
+                title={theme.title}
+                className="font-serif text-sm sm:text-base font-bold text-text-primary leading-snug group-hover:text-primary transition-colors line-clamp-2 break-words"
+              >
                 {theme.title}
               </h5>
               {theme.subtitle && (
@@ -226,8 +242,8 @@ export const DeckThemesView: React.FC<DeckThemesViewProps> = ({
         </div>
 
         {/* Thanh tiến độ nhỏ & Nút hành động */}
-        <div className="pt-1 flex items-center justify-between gap-3 border-t border-border-subtle/50">
-          <div className="flex-1 max-w-[120px]">
+        <div className="pt-2 flex items-center justify-between gap-3 border-t border-border-subtle/50">
+          <div className="flex-1 max-w-[110px]">
             <div className="flex justify-between text-[9px] font-mono text-text-tertiary mb-1">
               <span>Đã vững</span>
               <span>{steadyRatio}%</span>
@@ -247,7 +263,7 @@ export const DeckThemesView: React.FC<DeckThemesViewProps> = ({
                 e.stopPropagation();
                 onReviewTheme(theme);
               }}
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-canvas hover:bg-canvas-subtle text-text-primary border border-border text-[11px] font-semibold transition-all cursor-pointer shadow-2xs hover:scale-102"
+              className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-canvas hover:bg-canvas-subtle text-text-primary border border-border text-[11px] font-semibold transition-all cursor-pointer shadow-2xs hover:scale-102 shrink-0"
               title={`Bắt đầu phiên ôn 2 phút cho nhóm ${theme.title}`}
             >
               <Play className="w-3 h-3 text-primary fill-primary" />
@@ -268,7 +284,7 @@ export const DeckThemesView: React.FC<DeckThemesViewProps> = ({
       {/* 1. Khu Vực Phân Nhóm Bài Học (Subdecks - nếu có) */}
       {lessonGroups.length > 0 && (
         <div className="space-y-3">
-          <div className="flex items-center justify-between px-1">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 px-1">
             <div>
               <h4 className="font-serif text-sm sm:text-base font-bold text-text-primary flex items-center gap-1.5">
                 <Layers className="w-4 h-4 text-primary" />
@@ -278,11 +294,40 @@ export const DeckThemesView: React.FC<DeckThemesViewProps> = ({
                 Ôn tập tập trung 2 phút theo từng chủ đề bài học cụ thể
               </p>
             </div>
+
+            {/* Ô tìm kiếm nhanh bài học khi có nhiều subdeck */}
+            {lessonGroups.length > 6 && (
+              <div className="relative w-full sm:w-56">
+                <Search className="w-3.5 h-3.5 text-text-tertiary absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <input
+                  type="text"
+                  value={lessonQuery}
+                  onChange={(e) => setLessonQuery(e.target.value)}
+                  placeholder="Tìm bài học (vd: 01, marketing)..."
+                  className="w-full pl-8 pr-7 py-1 text-xs rounded-full border border-border bg-canvas text-text-primary focus:outline-none focus:border-primary placeholder:text-text-tertiary"
+                />
+                {lessonQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setLessonQuery('')}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-tertiary hover:text-text-primary cursor-pointer"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
+            )}
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {lessonGroups.map((theme) => renderThemeCard(theme, 'Ôn bài này'))}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {filteredLessons.map((theme) => renderThemeCard(theme, 'Ôn bài này'))}
           </div>
+
+          {filteredLessons.length === 0 && (
+            <div className="p-6 text-center border border-dashed border-border rounded-xl text-xs text-text-secondary">
+              Không tìm thấy bài học nào khớp với từ khóa "{lessonQuery}".
+            </div>
+          )}
         </div>
       )}
 
@@ -300,7 +345,7 @@ export const DeckThemesView: React.FC<DeckThemesViewProps> = ({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {vitalityGroups.map((theme) => renderThemeCard(theme, 'Ôn nhóm'))}
         </div>
       </div>

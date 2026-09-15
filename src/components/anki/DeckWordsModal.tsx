@@ -201,7 +201,7 @@ export const DeckWordsModal: React.FC<DeckWordsModalProps> = ({
       icon={<BookOpen className="h-4.5 w-4.5" />}
       title={deck?.title || 'Danh Sách Từ Vựng'}
       subtitle={cards.length > 0 ? `${cards.length} từ trong bộ thẻ` : 'Vườn từ vựng'}
-      className="h-[92dvh] sm:h-[680px] sm:max-h-[85vh]"
+      className="h-[92dvh] sm:h-[750px] sm:max-h-[88vh] sm:max-w-4xl lg:max-w-5xl"
       contentClassName="p-0 flex flex-col flex-1 overflow-hidden space-y-0"
     >
       {/* Cụm Chuyển Đổi Chế Độ Xem (Words List vs Mural Themes) */}
