@@ -24,7 +24,10 @@ dist-ssr
 *.sln
 *.sw?
 
-# Environment Variables
+# Environment Variables & Secrets
 .env
 .env.local
 .env.*.local
+*-firebase-adminsdk-*.json
+service-account*.json
+*.pem

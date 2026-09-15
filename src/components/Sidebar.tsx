@@ -20,6 +20,7 @@ import {
   User as UserIcon
 } from 'lucide-react';
 import { cn } from '../utils/cn';
+import { VersionBadge } from './VersionBadge';
 
 interface SidebarProps {
   isOpenMobile: boolean;
@@ -377,6 +378,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
             )}
           </div>
         )}
+
+        {/* Thanh trạng thái phiên bản PWA (Kiểu FlareMo: 🔄 v1.0.0 🟠) */}
+        <div className="flex items-center justify-between pt-2 border-t border-border-subtle/80">
+          <VersionBadge />
+          <span className="text-[10px] text-text-tertiary">Atomic Zen</span>
+        </div>
       </div>
     </div>
   );

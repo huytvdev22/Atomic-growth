@@ -7,6 +7,7 @@ import { RitualGroup } from './components/RitualGroup';
 import { NeverMissTwiceCard } from './components/NeverMissTwiceCard';
 import { ReflectionsFeed } from './components/ReflectionsFeed';
 import { AddHabitModal } from './components/AddHabitModal';
+import { UpdateToast } from './components/UpdateToast';
 import { RitualTime } from './types/habit';
 import { Menu, Search, Plus, Sparkles, Heart, Sprout, Calendar, BookOpen } from 'lucide-react';
 
@@ -207,6 +208,9 @@ export const App: React.FC = () => {
           onClose={() => setIsAddModalOpen(false)}
           defaultRitual={defaultRitual}
         />
+
+        {/* Thông báo cập nhật phiên bản mới (PWA Update Toast) */}
+        <UpdateToast />
       </div>
     </div>
   );
