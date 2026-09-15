@@ -1,19 +1,50 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
+import { cn } from '../utils/cn';
 
-interface BottomSheetProps {
+export interface BottomSheetProps {
   isOpen: boolean;
   onClose: () => void;
-  title: string;
+  title?: React.ReactNode;
+  subtitle?: React.ReactNode;
+  icon?: React.ReactNode;
   children: React.ReactNode;
+  /** Tùy biến class của khung container Bottom Sheet (mặc định: 'max-w-lg') */
+  className?: string;
+  /** Tùy biến class của vùng nội dung bên trong (mặc định: 'p-6 overflow-y-auto space-y-4') */
+  contentClassName?: string;
+  /** Component hoặc thanh công cụ phụ đặt ngay dưới Header (ví dụ Zen Progress Bar) */
+  headerExtra?: React.ReactNode;
+  /** Tùy chọn ẩn toàn bộ Header mặc định */
+  hideHeader?: boolean;
+  /** Bật/tắt thanh gạt kéo vuốt phía trên (mặc định: true) */
+  showDragHandle?: boolean;
 }
 
 /**
- * Component BottomSheet vuốt chạm kéo xuống đóng (Swipe-Down Dismiss)
- * Áp dụng kiến trúc React Portal và khóa cuộn thân trang (Body Scroll Lock)
+ * Component BottomSheet dùng chung (Common Core Component)
+ * Tự động chuyển đổi: Bottom Sheet bám đáy màn hình trên Mobile / PWA và Modal thanh lịch trên Desktop.
+ * Tích hợp:
+ * - Cử chỉ vuốt kéo xuống đóng (Swipe-Down Dismiss Gesture)
+ * - Khóa cuộn trang nền (Body Scroll Lock)
+ * - React Portal đưa ra ngoài root DOM
+ * - Hỗ trợ vùng an toàn thiết bị di động (pb-safe)
+ * - Đóng bằng phím Escape
  */
-export const BottomSheet: React.FC<BottomSheetProps> = ({ isOpen, onClose, title, children }) => {
+export const BottomSheet: React.FC<BottomSheetProps> = ({
+  isOpen,
+  onClose,
+  title,
+  subtitle,
+  icon,
+  children,
+  className,
+  contentClassName,
+  headerExtra,
+  hideHeader = false,
+  showDragHandle = true
+}) => {
   const [dragY, setDragY] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const startYRef = useRef<number>(0);
@@ -49,7 +80,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({ isOpen, onClose, title
 
   const handleTouchEnd = useCallback(() => {
     setIsDragging(false);
-    if (dragY > 120) {
+    if (dragY > 100) {
       onClose();
     }
     setDragY(0);
@@ -73,7 +104,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({ isOpen, onClose, title
       {/* Lớp phủ Backdrop làm mờ */}
       <div
         onClick={onClose}
-        className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity duration-300"
+        className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity duration-300 animate-in fade-in"
       />
 
       {/* Khung Sheet Nội Dung */}
@@ -81,35 +112,77 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({ isOpen, onClose, title
         ref={sheetRef}
         style={{
           transform: dragY > 0 ? `translateY(${dragY}px)` : undefined,
-          transition: isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+          transition: isDragging
+            ? 'none'
+            : 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
         }}
-        className="relative z-10 w-full max-w-lg rounded-t-2xl sm:rounded-2xl bg-surface border-t sm:border border-border shadow-2xl pb-safe max-h-[90dvh] flex flex-col overflow-hidden"
+        className={cn(
+          'relative z-10 w-full max-w-lg rounded-t-3xl sm:rounded-2xl bg-surface border-t sm:border border-border shadow-2xl pb-safe max-h-[92dvh] flex flex-col overflow-hidden animate-in slide-in-from-bottom duration-300 sm:duration-200',
+          className
+        )}
       >
-        {/* Thanh gạt kéo vuốt phía trên (Drag Handle) */}
-        <div
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          className="flex flex-col items-center pt-3 pb-2 cursor-grab active:cursor-grabbing select-none"
-        >
-          <div className="w-12 h-1.5 rounded-full bg-border-subtle" />
-        </div>
-
-        {/* Tiêu đề Modal */}
-        <div className="flex items-center justify-between px-6 pb-4 border-b border-border-subtle">
-          <h3 className="font-serif text-lg sm:text-xl font-semibold text-text-primary">
-            {title}
-          </h3>
-          <button
-            onClick={onClose}
-            className="rounded-full p-1.5 text-text-tertiary hover:bg-canvas-subtle hover:text-text-primary transition-colors"
+        {/* Thanh gạt kéo vuốt phía trên (Drag Handle) cho Mobile */}
+        {showDragHandle && (
+          <div
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            className="flex flex-col items-center pt-3 pb-1 cursor-grab active:cursor-grabbing select-none sm:hidden shrink-0 touch-none"
           >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+            <div className="w-12 h-1.5 rounded-full bg-border" />
+          </div>
+        )}
+
+        {/* Header Modal */}
+        {!hideHeader && (title || icon) && (
+          <div
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            className="flex items-center justify-between px-5 sm:px-6 py-3.5 border-b border-border-subtle shrink-0"
+          >
+            <div className="flex items-center gap-2.5 min-w-0">
+              {icon && (
+                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-accent-sprout text-primary shrink-0 shadow-2xs">
+                  {icon}
+                </div>
+              )}
+              <div className="truncate">
+                {typeof title === 'string' ? (
+                  <h3 className="font-serif text-base sm:text-lg font-semibold text-text-primary truncate">
+                    {title}
+                  </h3>
+                ) : (
+                  title
+                )}
+                {subtitle && (
+                  <div className="text-xs text-text-secondary truncate mt-0.5">
+                    {subtitle}
+                  </div>
+                )}
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Đóng"
+              className="rounded-full p-1.5 text-text-tertiary hover:bg-canvas-subtle hover:text-text-primary transition-colors cursor-pointer shrink-0"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        )}
+
+        {/* Thanh bổ sung dưới Header (ví dụ Progress Bar) */}
+        {headerExtra && <div className="shrink-0">{headerExtra}</div>}
 
         {/* Nội dung cuộn bên trong */}
-        <div className="p-6 overflow-y-auto space-y-4">
+        <div
+          className={cn(
+            'p-6 overflow-y-auto space-y-4 flex-1',
+            contentClassName
+          )}
+        >
           {children}
         </div>
       </div>

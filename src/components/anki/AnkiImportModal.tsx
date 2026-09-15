@@ -1,4 +1,5 @@
 import React, { useState, useRef, useMemo } from 'react';
+import { BottomSheet } from '../BottomSheet';
 import { parseAnkiPackage, ParseAnkiResult } from '../../services/ankiParser';
 import { indexedDbService } from '../../services/indexedDbService';
 import { useHabits } from '../../context/HabitContext';
@@ -6,7 +7,6 @@ import { useAuth } from '../../context/AuthContext';
 import { googleDriveService } from '../../services/googleDriveService';
 import {
   UploadCloud,
-  X,
   FileCheck,
   Sparkles,
   Volume2,
@@ -218,34 +218,17 @@ export const AnkiImportModal: React.FC<AnkiImportModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs transition-opacity animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg rounded-2xl bg-surface border border-border shadow-xl p-6 sm:p-7 space-y-5 max-h-[90vh] overflow-y-auto">
-        {/* Header Modal */}
-        <div className="flex items-center justify-between pb-3 border-b border-border-subtle">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent-sprout text-primary shadow-2xs">
-              <Sparkles className="h-5 w-5" />
-            </div>
-            <div>
-              <h2 className="font-serif text-lg font-bold text-text-primary">
-                Nhập Bộ Thẻ Từ Anki
-              </h2>
-              <p className="text-xs text-text-secondary">
-                Tích hợp flashcard vào nhịp sinh học theo quy tắc 2 phút
-              </p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={() => {
-              handleReset();
-              onClose();
-            }}
-            className="rounded-full p-1.5 text-text-tertiary hover:bg-canvas-subtle hover:text-text-primary transition-colors cursor-pointer"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
+    <BottomSheet
+      isOpen={isOpen}
+      onClose={() => {
+        handleReset();
+        onClose();
+      }}
+      icon={<Sparkles className="h-5 w-5" />}
+      title="Nhập Bộ Thẻ Từ Anki"
+      subtitle="Tích hợp flashcard vào nhịp sinh học theo quy tắc 2 phút"
+      contentClassName="p-5 sm:p-7 space-y-5 overflow-y-auto"
+    >
 
         {/* Lỗi cảnh báo nếu có */}
         {error && (
@@ -439,7 +422,6 @@ export const AnkiImportModal: React.FC<AnkiImportModalProps> = ({
             </div>
           </div>
         )}
-      </div>
-    </div>
+    </BottomSheet>
   );
 };

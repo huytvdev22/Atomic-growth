@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { BottomSheet } from '../BottomSheet';
 import { useAuth } from '../../context/AuthContext';
 import { googleDriveService, DriveDeckItem } from '../../services/googleDriveService';
 import { parseAnkiPackage } from '../../services/ankiParser';
@@ -7,7 +8,6 @@ import { AnkiDeck } from '../../types/anki';
 import {
   Cloud,
   FolderSync,
-  X,
   Download,
   Trash2,
   RefreshCw,
@@ -253,35 +253,20 @@ export const DriveSyncModal: React.FC<DriveSyncModalProps> = ({
     }
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/40 backdrop-blur-xs transition-opacity animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg rounded-2xl bg-surface border border-border shadow-2xl p-5 sm:p-7 space-y-5 max-h-[90vh] overflow-y-auto">
-        {/* Header Modal */}
-        <div className="flex items-center justify-between pb-3 border-b border-border-subtle">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent-sage/20 text-primary shadow-2xs">
-              <Cloud className="h-5 w-5" />
-            </div>
-            <div>
-              <h2 className="font-serif text-lg font-bold text-text-primary">
-                Đồng Bộ Google Drive Cá Nhân
-              </h2>
-              <p className="text-xs text-text-secondary flex items-center gap-1">
-                <span>Lưu trữ tại:</span>
-                <span className="font-mono text-primary font-semibold">Atomic Growth/Anki Decks/</span>
-              </p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-full p-1.5 text-text-tertiary hover:bg-canvas-subtle hover:text-text-primary transition-colors cursor-pointer"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
+    <BottomSheet
+      isOpen={isOpen}
+      onClose={onClose}
+      icon={<Cloud className="h-5 w-5" />}
+      title="Đồng Bộ Google Drive Cá Nhân"
+      subtitle={
+        <span className="flex items-center gap-1">
+          <span>Lưu trữ tại:</span>
+          <span className="font-mono text-primary font-semibold">Atomic Growth/Anki Decks/</span>
+        </span>
+      }
+      contentClassName="p-5 sm:p-7 space-y-5 overflow-y-auto"
+    >
 
         {/* Thông báo lỗi / thành công */}
         {errorMessage && (
@@ -530,7 +515,6 @@ export const DriveSyncModal: React.FC<DriveSyncModalProps> = ({
             </div>
           </div>
         )}
-      </div>
-    </div>
+    </BottomSheet>
   );
 };
