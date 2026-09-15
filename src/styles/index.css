@@ -1,0 +1,97 @@
+@import "tailwindcss";
+
+/* 
+ * Botanical Zen & Organic Growth Theme Tokens
+ * Kế thừa trực tiếp từ đặc tả DESIGN.md chuẩn Google Labs
+ */
+@theme {
+  --color-canvas: #F8F7F2;
+  --color-canvas-subtle: #F2EFE9;
+  --color-surface: #FFFFFF;
+  --color-surface-soft: #FAFCFA;
+  --color-surface-container: #F2EFE9;
+  --color-surface-container-high: #EAE6DC;
+  
+  --color-border: #E6E2D8;
+  --color-border-subtle: #EEEAE0;
+  --color-border-focus: #205A42;
+  
+  --color-primary: #205A42;
+  --color-primary-hover: #184432;
+  --color-primary-container: #E4EFE9;
+  --color-on-primary-container: #174633;
+  
+  --color-text-primary: #1C2621;
+  --color-text-secondary: #5E6D66;
+  --color-text-tertiary: #8E9E96;
+  
+  --color-accent-sage: #528B70;
+  --color-accent-clay: #C97255;
+  --color-accent-amber: #D89839;
+  --color-accent-sprout: #E4EFE9;
+  --color-accent-sprout-dark: #2F6A4F;
+  --color-success: #205A42;
+  --color-error: #BA3D2A;
+
+  --font-serif: "Newsreader", serif;
+  --font-sans: "Plus Jakarta Sans", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-full: 9999px;
+}
+
+/* Base Body Styles */
+body {
+  background-color: var(--color-canvas);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  background-image: radial-gradient(#E8E5DC 1px, transparent 1px);
+  background-size: 24px 24px;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Mobile Safari Safe Area Helpers */
+.pb-safe {
+  padding-bottom: max(env(safe-area-inset-bottom), 16px);
+}
+.pt-safe {
+  padding-top: max(env(safe-area-inset-top), 16px);
+}
+.h-dvh {
+  height: 100dvh;
+}
+.min-h-dvh {
+  min-height: 100dvh;
+}
+
+/* Hiệu ứng chuyển động mầm cây và nảy nhẹ khi check-in */
+@keyframes checkmark-spring {
+  0% { transform: scale(0.6); opacity: 0; }
+  60% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.animate-spring {
+  animation: checkmark-spring 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Tùy biến thanh cuộn mượt mà */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #D8D4C8;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #C4BFB2;
+}

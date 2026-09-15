@@ -1,0 +1,9 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Phân quyền bảo mật: Mỗi người dùng chỉ có quyền đọc & ghi dữ liệu thói quen và phản tư của chính mình
+    match /users/{userId}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}
