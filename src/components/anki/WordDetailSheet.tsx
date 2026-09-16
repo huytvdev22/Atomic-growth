@@ -106,7 +106,12 @@ export const WordDetailSheet: React.FC<WordDetailSheetProps> = ({
         const filename = match[1];
         if (/^(https?:|data:|blob:)/i.test(filename)) continue;
 
-        const blob = await indexedDbService.getMediaBlob(filename);
+        let blob = await indexedDbService.getMediaBlob(filename);
+        if (!blob) {
+          try {
+            blob = await indexedDbService.getMediaBlob(decodeURIComponent(filename));
+          } catch {}
+        }
         if (blob) {
           const blobUrl = URL.createObjectURL(blob);
           activeBlobUrlsRef.current.push(blobUrl);
@@ -121,8 +126,25 @@ export const WordDetailSheet: React.FC<WordDetailSheetProps> = ({
 
     async function process() {
       if (!card) return;
-      const front = await resolveImages(card.front);
-      const back = await resolveImages(card.back);
+      let front = await resolveImages(card.front);
+      let back = await resolveImages(card.back);
+
+      // Fallback an toàn: Nếu thẻ có imageName mà trong front/back chưa hiển thị
+      if (card.imageName && !front.includes(card.imageName) && !back.includes(card.imageName)) {
+        let blob = await indexedDbService.getMediaBlob(card.imageName);
+        if (!blob) {
+          try {
+            blob = await indexedDbService.getMediaBlob(decodeURIComponent(card.imageName));
+          } catch {}
+        }
+        if (blob) {
+          const blobUrl = URL.createObjectURL(blob);
+          activeBlobUrlsRef.current.push(blobUrl);
+          const topImg = `<div class="text-center my-2.5"><img src="${blobUrl}" alt="Hình ảnh minh họa" class="max-w-full max-h-48 rounded-lg mx-auto object-contain border border-border/60 shadow-2xs block" loading="lazy" /></div>`;
+          back = topImg + back;
+        }
+      }
+
       if (isMounted) {
         setRenderedFrontHtml(front);
         setRenderedBackHtml(back);

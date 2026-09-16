@@ -170,7 +170,12 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
           const filename = match[1];
           if (/^(https?:|data:|blob:)/i.test(filename)) continue;
 
-          const blob = await indexedDbService.getMediaBlob(filename);
+          let blob = await indexedDbService.getMediaBlob(filename);
+          if (!blob) {
+            try {
+              blob = await indexedDbService.getMediaBlob(decodeURIComponent(filename));
+            } catch {}
+          }
           if (blob) {
             const blobUrl = URL.createObjectURL(blob);
             activeBlobUrlsRef.current.push(blobUrl);
@@ -183,8 +188,28 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
         return resHtml;
       };
 
-      const front = await resolveHtml(currentCard.front);
-      const back = await resolveHtml(currentCard.back);
+      let front = await resolveHtml(currentCard.front);
+      let back = await resolveHtml(currentCard.back);
+
+      // Fallback an toàn: Nếu thẻ có imageName mà trong cả front lẫn back chưa có ảnh nào hiển thị
+      if (
+        currentCard.imageName &&
+        !front.includes(currentCard.imageName) &&
+        !back.includes(currentCard.imageName)
+      ) {
+        let blob = await indexedDbService.getMediaBlob(currentCard.imageName);
+        if (!blob) {
+          try {
+            blob = await indexedDbService.getMediaBlob(decodeURIComponent(currentCard.imageName));
+          } catch {}
+        }
+        if (blob) {
+          const blobUrl = URL.createObjectURL(blob);
+          activeBlobUrlsRef.current.push(blobUrl);
+          const topImg = `<div class="text-center my-3"><img src="${blobUrl}" alt="Hình ảnh minh họa" class="max-w-full max-h-52 sm:max-h-56 h-auto rounded-xl mx-auto object-contain border border-border/60 shadow-2xs block" loading="lazy" /></div>`;
+          back = topImg + back;
+        }
+      }
 
       if (isMounted) {
         setRenderedFrontHtml(front);

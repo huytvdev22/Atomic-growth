@@ -176,6 +176,21 @@ export const AnkiDecoderView: React.FC<AnkiDecoderViewProps> = ({ onImportComple
     };
   }, [currentPreviewCard, selectedFile, report]);
 
+  // HTML mặt sau đã được thay thế đường dẫn ảnh blob xem trước (tránh lỗi 404 tên file cục bộ)
+  const previewBackHtml = useMemo(() => {
+    if (!currentPreviewCard) return '';
+    let html = currentPreviewCard.back;
+    if (previewImageBlobUrl && currentPreviewCard.imageName) {
+      const escapedName = currentPreviewCard.imageName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      html = html.replace(new RegExp(`src=["']${escapedName}["']`, 'gi'), `src="${previewImageBlobUrl}"`);
+      try {
+        const encodedName = encodeURIComponent(currentPreviewCard.imageName).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        html = html.replace(new RegExp(`src=["']${encodedName}["']`, 'gi'), `src="${previewImageBlobUrl}"`);
+      } catch {}
+    }
+    return html;
+  }, [currentPreviewCard, previewImageBlobUrl]);
+
   // Cập nhật cấu hình Mapping cho 1 model (Hỗ trợ đa trường cho Mặt trước)
   const toggleModelFrontField = (modelId: string, fieldIdx: number) => {
     setFieldMappings((prev) => {
@@ -1106,7 +1121,7 @@ export const AnkiDecoderView: React.FC<AnkiDecoderViewProps> = ({ onImportComple
                       />
                     ) : (
                       <div className="space-y-3 text-left">
-                        {previewImageBlobUrl && (
+                        {previewImageBlobUrl && !previewBackHtml.includes('<img') && (
                           <img
                             src={previewImageBlobUrl}
                             alt="Minh họa"
@@ -1115,7 +1130,7 @@ export const AnkiDecoderView: React.FC<AnkiDecoderViewProps> = ({ onImportComple
                         )}
                         <div
                           className="text-sm text-text-primary leading-relaxed space-y-2 font-sans"
-                          dangerouslySetInnerHTML={{ __html: currentPreviewCard.back }}
+                          dangerouslySetInnerHTML={{ __html: previewBackHtml }}
                         />
                       </div>
                     )}

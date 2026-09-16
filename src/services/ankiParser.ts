@@ -61,6 +61,14 @@ export function cleanAnkiField(text: string): { cleanText: string; audioNames: s
     }
   }
 
+  // Nếu trường không bọc trong thẻ <img> mà trực tiếp là tên file ảnh
+  if (imageNames.length === 0) {
+    const rawTrimmed = cleanText.replace(/<[^>]+>/g, '').trim();
+    if (/\.(png|jpe?g|gif|webp|svg|bmp)$/i.test(rawTrimmed)) {
+      imageNames.push(rawTrimmed);
+    }
+  }
+
   // 3. Xử lý định dạng Cloze deletion: {{c1::câu trả lời::gợi ý}} hoặc {{c1::câu trả lời}}
   cleanText = cleanText.replace(/\{\{c\d+::([^:]+?)(?:::([^}]*?))?\}\}/g, (_match, answer, hint) => {
     return hint ? `[${hint}]` : `[${answer}]`;

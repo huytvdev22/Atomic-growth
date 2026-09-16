@@ -482,8 +482,22 @@ export class AnkiDecoderService {
 
       // Nếu có chỉ định trường hình ảnh riêng
       if (imageIdx !== undefined && note.fields[imageIdx]) {
-        const imageParsed = cleanAnkiField(note.fields[imageIdx]);
+        const imageRaw = note.fields[imageIdx];
+        const imageParsed = cleanAnkiField(imageRaw);
         collectedImages.push(...imageParsed.imageNames);
+
+        // Chèn thẻ hình ảnh vào đầu Mặt Sau để chắc chắn hình ảnh được hiển thị trực quan
+        if (imageParsed.imageNames.length > 0) {
+          const imgTags = imageParsed.imageNames
+            .map(
+              (name) =>
+                `<div class="anki-image my-2.5 text-center"><img src="${name}" alt="Hình ảnh minh họa" class="max-w-full rounded-xl mx-auto shadow-2xs" /></div>`
+            )
+            .join('');
+          backParts.unshift(imgTags);
+        } else if (imageParsed.cleanText) {
+          backParts.unshift(imageParsed.cleanText);
+        }
       }
 
       // Ghép các trường mặt sau
@@ -589,11 +603,46 @@ export class AnkiDecoderService {
       deckId
     }));
 
-    // 1. Trích xuất các tệp media thực sự cần thiết
+    // 1. Trích xuất toàn bộ các tệp media thực sự cần thiết
     const neededMediaNames = new Set<string>();
+    const imgRegex = /<img[^>]+src=["']([^"']+)["'][^>]*>/gi;
+    const soundRegex = /\[sound:([^\]]+)\]/gi;
+
     updatedCards.forEach((c) => {
-      if (c.audioName) neededMediaNames.add(c.audioName);
-      if (c.imageName) neededMediaNames.add(c.imageName);
+      if (c.audioName) {
+        neededMediaNames.add(c.audioName);
+        try {
+          neededMediaNames.add(decodeURIComponent(c.audioName));
+        } catch {}
+      }
+      if (c.imageName) {
+        neededMediaNames.add(c.imageName);
+        try {
+          neededMediaNames.add(decodeURIComponent(c.imageName));
+        } catch {}
+      }
+
+      // Quét tất cả thẻ <img> trong front và back
+      const allText = `${c.front} ${c.back}`;
+      for (const match of allText.matchAll(imgRegex)) {
+        if (match[1] && !/^(https?:|data:|blob:)/i.test(match[1])) {
+          const fn = match[1].trim();
+          neededMediaNames.add(fn);
+          try {
+            neededMediaNames.add(decodeURIComponent(fn));
+          } catch {}
+        }
+      }
+      // Quét tất cả âm thanh trong front và back
+      for (const match of allText.matchAll(soundRegex)) {
+        if (match[1]) {
+          const fn = match[1].trim();
+          neededMediaNames.add(fn);
+          try {
+            neededMediaNames.add(decodeURIComponent(fn));
+          } catch {}
+        }
+      }
     });
 
     onProgress?.(30, `Đang trích xuất ${neededMediaNames.size} tệp âm thanh/hình ảnh...`);
@@ -601,7 +650,11 @@ export class AnkiDecoderService {
     // Tạo danh sách zipKeys cần giải nén
     const zipKeyToNameMap: Record<string, string> = {};
     for (const [zipKey, filename] of Object.entries(mediaMap)) {
-      if (neededMediaNames.has(filename)) {
+      if (
+        neededMediaNames.has(filename) ||
+        neededMediaNames.has(decodeURIComponent(filename)) ||
+        neededMediaNames.has(encodeURIComponent(filename))
+      ) {
         zipKeyToNameMap[zipKey] = filename;
       }
     }
