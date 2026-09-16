@@ -117,7 +117,7 @@ export const App: React.FC = () => {
         </header>
 
         {/* Luồng Nội Dung Thao Tác (Feed Area - Tối đa 680px theo chuẩn Zen Minimalist) */}
-        <main className="flex-1 max-w-[680px] w-full mx-auto p-4 sm:p-6 space-y-6 pb-24">
+        <main className="flex-1 max-w-[680px] w-full mx-auto p-4 sm:p-6 space-y-6 pb-24 overflow-x-hidden min-w-0">
           {/* B. Xem Dòng Thời Gian Chính (Timeline) */}
           {activeTab === 'timeline' && (
             <div className="space-y-5">
@@ -245,15 +245,17 @@ export const App: React.FC = () => {
           </footer>
         </main>
 
-        {/* Floating Action Button trên Mobile */}
-        <button
-          type="button"
-          onClick={() => handleOpenAddModal('morning')}
-          aria-label="Thêm thói quen mới"
-          className="fixed bottom-6 right-6 sm:hidden z-30 flex h-13 w-13 items-center justify-center rounded-full bg-primary text-white shadow-lg hover:bg-primary-hover active:scale-95 transition-all cursor-pointer"
-        >
-          <Plus className="w-6 h-6 stroke-[2.5]" />
-        </button>
+        {/* Floating Action Button trên Mobile - Chỉ hiển thị tại màn hình Timeline để gieo mầm thói quen */}
+        {activeTab === 'timeline' && (
+          <button
+            type="button"
+            onClick={() => handleOpenAddModal('morning')}
+            aria-label="Thêm thói quen mới"
+            className="fixed bottom-6 right-6 sm:hidden z-30 flex h-13 w-13 items-center justify-center rounded-full bg-primary text-white shadow-lg hover:bg-primary-hover active:scale-95 transition-all cursor-pointer"
+          >
+            <Plus className="w-6 h-6 stroke-[2.5]" />
+          </button>
+        )}
 
         {/* Modal Thêm Thói Quen (BottomSheet) */}
         <AddHabitModal

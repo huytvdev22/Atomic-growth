@@ -251,7 +251,7 @@ export const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ onSessionCompleted
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full max-w-full overflow-hidden min-w-0">
       {/* Hidden file input cho bộ thẻ cũ */}
       <input
         ref={legacyFileInputRef}
@@ -261,25 +261,26 @@ export const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ onSessionCompleted
         className="hidden"
       />
 
-      {/* Header Tab */}
-      <div className="flex items-center justify-between pb-3 border-b border-border-subtle">
-        <div>
-          <h2 className="font-serif text-xl font-bold text-text-primary">
+      {/* Header Tab - Thiết kế Responsive thích ứng hoàn hảo với màn hình iPhone */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-border-subtle min-w-0">
+        <div className="min-w-0">
+          <h2 className="font-serif text-xl font-bold text-text-primary tracking-tight">
             Góc Ôn Tập Vi Mô
           </h2>
-          <p className="text-xs text-text-secondary mt-0.5">
+          <p className="text-xs text-text-secondary mt-0.5 leading-relaxed">
             Xây dựng tri thức bền vững với các phiên học 2 phút mỗi ngày
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        {/* Thanh công cụ hành động: Drive, Giải Mã Deck, Nhập Bộ Thẻ */}
+        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap shrink-0 pt-0.5 sm:pt-0">
           <button
             type="button"
             onClick={() => setIsDriveModalOpen(true)}
-            className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-xs font-semibold text-text-secondary hover:border-primary/40 hover:text-primary transition-all cursor-pointer shadow-2xs"
+            className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-xs font-semibold text-text-secondary hover:border-primary/40 hover:text-primary transition-all cursor-pointer shadow-2xs shrink-0"
             title="Quản lý sao lưu và khôi phục từ Google Drive"
           >
-            <Cloud className={cn('w-3.5 h-3.5', driveToken ? 'text-accent-sage' : 'text-text-tertiary')} />
+            <Cloud className={cn('w-3.5 h-3.5 shrink-0', driveToken ? 'text-accent-sage' : 'text-text-tertiary')} />
             <span className="hidden sm:inline">Google Drive</span>
             <span className="sm:hidden">Drive</span>
             {driveItems.length > 0 && (
@@ -292,20 +293,22 @@ export const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ onSessionCompleted
           <button
             type="button"
             onClick={() => setActiveTab('anki-decoder')}
-            className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-xs font-semibold text-text-secondary hover:border-primary/40 hover:text-primary transition-all cursor-pointer shadow-2xs"
+            className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-xs font-semibold text-text-secondary hover:border-primary/40 hover:text-primary transition-all cursor-pointer shadow-2xs shrink-0"
             title="Mở phòng thí nghiệm bóc tách và giải mã lỗi file Anki"
           >
-            <FileCode className="w-3.5 h-3.5 text-accent-amber" />
+            <FileCode className="w-3.5 h-3.5 text-accent-amber shrink-0" />
             <span className="hidden sm:inline">Giải Mã Deck</span>
+            <span className="sm:hidden">Giải Mã</span>
           </button>
 
           <button
             type="button"
             onClick={() => setIsImportModalOpen(true)}
-            className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3.5 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-primary-hover active:scale-95 transition-all cursor-pointer"
+            className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3.5 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-primary-hover active:scale-95 transition-all cursor-pointer shrink-0 ml-auto sm:ml-0"
           >
-            <Plus className="w-3.5 h-3.5" />
-            <span>Nhập Bộ Thẻ (.apkg)</span>
+            <Plus className="w-3.5 h-3.5 shrink-0" />
+            <span className="hidden sm:inline">Nhập Bộ Thẻ (.apkg)</span>
+            <span className="sm:hidden">Nhập Thẻ</span>
           </button>
         </div>
       </div>
@@ -356,11 +359,11 @@ export const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ onSessionCompleted
             return (
               <div
                 key={deck.id}
-                className="rounded-2xl border border-border bg-surface p-5 space-y-4 shadow-2xs hover:shadow-xs transition-shadow flex flex-col justify-between"
+                className="rounded-2xl border border-border bg-surface p-4 sm:p-5 space-y-3.5 shadow-2xs hover:shadow-xs transition-shadow flex flex-col justify-between min-w-0"
               >
-                <div className="space-y-2">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-2 min-w-0">
+                <div className="space-y-2 min-w-0">
+                  <div className="flex items-start justify-between gap-2 min-w-0">
+                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
                       <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent-sprout text-primary shrink-0">
                         <BookOpen className="h-4 w-4" />
                       </div>
@@ -371,31 +374,31 @@ export const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ onSessionCompleted
                     <button
                       type="button"
                       onClick={() => handleDeleteDeck(deck.id, deck.title)}
-                      className="p-1 text-text-tertiary hover:text-accent-clay hover:bg-accent-clay/10 rounded-md transition-colors cursor-pointer shrink-0"
+                      className="p-1 text-text-tertiary hover:text-accent-clay hover:bg-accent-clay/10 rounded-md transition-colors cursor-pointer shrink-0 ml-1"
                       title="Xóa bộ thẻ này"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
 
-                  <div className="flex items-center gap-3 text-xs font-mono text-text-tertiary pt-1">
-                    <span>
+                  <div className="flex items-center gap-2 sm:gap-3 text-xs font-mono text-text-tertiary pt-0.5 flex-wrap">
+                    <span className="shrink-0">
                       Quy mô: <strong className="text-text-primary">{deck.cardCount} thẻ</strong>
                     </span>
-                    <span>•</span>
-                    <span className="flex items-center gap-1 text-accent-sage font-medium">
-                      <Sparkles className="w-3 h-3" />
+                    <span className="shrink-0">•</span>
+                    <span className="flex items-center gap-1 text-accent-sage font-medium shrink-0">
+                      <Sparkles className="w-3 h-3 shrink-0" />
                       <span>Quy tắc 2 phút</span>
                     </span>
                   </div>
                 </div>
 
                 {/* Khu vực Trạng Thái Đồng Bộ Google Drive */}
-                <div className="space-y-3">
-                  <div className="pt-3 border-t border-border-subtle flex items-center justify-between text-xs">
+                <div className="space-y-3 pt-0.5 min-w-0">
+                  <div className="pt-2.5 border-t border-border-subtle flex items-center justify-between text-xs min-w-0">
                     {isThisDeckSyncing ? (
                       /* Đang đồng bộ */
-                      <div className="flex items-center gap-2 text-primary font-medium w-full py-1">
+                      <div className="flex items-center gap-2 text-primary font-medium w-full py-1 min-w-0">
                         <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0 text-primary" />
                         <span className="text-[11px] truncate">
                           Đang sao lưu lên Drive... ({syncProgress}%)
@@ -403,9 +406,9 @@ export const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ onSessionCompleted
                       </div>
                     ) : matchedDrive ? (
                       /* Đã đồng bộ lên Drive */
-                      <div className="flex items-center justify-between w-full">
+                      <div className="flex items-center justify-between w-full min-w-0 gap-2">
                         <div
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-accent-sprout/70 text-primary text-[11px] font-medium border border-accent-sage/20"
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-accent-sprout/70 text-primary text-[11px] font-medium border border-accent-sage/20 min-w-0 truncate"
                           title={`Đã sao lưu an toàn: ${matchedDrive.name} (${(matchedDrive.size / 1024 / 1024).toFixed(1)} MB)`}
                         >
                           <CheckCircle2 className="w-3.5 h-3.5 text-accent-sage shrink-0" />
@@ -416,7 +419,7 @@ export const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ onSessionCompleted
                           type="button"
                           disabled={!!syncingDeckId}
                           onClick={() => handleSyncDeck(deck)}
-                          className="p-1 rounded-md text-text-tertiary hover:text-primary hover:bg-canvas transition-colors cursor-pointer"
+                          className="p-1 rounded-md text-text-tertiary hover:text-primary hover:bg-canvas transition-colors cursor-pointer shrink-0"
                           title="Đồng bộ lại phiên bản mới lên Google Drive"
                         >
                           <RefreshCw className="w-3.5 h-3.5" />
@@ -427,11 +430,11 @@ export const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ onSessionCompleted
                       <button
                         type="button"
                         onClick={() => handleSyncDeck(deck)}
-                        className="inline-flex items-center justify-center gap-1.5 w-full py-1.5 px-3 rounded-lg border border-dashed border-border bg-canvas hover:border-primary/50 hover:text-primary text-[11px] font-medium text-text-secondary transition-all cursor-pointer"
+                        className="inline-flex items-center justify-center gap-1.5 w-full py-1.5 px-3 rounded-lg border border-dashed border-border bg-canvas hover:border-primary/50 hover:text-primary text-[11px] font-medium text-text-secondary transition-all cursor-pointer min-w-0"
                         title="Bấm để kết nối Google Drive và sao lưu bộ thẻ này"
                       >
-                        <Cloud className="w-3.5 h-3.5 text-text-tertiary" />
-                        <span>Kết nối Drive để sao lưu</span>
+                        <Cloud className="w-3.5 h-3.5 text-text-tertiary shrink-0" />
+                        <span className="truncate">Kết nối Drive để sao lưu</span>
                       </button>
                     ) : (
                       /* Đã kết nối Drive nhưng bộ thẻ này chưa đồng bộ */
@@ -439,24 +442,24 @@ export const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ onSessionCompleted
                         type="button"
                         disabled={!!syncingDeckId}
                         onClick={() => handleSyncDeck(deck)}
-                        className="inline-flex items-center justify-center gap-1.5 w-full py-1.5 px-3 rounded-lg border border-border bg-canvas hover:bg-accent-sprout/40 hover:border-accent-sage/40 hover:text-primary text-[11px] font-medium text-text-secondary transition-all cursor-pointer shadow-2xs"
+                        className="inline-flex items-center justify-center gap-1.5 w-full py-1.5 px-3 rounded-lg border border-border bg-canvas hover:bg-accent-sprout/40 hover:border-accent-sage/40 hover:text-primary text-[11px] font-medium text-text-secondary transition-all cursor-pointer shadow-2xs min-w-0"
                         title="Bấm để sao lưu bộ thẻ này lên Google Drive"
                       >
                         <UploadCloud className="w-3.5 h-3.5 text-accent-sage shrink-0" />
-                        <span>Đồng bộ lên Drive</span>
+                        <span className="truncate">Đồng bộ lên Drive</span>
                       </button>
                     )}
                   </div>
 
                   {/* Cụm nút hành động: Xem danh sách từ & Ôn tập 2 phút */}
-                  <div className="grid grid-cols-2 gap-2 pt-1">
+                  <div className="grid grid-cols-2 gap-2 pt-0.5 min-w-0">
                     <button
                       type="button"
                       onClick={() => setActiveWordsDeckId(deck.id)}
-                      className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-canvas border border-border py-2.5 px-3 text-xs font-semibold text-text-secondary hover:text-text-primary hover:bg-surface hover:border-primary/40 active:scale-98 transition-all cursor-pointer shadow-2xs"
+                      className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-canvas border border-border py-2 px-2.5 sm:px-3 text-xs font-semibold text-text-secondary hover:text-text-primary hover:bg-surface hover:border-primary/40 active:scale-98 transition-all cursor-pointer shadow-2xs min-w-0"
                     >
-                      <BookOpen className="w-3.5 h-3.5 text-text-tertiary" />
-                      <span>Xem từ vựng</span>
+                      <BookOpen className="w-3.5 h-3.5 text-text-tertiary shrink-0" />
+                      <span className="truncate">Xem từ vựng</span>
                     </button>
 
                     <button
@@ -466,10 +469,10 @@ export const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ onSessionCompleted
                         setReviewCustomSubtitle(undefined);
                         setActiveReviewDeckId(deck.id);
                       }}
-                      className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-primary py-2.5 px-3 text-xs font-semibold text-white hover:bg-primary-hover active:scale-98 transition-all cursor-pointer shadow-xs"
+                      className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-primary py-2 px-2.5 sm:px-3 text-xs font-semibold text-white hover:bg-primary-hover active:scale-98 transition-all cursor-pointer shadow-xs min-w-0"
                     >
-                      <Play className="w-3.5 h-3.5 fill-white" />
-                      <span>Ôn 2 phút</span>
+                      <Play className="w-3.5 h-3.5 fill-white shrink-0" />
+                      <span className="truncate">Ôn 2 phút</span>
                     </button>
                   </div>
                 </div>
