@@ -8,6 +8,7 @@ import { RitualGroup } from './components/RitualGroup';
 import { NeverMissTwiceCard } from './components/NeverMissTwiceCard';
 import { ReflectionsFeed } from './components/ReflectionsFeed';
 import { AddHabitModal } from './components/AddHabitModal';
+import { BottomNav } from './components/BottomNav';
 import { UpdateToast } from './components/UpdateToast';
 import { FlashcardsTab } from './components/anki/FlashcardsTab';
 import { AnkiDecoderView } from './components/anki/AnkiDecoderView';
@@ -48,6 +49,7 @@ export const App: React.FC = () => {
     activeTab,
     setActiveTab,
     activeTag,
+    setActiveTag,
     searchQuery,
     setSearchQuery
   } = useHabits();
@@ -173,7 +175,7 @@ export const App: React.FC = () => {
           </header>
 
           {/* Luồng Nội Dung Thao Tác (Feed Area - Cuộn mượt mà bên trong cửa sổ) */}
-          <main className="flex-1 overflow-y-auto px-4 sm:px-6 py-5 space-y-6 pb-24">
+          <main className="flex-1 overflow-y-auto px-4 sm:px-6 py-5 space-y-6 pb-28 sm:pb-24">
             <div className="max-w-[760px] mx-auto space-y-6">
               {/* B. Xem Dòng Thời Gian Chính (Timeline) */}
               {activeTab === 'timeline' && (
@@ -355,17 +357,16 @@ export const App: React.FC = () => {
             </div>
           </main>
 
-          {/* Floating Action Button trên Mobile - Chỉ hiển thị tại Timeline */}
-          {activeTab === 'timeline' && (
-            <button
-              type="button"
-              onClick={() => handleOpenAddModal('morning')}
-              aria-label="Thêm thói quen mới"
-              className="fixed bottom-6 right-6 md:hidden z-30 flex h-14 w-14 items-center justify-center rounded-full bg-[#19241E] text-white shadow-xl hover:bg-primary-hover active:scale-95 transition-all cursor-pointer"
-            >
-              <Plus className="w-6 h-6 stroke-[2.5]" />
-            </button>
-          )}
+          {/* Thanh Điều Hướng Đáy Zen (Tối ưu cho thao tác 1 tay trên Mobile) */}
+          <BottomNav
+            activeTab={activeTab}
+            onSelectTab={(tab) => {
+              setActiveTab(tab);
+              setActiveTag(null);
+            }}
+            onOpenAddModal={() => handleOpenAddModal('morning')}
+            onOpenSidebar={() => setIsMobileSidebarOpen(true)}
+          />
 
           {/* Modal Thêm Thói Quen (BottomSheet) */}
           <AddHabitModal

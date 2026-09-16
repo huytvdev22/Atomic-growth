@@ -266,7 +266,8 @@ Học hỏi từ thanh thông báo ngữ cảnh thông minh của Elera (như th
 - ✅ **Bo góc lớn & Mềm mại:** Sử dụng `rounded-2xl` (16px) cho thẻ thói quen và `rounded-full` (9999px) cho nút bấm, badge, tabs, search.
 - ✅ **Khoảng thở hào phóng:** Luôn dành khoảng cách tối thiểu 16px - 24px giữa các khối nội dung, tránh xếp san sát.
 - ✅ **Hiển thị theo ngữ cảnh (Contextual):** Các lời nhắc chỉ xuất hiện khi thực sự cần giải quyết một vấn đề hành vi cụ thể.
-- ✅ **Tương thích hoàn hảo Di động:** Trên thiết bị nhỏ, sidebar tự động thu gọn thành bottom navigation bar dạng dock nổi với các icon pill tinh gọn.
+- ✅ **Tương thích hoàn hảo Di động (Mobile Thumb-Zone Ergonomics):** Trên màn hình nhỏ (`md:hidden`), hệ thống sử dụng **Zen Bottom Navigation Bar** cố định ở đáy (`fixed bottom-0 pb-safe`), tích hợp 5 vị trí đối xứng: *Hôm nay*, *Ôn tập (Anki)*, *Nút gieo mầm trung tâm (+)*, *Phản tư*, và *Khu vườn (Mở Drawer)*. Người dùng có thể điều khiển 100% ứng dụng chỉ bằng 1 ngón cái.
+- ✅ **Khoảng đệm an toàn:** Trang nội dung chính có đệm `pb-28 sm:pb-24` đảm bảo không bị thanh điều hướng đáy che khuất bất kỳ phần tử nào.
 
 ### Don'ts (Nghiêm cấm tuyệt đối)
 - ❌ **CẤM VIỀN ĐẬM & BÓNG GẮT:** Tuyệt đối không dùng viền đen đậm hoặc bóng đổ cứng nhắc kiểu retro/brutalist; toàn bộ hệ thống là sự tinh tế, mượt mà.
