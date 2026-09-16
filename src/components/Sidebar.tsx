@@ -433,7 +433,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
   return (
     <>
       {/* 1. Bản Desktop: Sidebar Cố định bên trái */}
-      <aside className="hidden md:flex flex-col w-[260px] lg:w-[275px] shrink-0 border-r border-border h-full bg-surface">
+      <aside className="hidden md:flex flex-col w-[260px] lg:w-[275px] shrink-0 border-r border-border h-dvh sticky top-0 z-20 bg-surface">
         {sidebarContent}
       </aside>
 

@@ -84,19 +84,17 @@ export const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-dvh flex items-center justify-center p-0 sm:p-3 lg:p-4 bg-backdrop text-text-primary">
-      {/* Khung Ứng Dụng Nổi (Floating App Window - Bo góc 28px trên Desktop) */}
-      <div className="w-full max-w-[1560px] h-dvh sm:h-[calc(100dvh-2rem)] flex flex-col md:flex-row rounded-none sm:rounded-[28px] overflow-hidden shadow-window bg-canvas border border-border/70 relative">
-        {/* 1. Sidebar Trái (Desktop Cố định / Mobile Drawer) */}
-        <Sidebar
-          isOpenMobile={isMobileSidebarOpen}
-          onCloseMobile={() => setIsMobileSidebarOpen(false)}
-        />
+    <div className="min-h-dvh flex bg-canvas text-text-primary">
+      {/* 1. Sidebar Trái (Desktop Cố định / Mobile Drawer) */}
+      <Sidebar
+        isOpenMobile={isMobileSidebarOpen}
+        onCloseMobile={() => setIsMobileSidebarOpen(false)}
+      />
 
-        {/* 2. Khu Vực Nội Dung Chính (Main Content Canvas) */}
-        <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-canvas">
-          {/* Top Header Bar Chuẩn Elera */}
-          <header className="shrink-0 bg-surface/90 backdrop-blur-md border-b border-border h-16 px-4 sm:px-6 flex items-center justify-between gap-4 z-10">
+      {/* 2. Khu Vực Nội Dung Chính (Main Content Canvas) */}
+      <div className="flex-1 flex flex-col min-w-0 h-dvh overflow-hidden bg-canvas">
+        {/* Top Header Bar Chuẩn Elera */}
+        <header className="shrink-0 bg-surface/90 backdrop-blur-md border-b border-border h-16 px-4 sm:px-6 flex items-center justify-between gap-4 z-10">
             <div className="flex items-center gap-3 min-w-0">
               {/* Nút Hamburger mở Sidebar trên Mobile */}
               <button
@@ -380,6 +378,5 @@ export const App: React.FC = () => {
           <UpdateToast />
         </div>
       </div>
-    </div>
   );
 };

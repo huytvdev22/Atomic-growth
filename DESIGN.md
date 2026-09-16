@@ -146,11 +146,11 @@ Thay vì cảm giác gò bó hoặc có phần cổ điển của phiên bản t
 
 ## 2. Hệ Thống Màu & Phân Tầng Thị Giác (Color & Depth Architecture)
 
-### A. Cấu Trúc Khung Nổi "Floating Canvas" (Học hỏi từ Elera)
-Toàn bộ ứng dụng được trình bày như một khung canvas nổi thanh lịch:
-- **Backdrop bao quanh (`#EAE8E3`):** Nền không gian bên ngoài mang sắc xám linen ấm áp, tôn lên cửa sổ app.
-- **App Frame Window (`#F6F7F5`):** Khung ứng dụng chính bo góc lớn (`28px`), đổ bóng siêu mịn (`shadow-window`), tạo cảm giác như một thiết bị thông minh hoặc cuốn sổ tay tương lai.
-- **White Surface Cards (`#FFFFFF`):** Các thẻ nội dung, danh sách thói quen và bảng thống kê là những khối màu trắng tinh khiết đặt trên nền canvas, viền hairline siêu mảnh `1px solid #E7EAE4`.
+### A. Cấu Trúc Nền Canvas Tràn Viền Tự Nhiên (Full-Viewport Canvas Architecture)
+Ứng dụng hiển thị tràn viền tự nhiên (Full Viewport) chuẩn mực cho Web / SaaS, không đóng khung bo tròn toàn bộ trang web:
+- **Nền Toàn Trang (`#F6F7F5` - Canvas Alabaster):** Nền chính êm dịu, ấm áp, giảm thiểu ánh sáng gắt, tạo không gian làm việc tĩnh tại và liền mạch.
+- **Sidebar Cố Định Mép Trái (`#FFFFFF`):** Cố định toàn bộ chiều cao màn hình (`100vh`), phân chia rõ ràng với nội dung chính bằng đường viền mảnh `1px solid #E7EAE4`.
+- **Thẻ Nội Dung Nổi Bật (`#FFFFFF` - White Surface Cards):** Các thẻ thói quen, danh sách và bảng thống kê là những khối màu trắng tinh khiết bo góc mềm mại `16px`, nổi nhẹ trên nền canvas với viền hairline `1px solid #E7EAE4` và bóng đổ mờ `shadow-card`.
 
 ### B. Hệ Thống Màu Ngữ Nghĩa Pastel (Soft Pastel Chips)
 Kế thừa từ bảng trạng thái trực quan của Elera, các chip trạng thái và thẻ thông báo sử dụng nền pastel trong veo đi kèm chữ màu đậm cùng tone:
@@ -238,17 +238,18 @@ Học hỏi từ thanh thông báo ngữ cảnh thông minh của Elera (như th
 
 ```
 +-----------------------------------------------------------------------------------+
-|  APP WINDOW (Bo góc 28px, Nền #F6F7F5, Shadow Siêu Mịn)                           |
+|  FULL VIEWPORT WEB APP (Nền #F6F7F5, Hiển thị tràn viền tự nhiên)                 |
 +-------------------+---------------------------------------------------------------+
-|  SIDEBAR          |  MAIN CONTENT AREA                                            |
-|  (260px)          |  (Max-width 760px, Căn giữa thoáng đãng)                      |
-|                   |                                                               |
-|  [Logo & Brand]   |  [Top Header: Tiêu đề trang + Pill Search Bar + User Avatar]  |
-|                   |                                                               |
-|  [Active Tab Pill]|  [Contextual Banner: Chỉ hiện khi có sự kiện cần phục hồi]    |
-|  - Hôm nay (Check)|                                                               |
-|  - Nhật ký suy ngẫm|  [Danh sách thói quen theo Nhịp Sinh Học: Cards trắng 16px]   |
-|  - Khu vườn dữ liệu|  - Buổi sáng                                                  |
+|  SIDEBAR (Trắng)  |  TOP HEADER: Tiêu đề + Pill Search Bar + User Profile Avatar  |
+|  (260px, 100vh)   +---------------------------------------------------------------+
+|                   |  FEED STREAM (Max-width 760px, Căn giữa thoáng đãng)          |
+|  [Logo & Brand]   |                                                               |
+|                   |  [Segmented Filter Pills: Tất cả | Rạng Đông | Tập Trung | ...]   |
+|  [Active Tab Pill]|                                                               |
+|  - Dòng thời gian |  [Contextual Callout Banner: Chỉ hiện khi lỡ nhịp hôm trước]  |
+|  - Nhật ký suy ngẫm|                                                              |
+|  - Góc ôn tập     |  [Danh Sách Thói Quen (Cards Trắng Bo Góc 16px)]              |
+|  - Giải mã Anki   |  - Buổi sáng                                                  |
 |                   |  - Buổi trưa                                                  |
 |  [Obsidian Matrix]|  - Buổi tối                                                   |
 |  Calendar Widget  |                                                               |

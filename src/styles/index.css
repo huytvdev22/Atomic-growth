@@ -77,13 +77,13 @@
   --shadow-card-hover: 0 4px 12px rgba(25, 36, 30, 0.04), 0 12px 28px -6px rgba(25, 36, 30, 0.06);
 }
 
-/* Base Body Styles - Backdrop xám ấm tự nhiên */
+/* Base Body Styles - Nền Canvas Alabaster êm dịu */
 body {
-  background-color: var(--color-backdrop, #EAE8E3);
+  background-color: var(--color-canvas, #F6F7F5);
   color: var(--color-text-primary);
   font-family: var(--font-sans);
-  background-image: radial-gradient(#D5D3CC 1px, transparent 1px);
-  background-size: 20px 20px;
+  background-image: radial-gradient(#E4E7E1 1px, transparent 1px);
+  background-size: 24px 24px;
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
 }
