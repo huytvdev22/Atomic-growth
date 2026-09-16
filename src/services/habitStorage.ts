@@ -1,110 +1,35 @@
 import { Habit, HabitLog, UserProfile, MicroNote } from '../types/habit';
-import { getYesterdayString, getTodayString } from '../utils/habitCalculations';
 
 const STORAGE_KEYS = {
   HABITS: 'atomic_growth_habits',
   LOGS: 'atomic_growth_logs',
   PROFILE: 'atomic_growth_profile',
-  NOTES: 'atomic_growth_notes'
+  NOTES: 'atomic_growth_notes',
+  GUEST_MODE: 'atomic_growth_guest_mode'
 };
 
-export const INITIAL_NOTES: MicroNote[] = [
-  {
-    id: 'note-1',
-    content: 'Uống nước ấm và khởi động nhẹ 5 phút mỗi sáng giúp tinh thần tỉnh táo rõ rệt trước khi bắt đầu công việc.',
-    tag: 'health',
-    ritual: 'morning',
-    date: getTodayString(),
-    createdAt: new Date(Date.now() - 3600000 * 3).toISOString()
-  },
-  {
-    id: 'note-2',
-    content: 'Đọc xong chương 2 Atomic Habits: Hãy tập trung vào câu hỏi "Tôi muốn trở thành người như thế nào?" thay vì chỉ chăm chăm đếm số.',
-    tag: 'focus',
-    ritual: 'midday',
-    date: getYesterdayString(),
-    createdAt: new Date(Date.now() - 86400000).toISOString()
-  }
-];
+// Không sử dụng dữ liệu giả lập (Clean Slate theo triết lý Atomic Habits)
+export const INITIAL_NOTES: MicroNote[] = [];
 
-// Dữ liệu mẫu khởi đầu mang tinh thần Botanical Zen & Atomic Habits (Sạch, trung thực, streak bắt đầu từ 0)
-export const INITIAL_HABITS: Habit[] = [
-  {
-    id: 'habit-1',
-    title: 'Uống 500ml nước ấm & Duỗi cơ nhẹ',
-    identityPrompt: 'Tôi là người lắng nghe và chăm sóc cơ thể mỗi sáng',
-    ritual: 'morning',
-    category: 'health',
-    twoMinuteVersion: 'Uống ngay 1 ly nước lọc đặt sẵn cạnh đầu giường',
-    currentStreak: 0,
-    bestStreak: 0,
-    order: 1,
-    createdAt: new Date().toISOString()
-  },
-  {
-    id: 'habit-2',
-    title: 'Thiền định tĩnh tâm (10 phút)',
-    identityPrompt: 'Tôi là người làm chủ cảm xúc và suy nghĩ tĩnh tại',
-    ritual: 'morning',
-    category: 'mind',
-    twoMinuteVersion: 'Nhắm mắt ngồi thẳng lưng hít thở sâu 3 nhịp',
-    currentStreak: 0,
-    bestStreak: 0,
-    order: 2,
-    createdAt: new Date().toISOString()
-  },
-  {
-    id: 'habit-3',
-    title: 'Đọc 10 trang sách phát triển bản thân',
-    identityPrompt: 'Tôi là một người đọc sách và học tập suốt đời',
-    ritual: 'midday',
-    category: 'focus',
-    twoMinuteVersion: 'Đọc chỉ 1 trang sách sau bữa trưa',
-    temptationBundle: 'Pha một tách trà thảo mộc yêu thích khi đọc',
-    currentStreak: 0,
-    bestStreak: 0,
-    order: 3,
-    createdAt: new Date().toISOString()
-  },
-  {
-    id: 'habit-4',
-    title: 'Viết 1 dòng phản tư & điều biết ơn',
-    identityPrompt: 'Tôi là người trân trọng những điều tốt đẹp dung dị',
-    ritual: 'evening',
-    category: 'gratitude',
-    twoMinuteVersion: 'Ghi 1 điều khiến bạn mỉm cười hôm nay',
-    currentStreak: 0,
-    bestStreak: 0,
-    order: 4,
-    createdAt: new Date().toISOString()
-  }
-];
+export const INITIAL_HABITS: Habit[] = [];
 
 export const DEFAULT_PROFILE: UserProfile = {
   id: 'local-user',
-  name: 'Người bạn kiên định',
-  coreIdentityStatement: 'Tôi là một người đọc sách và luôn chăm sóc cơ thể mỗi ngày.',
+  name: 'Bạn',
+  coreIdentityStatement: 'Tôi là người kiên trì phát triển bản thân 1% mỗi ngày.',
   streakTargetDays: 30,
   soundEnabled: true,
   vibrationEnabled: true
 };
-
-/**
- * Trả về mảng rỗng cho logs ban đầu để phản ánh trung thực tiến độ (Clean Slate)
- */
-function createInitialLogs(): HabitLog[] {
-  return [];
-}
 
 export const habitStorage = {
   getHabits(): Habit[] {
     try {
       const data = localStorage.getItem(STORAGE_KEYS.HABITS);
       if (data) return JSON.parse(data);
-      this.saveHabits(INITIAL_HABITS);
-      return INITIAL_HABITS;
+      return [];
     } catch {
-      return INITIAL_HABITS;
+      return [];
     }
   },
 
@@ -120,9 +45,7 @@ export const habitStorage = {
     try {
       const data = localStorage.getItem(STORAGE_KEYS.LOGS);
       if (data) return JSON.parse(data);
-      const initialLogs = createInitialLogs();
-      this.saveLogs(initialLogs);
-      return initialLogs;
+      return [];
     } catch {
       return [];
     }
@@ -140,7 +63,6 @@ export const habitStorage = {
     try {
       const data = localStorage.getItem(STORAGE_KEYS.PROFILE);
       if (data) return JSON.parse(data);
-      this.saveProfile(DEFAULT_PROFILE);
       return DEFAULT_PROFILE;
     } catch {
       return DEFAULT_PROFILE;
@@ -159,10 +81,9 @@ export const habitStorage = {
     try {
       const data = localStorage.getItem(STORAGE_KEYS.NOTES);
       if (data) return JSON.parse(data);
-      this.saveNotes(INITIAL_NOTES);
-      return INITIAL_NOTES;
+      return [];
     } catch {
-      return INITIAL_NOTES;
+      return [];
     }
   },
 
@@ -172,5 +93,26 @@ export const habitStorage = {
     } catch (err) {
       console.error('Failed to save notes to local storage:', err);
     }
+  },
+
+  isGuestMode(): boolean {
+    try {
+      return localStorage.getItem(STORAGE_KEYS.GUEST_MODE) === 'true';
+    } catch {
+      return false;
+    }
+  },
+
+  setGuestMode(enabled: boolean): void {
+    try {
+      if (enabled) {
+        localStorage.setItem(STORAGE_KEYS.GUEST_MODE, 'true');
+      } else {
+        localStorage.removeItem(STORAGE_KEYS.GUEST_MODE);
+      }
+    } catch (err) {
+      console.error('Failed to save guest mode state:', err);
+    }
   }
 };
+

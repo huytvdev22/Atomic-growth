@@ -9,10 +9,14 @@ import {
   clearStoredDriveToken,
   requestGoogleDriveAccess
 } from '../services/firebase';
+import { habitStorage } from '../services/habitStorage';
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
+  isAuthenticating: boolean;
+  isGuestMode: boolean;
+  setGuestMode: (enabled: boolean) => void;
   isConfigured: boolean;
   driveToken: string | null;
   loginWithGoogle: () => Promise<void>;
@@ -26,6 +30,8 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [isGuestMode, setIsGuestModeState] = useState<boolean>(() => habitStorage.isGuestMode());
   const [driveToken, setDriveToken] = useState<string | null>(() => getStoredDriveToken());
   const isConfigured = useMemo(() => isFirebaseConfigured(), []);
 
@@ -37,6 +43,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const unsubscribe = onAuthChange((currentUser) => {
       setUser(currentUser);
+      if (currentUser) {
+        // Khi đã đăng nhập Google thành công, hủy bỏ cờ guest mode
+        habitStorage.setGuestMode(false);
+        setIsGuestModeState(false);
+      }
       setDriveToken(getStoredDriveToken());
       setLoading(false);
     });
@@ -44,15 +55,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => unsubscribe();
   }, [isConfigured]);
 
+  const setGuestMode = useCallback((enabled: boolean) => {
+    habitStorage.setGuestMode(enabled);
+    setIsGuestModeState(enabled);
+  }, []);
+
   const loginWithGoogle = useCallback(async () => {
+    if (isAuthenticating) return;
+    setIsAuthenticating(true);
     try {
       await signInWithGoogle();
-      setDriveToken(getStoredDriveToken());
-    } catch (err) {
+      // Sau khi đăng nhập xong, tắt guest mode
+      habitStorage.setGuestMode(false);
+      setIsGuestModeState(false);
+    } catch (err: any) {
+      // Nếu người dùng chỉ đơn giản là tắt popup hoặc mở popup mới đè lên, không quăng lỗi crash
+      if (
+        err?.code === 'auth/popup-closed-by-user' ||
+        err?.code === 'auth/cancelled-popup-request'
+      ) {
+        console.info('[Auth] Popup đăng nhập đã được đóng bởi người dùng.');
+        return;
+      }
       console.error('Đăng nhập Google thất bại:', err);
+      alert('Không thể hoàn tất đăng nhập Google: ' + (err?.message || 'Có lỗi xảy ra'));
       throw err;
+    } finally {
+      setIsAuthenticating(false);
     }
-  }, []);
+  }, [isAuthenticating]);
 
   const requestDriveAccess = useCallback(async () => {
     try {
@@ -75,6 +106,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await signOutUser();
       clearStoredDriveToken();
       setDriveToken(null);
+      // Khi đăng xuất, trở về trạng thái đón tiếp (không tự động ở guest mode)
+      habitStorage.setGuestMode(false);
+      setIsGuestModeState(false);
     } catch (err) {
       console.error('Đăng xuất thất bại:', err);
       throw err;
@@ -85,6 +119,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     () => ({
       user,
       loading,
+      isAuthenticating,
+      isGuestMode,
+      setGuestMode,
       isConfigured,
       driveToken,
       loginWithGoogle,
@@ -92,7 +129,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       requestDriveAccess,
       clearDriveToken
     }),
-    [user, loading, isConfigured, driveToken, loginWithGoogle, logout, requestDriveAccess, clearDriveToken]
+    [
+      user,
+      loading,
+      isAuthenticating,
+      isGuestMode,
+      setGuestMode,
+      isConfigured,
+      driveToken,
+      loginWithGoogle,
+      logout,
+      requestDriveAccess,
+      clearDriveToken
+    ]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -105,3 +154,4 @@ export const useAuth = (): AuthContextType => {
   }
   return context;
 };
+

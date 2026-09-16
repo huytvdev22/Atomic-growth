@@ -45,8 +45,8 @@ if (isFirebaseConfigured()) {
   try {
     app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
     auth = getAuth(app);
+    // Provider đăng nhập chuẩn chỉ yêu cầu hồ sơ cơ bản (Email, Tên, Avatar) - không đòi hỏi Google Drive
     googleProvider = new GoogleAuthProvider();
-    googleProvider.addScope('https://www.googleapis.com/auth/drive.file');
     googleProvider.setCustomParameters({ prompt: 'select_account' });
 
     // Kích hoạt IndexedDB Persistent Cache cho Firestore để hỗ trợ Offline-First
@@ -106,7 +106,7 @@ export function getStoredDriveToken(): string | null {
 }
 
 /**
- * Đăng nhập bằng tài khoản Google (Pop-up) kèm theo Scope Google Drive
+ * Đăng nhập bằng tài khoản Google (Pop-up nhanh, chỉ cần quyền hồ sơ cơ bản)
  */
 export async function signInWithGoogle(): Promise<User | null> {
   if (!auth || !googleProvider) {
@@ -114,10 +114,6 @@ export async function signInWithGoogle(): Promise<User | null> {
   }
   try {
     const result = await signInWithPopup(auth, googleProvider);
-    const credential = GoogleAuthProvider.credentialFromResult(result);
-    if (credential?.accessToken) {
-      setStoredDriveToken(credential.accessToken);
-    }
     return result.user;
   } catch (error) {
     console.error('Lỗi khi đăng nhập bằng Google:', error);

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useHabits } from './context/HabitContext';
+import { useAuth } from './context/AuthContext';
 import { Sidebar } from './components/Sidebar';
 import { QuickJotBox } from './components/QuickJotBox';
 import { IdentityCard } from './components/IdentityCard';
@@ -10,10 +11,22 @@ import { AddHabitModal } from './components/AddHabitModal';
 import { UpdateToast } from './components/UpdateToast';
 import { FlashcardsTab } from './components/anki/FlashcardsTab';
 import { AnkiDecoderView } from './components/anki/AnkiDecoderView';
+import { ZenSplashLoader } from './components/ZenSplashLoader';
+import { ZenWelcomeScreen } from './components/ZenWelcomeScreen';
 import { RitualTime } from './types/habit';
 import { Menu, Search, Plus, Sparkles, Heart, Sprout, Calendar, BookOpen, Brain, FileCode } from 'lucide-react';
 
 export const App: React.FC = () => {
+  const {
+    user,
+    loading: isAuthLoading,
+    isGuestMode,
+    setGuestMode,
+    loginWithGoogle,
+    isAuthenticating,
+    isConfigured
+  } = useAuth();
+
   const {
     habits,
     toggleHabit,
@@ -39,6 +52,23 @@ export const App: React.FC = () => {
   const morningHabits = getHabitsByRitual('morning');
   const middayHabits = getHabitsByRitual('midday');
   const eveningHabits = getHabitsByRitual('evening');
+
+  // 1. Chờ nạp kiểm tra phiên xác thực (~300ms) để chống giật màn hình
+  if (isAuthLoading) {
+    return <ZenSplashLoader />;
+  }
+
+  // 2. Nếu chưa đăng nhập và chưa chọn dùng ngoại tuyến: hiển thị màn hình chào đón (Phương án 1)
+  if (!user && !isGuestMode) {
+    return (
+      <ZenWelcomeScreen
+        onLogin={loginWithGoogle}
+        onContinueAsGuest={() => setGuestMode(true)}
+        isAuthenticating={isAuthenticating}
+        isConfigured={isConfigured}
+      />
+    );
+  }
 
   return (
     <div className="min-h-dvh flex bg-canvas text-text-primary">
@@ -121,6 +151,20 @@ export const App: React.FC = () => {
           {/* B. Xem Dòng Thời Gian Chính (Timeline) */}
           {activeTab === 'timeline' && (
             <div className="space-y-5">
+              {/* Dải thông báo Chế độ Khách thanh nhã (chỉ hiển thị khi chưa đăng nhập) */}
+              {!user && (
+                <div className="flex items-center justify-between gap-3 px-3.5 py-2 rounded-xl bg-accent-sprout/60 border border-accent-sage/20 text-xs text-text-secondary animate-in fade-in duration-200">
+                  <span className="truncate">Chế độ Khách: Dữ liệu đang lưu trên trình duyệt này.</span>
+                  <button
+                    type="button"
+                    onClick={loginWithGoogle}
+                    className="font-semibold text-primary hover:underline shrink-0 cursor-pointer text-xs"
+                  >
+                    Đăng nhập Google
+                  </button>
+                </div>
+              )}
+
               {/* Câu Đề Tựa Bản Sắc Tinh Tế (Zen Identity Header) */}
               <IdentityCard />
 
