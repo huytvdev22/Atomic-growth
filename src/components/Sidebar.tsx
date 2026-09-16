@@ -212,6 +212,29 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
         <button
           type="button"
           onClick={() => {
+            setActiveTab('dashboard');
+            setActiveTag(null);
+            onCloseMobile();
+          }}
+          className={cn(
+            'w-full flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-xl transition-all cursor-pointer',
+            activeTab === 'dashboard'
+              ? 'bg-accent-sprout/20 text-[#144919] font-bold shadow-2xs'
+              : 'text-text-secondary hover:bg-canvas-subtle hover:text-text-primary'
+          )}
+        >
+          <div className="flex items-center gap-2.5">
+            <Sprout className={cn('h-4 w-4', activeTab === 'dashboard' ? 'text-[#144919]' : 'text-text-tertiary')} />
+            <span>Khu Vườn Sinh Trưởng</span>
+          </div>
+          <span className="font-mono text-[10px] bg-accent-sprout/20 text-[#144919] px-2 py-0.5 rounded-full font-bold">
+            Zen
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
             setActiveTab('reflections');
             setActiveTag(null);
             onCloseMobile();

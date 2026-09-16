@@ -12,6 +12,7 @@ import { BottomNav } from './components/BottomNav';
 import { UpdateToast } from './components/UpdateToast';
 import { FlashcardsTab } from './components/anki/FlashcardsTab';
 import { AnkiDecoderView } from './components/anki/AnkiDecoderView';
+import { GardenDashboardView } from './components/GardenDashboardView';
 import { ZenSplashLoader } from './components/ZenSplashLoader';
 import { ZenWelcomeScreen } from './components/ZenWelcomeScreen';
 import { RitualTime } from './types/habit';
@@ -117,6 +118,7 @@ export const App: React.FC = () => {
                     {activeTab === 'flashcards' && 'Góc Ôn Tập (Anki)'}
                     {activeTab === 'anki-decoder' && 'Giải Mã Anki Deck (Studio)'}
                     {activeTab === 'archive' && 'Khu Vườn Lưu Trữ'}
+                    {activeTab === 'dashboard' && 'Khu Vườn Sinh Trưởng (Tổng quan)'}
                   </h1>
                   {activeTag && (
                     <span className="rounded-full bg-accent-sprout/20 text-[#144919] font-bold text-[11px] px-2.5 py-0.5 border border-accent-sprout/30">
@@ -344,6 +346,9 @@ export const App: React.FC = () => {
                 </div>
               )}
 
+              {/* G. Xem Bảng Điều Khiển Sinh Trưởng (Garden Dashboard View) */}
+              {activeTab === 'dashboard' && <GardenDashboardView />}
+
               {/* Footer Phong Cách Botanical Zen */}
               <footer className="pt-8 pb-4 text-center border-t border-border-subtle text-xs text-text-secondary space-y-2">
                 <p className="font-serif italic text-sm text-text-primary">
@@ -365,7 +370,6 @@ export const App: React.FC = () => {
               setActiveTag(null);
             }}
             onOpenAddModal={() => handleOpenAddModal('morning')}
-            onOpenSidebar={() => setIsMobileSidebarOpen(true)}
           />
 
           {/* Modal Thêm Thói Quen (BottomSheet) */}

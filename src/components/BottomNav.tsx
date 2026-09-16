@@ -4,13 +4,11 @@ import { cn } from '../utils/cn';
 
 export interface BottomNavProps {
   /** Tab đang hoạt động trong HabitContext */
-  activeTab: 'timeline' | 'reflections' | 'flashcards' | 'anki-decoder' | 'archive';
+  activeTab: 'timeline' | 'reflections' | 'flashcards' | 'anki-decoder' | 'archive' | 'dashboard';
   /** Callback chuyển tab khi người dùng chạm vào */
-  onSelectTab: (tab: 'timeline' | 'reflections' | 'flashcards' | 'anki-decoder' | 'archive') => void;
+  onSelectTab: (tab: 'timeline' | 'reflections' | 'flashcards' | 'anki-decoder' | 'archive' | 'dashboard') => void;
   /** Callback mở modal gieo mầm thói quen mới khi chạm nút (+) ở trung tâm */
   onOpenAddModal: () => void;
-  /** Callback mở Sidebar Drawer (Ma trận Obsidian & Thống kê) khi chạm nút Khu vườn/Menu */
-  onOpenSidebar: () => void;
   /** Số lượng thẻ Anki cần ôn hôm nay (nếu có để hiển thị badge) */
   dueCardsCount?: number;
 }
@@ -24,7 +22,6 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   activeTab,
   onSelectTab,
   onOpenAddModal,
-  onOpenSidebar,
   dueCardsCount
 }) => {
   return (
@@ -164,17 +161,39 @@ export const BottomNav: React.FC<BottomNavProps> = ({
           </span>
         </button>
 
-        {/* 5. Nút Mở Khu Vườn & Menu Đáy (Sidebar Drawer) */}
+        {/* 5. Tab Khu Vườn (Dashboard Sinh Trưởng Toàn Diện) */}
         <button
           type="button"
-          onClick={onOpenSidebar}
-          className="flex flex-col items-center justify-center flex-1 py-1 px-1 text-text-tertiary hover:text-text-primary active:scale-95 transition-all duration-200 cursor-pointer group"
-          title="Mở Khu vườn & Chỉ số ma trận kiên trì"
+          onClick={() => onSelectTab('dashboard')}
+          className={cn(
+            'flex flex-col items-center justify-center flex-1 py-1 px-1 transition-all duration-200 cursor-pointer group',
+            activeTab === 'dashboard'
+              ? 'text-[#144919]'
+              : 'text-text-tertiary hover:text-text-primary active:scale-95'
+          )}
+          title="Bảng điều khiển Khu vườn & Ma trận sinh trưởng"
         >
-          <div className="flex items-center justify-center w-10 h-7 rounded-full group-hover:bg-canvas-subtle transition-all duration-200">
-            <Sprout className="w-4.5 h-4.5 stroke-[1.8] group-hover:text-accent-sprout transition-colors" />
+          <div
+            className={cn(
+              'flex items-center justify-center w-10 h-7 rounded-full transition-all duration-200',
+              activeTab === 'dashboard'
+                ? 'bg-accent-sprout/25 shadow-2xs'
+                : 'group-hover:bg-canvas-subtle'
+            )}
+          >
+            <Sprout
+              className={cn(
+                'w-4.5 h-4.5 transition-transform duration-200',
+                activeTab === 'dashboard' ? 'stroke-[2.5] scale-105 text-[#144919]' : 'stroke-[1.8]'
+              )}
+            />
           </div>
-          <span className="text-[10px] font-sans font-medium tracking-tight mt-0.5 group-hover:text-text-primary">
+          <span
+            className={cn(
+              'text-[10px] font-sans tracking-tight mt-0.5',
+              activeTab === 'dashboard' ? 'font-bold text-[#144919]' : 'font-medium'
+            )}
+          >
             Khu vườn
           </span>
         </button>
