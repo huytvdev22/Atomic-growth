@@ -14,7 +14,7 @@ export interface BottomSheetProps {
   className?: string;
   /** Tùy biến class của vùng nội dung bên trong (mặc định: 'p-6 overflow-y-auto space-y-4') */
   contentClassName?: string;
-  /** Component hoặc thanh công cụ phụ đặt ngay dưới Header (ví dụ Zen Progress Bar) */
+  /** Component hoặc thanh công cụ phụ đặt ngay dưới Header */
   headerExtra?: React.ReactNode;
   /** Tùy chọn ẩn toàn bộ Header mặc định */
   hideHeader?: boolean;
@@ -23,14 +23,8 @@ export interface BottomSheetProps {
 }
 
 /**
- * Component BottomSheet dùng chung (Common Core Component)
- * Tự động chuyển đổi: Bottom Sheet bám đáy màn hình trên Mobile / PWA và Modal thanh lịch trên Desktop.
- * Tích hợp:
- * - Cử chỉ vuốt kéo xuống đóng (Swipe-Down Dismiss Gesture)
- * - Khóa cuộn trang nền (Body Scroll Lock)
- * - React Portal đưa ra ngoài root DOM
- * - Hỗ trợ vùng an toàn thiết bị di động (pb-safe)
- * - Đóng bằng phím Escape
+ * Component BottomSheet Chuẩn Modern Botanical Zen
+ * Bo góc 28px mềm mại, gesture kéo vuốt nhạy, backdrop mượt mà
  */
 export const BottomSheet: React.FC<BottomSheetProps> = ({
   isOpen,
@@ -100,14 +94,14 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
   if (!isOpen) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
       {/* Lớp phủ Backdrop làm mờ */}
       <div
         onClick={onClose}
         className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity duration-300 animate-in fade-in"
       />
 
-      {/* Khung Sheet Nội Dung */}
+      {/* Khung Sheet Nội Dung Bo Góc 28px */}
       <div
         ref={sheetRef}
         style={{
@@ -117,7 +111,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
             : 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
         }}
         className={cn(
-          'relative z-10 w-full max-w-lg rounded-t-3xl sm:rounded-2xl bg-surface border-t sm:border border-border shadow-2xl pb-safe max-h-[92dvh] flex flex-col overflow-hidden animate-in slide-in-from-bottom duration-300 sm:duration-200',
+          'relative z-10 w-full max-w-lg rounded-t-[28px] sm:rounded-[28px] bg-surface border-t sm:border border-border shadow-2xl pb-safe max-h-[92dvh] flex flex-col overflow-hidden animate-in slide-in-from-bottom duration-300 sm:duration-200',
           className
         )}
       >
@@ -139,11 +133,11 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
-            className="flex items-center justify-between px-5 sm:px-6 py-3.5 border-b border-border-subtle shrink-0"
+            className="flex items-center justify-between px-6 py-4 border-b border-border-subtle shrink-0"
           >
-            <div className="flex items-center gap-2.5 min-w-0">
+            <div className="flex items-center gap-3 min-w-0">
               {icon && (
-                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-accent-sprout text-primary shrink-0 shadow-2xs">
+                <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-accent-sprout/20 text-[#144919] shrink-0 shadow-2xs border border-accent-sprout/30">
                   {icon}
                 </div>
               )}
@@ -166,7 +160,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
               type="button"
               onClick={onClose}
               aria-label="Đóng"
-              className="rounded-full p-1.5 text-text-tertiary hover:bg-canvas-subtle hover:text-text-primary transition-colors cursor-pointer shrink-0"
+              className="rounded-full p-2 text-text-tertiary hover:bg-canvas-subtle hover:text-text-primary transition-colors cursor-pointer shrink-0"
             >
               <X className="w-5 h-5" />
             </button>

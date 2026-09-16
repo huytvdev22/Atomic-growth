@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { BottomSheet } from './BottomSheet';
 import { useHabits } from '../context/HabitContext';
 import { RitualTime, HabitCategory } from '../types/habit';
-import { Sparkles, Zap, Sunrise, Compass, Moon } from 'lucide-react';
+import { Sparkles, Zap, Sunrise, Compass, Moon, Sprout } from 'lucide-react';
 
 interface AddHabitModalProps {
   isOpen: boolean;
@@ -10,6 +10,10 @@ interface AddHabitModalProps {
   defaultRitual?: RitualTime;
 }
 
+/**
+ * Modal Thêm Thói Quen (Add Habit Modal)
+ * Thiết kế form nhập liệu bo tròn mềm mại chuẩn Elera, tối ưu cho phương pháp James Clear
+ */
 export const AddHabitModal: React.FC<AddHabitModalProps> = ({
   isOpen,
   onClose,
@@ -43,8 +47,14 @@ export const AddHabitModal: React.FC<AddHabitModalProps> = ({
   };
 
   return (
-    <BottomSheet isOpen={isOpen} onClose={onClose} title="Gieo Mầm Thói Quen Mới">
-      <form onSubmit={handleSubmit} className="space-y-4">
+    <BottomSheet
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Gieo Mầm Thói Quen Mới"
+      icon={<Sprout className="w-5 h-5 text-accent-sprout" />}
+      subtitle="Thiết kế hành vi bền vững theo Atomic Habits"
+    >
+      <form onSubmit={handleSubmit} className="space-y-4.5">
         {/* Tên thói quen */}
         <div>
           <label className="block text-xs font-semibold uppercase tracking-wider text-text-secondary mb-1.5">
@@ -55,15 +65,15 @@ export const AddHabitModal: React.FC<AddHabitModalProps> = ({
             required
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Ví dụ: Đọc 10 trang sách, Chạy bộ 3km..."
-            className="w-full rounded-md border border-border bg-canvas px-3.5 py-2.5 text-sm text-text-primary placeholder:text-text-tertiary focus:border-border-focus focus:outline-none focus:ring-2 focus:ring-accent-sage/20"
+            placeholder="Ví dụ: Đọc 10 trang sách, Chạy bộ 3km, Thiền định 5 phút..."
+            className="w-full rounded-xl border border-border bg-canvas px-4 py-2.5 text-sm text-text-primary placeholder:text-text-tertiary focus:border-accent-sprout focus:outline-none focus:ring-2 focus:ring-accent-sprout/20 transition-all"
           />
         </div>
 
         {/* Khẳng định bản sắc */}
         <div>
           <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-primary mb-1.5">
-            <Sparkles className="w-3.5 h-3.5" />
+            <Sparkles className="w-3.5 h-3.5 text-accent-sprout" />
             <span>Bản sắc gắn liền (Identity-First)</span>
           </div>
           <input
@@ -71,13 +81,13 @@ export const AddHabitModal: React.FC<AddHabitModalProps> = ({
             value={identityPrompt}
             onChange={(e) => setIdentityPrompt(e.target.value)}
             placeholder="Ví dụ: Tôi là một người học tập suốt đời..."
-            className="w-full rounded-md border border-border bg-canvas px-3.5 py-2.5 text-sm text-text-primary placeholder:text-text-tertiary focus:border-border-focus focus:outline-none focus:ring-2 focus:ring-accent-sage/20"
+            className="w-full rounded-xl border border-border bg-canvas px-4 py-2.5 text-sm text-text-primary placeholder:text-text-tertiary focus:border-accent-sprout focus:outline-none focus:ring-2 focus:ring-accent-sprout/20 transition-all"
           />
         </div>
 
         {/* Quy tắc 2 phút */}
         <div>
-          <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-accent-clay mb-1.5">
+          <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-semantic-terracotta mb-1.5">
             <Zap className="w-3.5 h-3.5" />
             <span>Phiên bản 2 phút (Make it Easy)</span>
           </div>
@@ -86,7 +96,7 @@ export const AddHabitModal: React.FC<AddHabitModalProps> = ({
             value={twoMinuteVersion}
             onChange={(e) => setTwoMinuteVersion(e.target.value)}
             placeholder="Ví dụ: Chỉ mở sách ra đọc 1 trang..."
-            className="w-full rounded-md border border-border bg-canvas px-3.5 py-2.5 text-sm text-text-primary placeholder:text-text-tertiary focus:border-border-focus focus:outline-none focus:ring-2 focus:ring-accent-sage/20"
+            className="w-full rounded-xl border border-border bg-canvas px-4 py-2.5 text-sm text-text-primary placeholder:text-text-tertiary focus:border-accent-sprout focus:outline-none focus:ring-2 focus:ring-accent-sprout/20 transition-all"
           />
         </div>
 
@@ -97,18 +107,18 @@ export const AddHabitModal: React.FC<AddHabitModalProps> = ({
           </label>
           <div className="grid grid-cols-3 gap-2">
             {[
-              { id: 'morning', label: 'Rạng Đông', icon: <Sunrise className="w-3.5 h-3.5 inline mr-1" /> },
-              { id: 'midday', label: 'Tập Trung', icon: <Compass className="w-3.5 h-3.5 inline mr-1" /> },
-              { id: 'evening', label: 'Lắng Đọng', icon: <Moon className="w-3.5 h-3.5 inline mr-1" /> }
-            ].map(item => (
+              { id: 'morning', label: 'Rạng Đông', icon: <Sunrise className="w-3.5 h-3.5 mr-1" /> },
+              { id: 'midday', label: 'Tập Trung', icon: <Compass className="w-3.5 h-3.5 mr-1" /> },
+              { id: 'evening', label: 'Lắng Đọng', icon: <Moon className="w-3.5 h-3.5 mr-1" /> }
+            ].map((item) => (
               <button
                 key={item.id}
                 type="button"
                 onClick={() => setRitual(item.id as RitualTime)}
-                className={`py-2 text-xs font-semibold rounded-md border transition-all flex items-center justify-center ${
+                className={`py-2 px-2 text-xs font-semibold rounded-xl border transition-all flex items-center justify-center cursor-pointer ${
                   ritual === item.id
-                    ? 'bg-primary text-white border-primary shadow-xs'
-                    : 'bg-canvas-subtle text-text-secondary border-border hover:bg-canvas'
+                    ? 'bg-[#19241E] text-white border-[#19241E] shadow-2xs'
+                    : 'bg-canvas-subtle/80 text-text-secondary border-border/80 hover:bg-canvas'
                 }`}
               >
                 {item.icon}
@@ -129,15 +139,15 @@ export const AddHabitModal: React.FC<AddHabitModalProps> = ({
               { id: 'mind', label: 'Tâm trí' },
               { id: 'focus', label: 'Trí tuệ' },
               { id: 'gratitude', label: 'Biết ơn' }
-            ].map(item => (
+            ].map((item) => (
               <button
                 key={item.id}
                 type="button"
                 onClick={() => setCategory(item.id as HabitCategory)}
-                className={`py-2 text-xs font-semibold rounded-md border transition-all ${
+                className={`py-1.5 text-xs font-semibold rounded-full border transition-all cursor-pointer ${
                   category === item.id
-                    ? 'bg-accent-sage text-white border-accent-sage shadow-xs'
-                    : 'bg-canvas-subtle text-text-secondary border-border hover:bg-canvas'
+                    ? 'bg-accent-sprout text-[#103813] font-bold border-accent-sprout shadow-2xs'
+                    : 'bg-canvas-subtle/80 text-text-secondary border-border/80 hover:bg-canvas'
                 }`}
               >
                 {item.label}
@@ -146,11 +156,11 @@ export const AddHabitModal: React.FC<AddHabitModalProps> = ({
           </div>
         </div>
 
-        {/* Nút hành động */}
+        {/* Nút hành động chính dạng Pill */}
         <div className="pt-2">
           <button
             type="submit"
-            className="w-full rounded-md bg-primary py-3 text-sm font-semibold text-white shadow-sm hover:bg-primary-hover active:scale-[0.99] transition-all"
+            className="w-full rounded-full bg-[#19241E] py-3 text-sm font-semibold text-white shadow-xs hover:bg-primary-hover active:scale-[0.99] transition-all cursor-pointer"
           >
             Bắt Đầu Nuôi Dưỡng Thói Quen Này
           </button>

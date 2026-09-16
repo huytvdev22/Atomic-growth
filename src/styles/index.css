@@ -1,37 +1,62 @@
 @import "tailwindcss";
 
 /* 
- * Botanical Zen & Organic Growth Theme Tokens
- * Kế thừa trực tiếp từ đặc tả DESIGN.md chuẩn Google Labs
+ * Modern Botanical Zen Theme Tokens (Elera-Inspired Aesthetic v2.0.0)
+ * Kế thừa trực tiếp từ đặc tả DESIGN.md v2.0.0
  */
 @theme {
-  --color-canvas: #F8F7F2;
-  --color-canvas-subtle: #F2EFE9;
+  --color-backdrop: #EAE8E3;
+  --color-canvas: #F6F7F5;
+  --color-canvas-subtle: #EFF1ED;
   --color-surface: #FFFFFF;
-  --color-surface-soft: #FAFCFA;
-  --color-surface-container: #F2EFE9;
-  --color-surface-container-high: #EAE6DC;
+  --color-surface-soft: #FAFBFA;
+  --color-surface-container: #F0F2EE;
+  --color-surface-container-high: #E6EAE2;
   
-  --color-border: #E6E2D8;
-  --color-border-subtle: #EEEAE0;
-  --color-border-focus: #205A42;
+  --color-border: #E7EAE4;
+  --color-border-subtle: #F1F3EE;
+  --color-border-focus: #60B647;
   
-  --color-primary: #205A42;
-  --color-primary-hover: #184432;
-  --color-primary-container: #E4EFE9;
+  --color-primary: #1C4E3A;
+  --color-primary-hover: #163F2F;
+  --color-primary-light: #256B50;
+  --color-primary-container: #E8F1EC;
   --color-on-primary-container: #174633;
   
-  --color-text-primary: #1C2621;
-  --color-text-secondary: #5E6D66;
-  --color-text-tertiary: #8E9E96;
+  /* Xanh mầm tươi (Fresh Sprout Green) kế thừa từ Elera */
+  --color-accent-sprout: #6DC85A;
+  --color-accent-sprout-hover: #5BB748;
+  --color-accent-sprout-soft: #ECF8ED;
+  --color-on-accent-sprout: #184E1A;
+
+  --color-text-primary: #19241E;
+  --color-text-secondary: #5C6C63;
+  --color-text-tertiary: #96A59D;
+  --color-text-quaternary: #B8C4BD;
   
   --color-accent-sage: #528B70;
-  --color-accent-clay: #C97255;
-  --color-accent-amber: #D89839;
-  --color-accent-sprout: #E4EFE9;
-  --color-accent-sprout-dark: #2F6A4F;
-  --color-success: #205A42;
+  --color-accent-clay: #DE6B48;
+  --color-accent-amber: #EAA63B;
+  --color-success: #6DC85A;
   --color-error: #BA3D2A;
+
+  /* Semantic Pastel Tints (Elera Chips) */
+  --color-semantic-green: #5CB85C;
+  --color-semantic-green-bg: #ECF8ED;
+  --color-semantic-amber: #EAA63B;
+  --color-semantic-amber-bg: #FEF7EB;
+  --color-semantic-terracotta: #DE6B48;
+  --color-semantic-terracotta-bg: #FDF2EE;
+  --color-semantic-sky: #4B88E4;
+  --color-semantic-sky-bg: #EEF4FD;
+  --color-semantic-lilac: #8A68D5;
+  --color-semantic-lilac-bg: #F4F0FC;
+
+  /* Dark Theme Accent (Obsidian Matrix Calendar) */
+  --color-dark-surface: #242826;
+  --color-dark-surface-hover: #2F3532;
+  --color-dark-text: #F2F5F3;
+  --color-dark-text-subtle: #7E8A83;
 
   --font-serif: "Newsreader", serif;
   --font-sans: "Plus Jakarta Sans", sans-serif;
@@ -39,18 +64,26 @@
 
   --radius-xs: 4px;
   --radius-sm: 8px;
-  --radius-md: 14px;
-  --radius-lg: 20px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 18px;
+  --radius-2xl: 24px;
+  --radius-3xl: 28px;
+  --radius-app-frame: 28px;
   --radius-full: 9999px;
+
+  --shadow-window: 0 24px 64px -12px rgba(25, 36, 30, 0.10), 0 8px 24px -4px rgba(25, 36, 30, 0.04);
+  --shadow-card: 0 1px 3px rgba(25, 36, 30, 0.02), 0 6px 16px -4px rgba(25, 36, 30, 0.03);
+  --shadow-card-hover: 0 4px 12px rgba(25, 36, 30, 0.04), 0 12px 28px -6px rgba(25, 36, 30, 0.06);
 }
 
-/* Base Body Styles */
+/* Base Body Styles - Backdrop xám ấm tự nhiên */
 body {
-  background-color: var(--color-canvas);
+  background-color: var(--color-backdrop, #EAE8E3);
   color: var(--color-text-primary);
   font-family: var(--font-sans);
-  background-image: radial-gradient(#E8E5DC 1px, transparent 1px);
-  background-size: 24px 24px;
+  background-image: radial-gradient(#D5D3CC 1px, transparent 1px);
+  background-size: 20px 20px;
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
 }
@@ -69,10 +102,10 @@ body {
   min-height: 100dvh;
 }
 
-/* Hiệu ứng chuyển động mầm cây và nảy nhẹ khi check-in */
+/* Hiệu ứng nảy mầm cây khi check-in thói quen */
 @keyframes checkmark-spring {
   0% { transform: scale(0.6); opacity: 0; }
-  60% { transform: scale(1.15); opacity: 1; }
+  60% { transform: scale(1.18); opacity: 1; }
   100% { transform: scale(1); opacity: 1; }
 }
 
@@ -89,9 +122,9 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #D8D4C8;
+  background: #D4D8D2;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #C4BFB2;
+  background: #BDC3BB;
 }

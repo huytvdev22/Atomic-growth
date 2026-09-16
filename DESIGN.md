@@ -1,45 +1,74 @@
 ---
-version: 1.0.0
-name: Botanical Zen Minimalist
-description: Hệ thống thiết kế tối giản tĩnh tại (Zen Minimalism & High Focus) dành cho Atomic Growth, ứng dụng triệt để tâm lý học hành vi James Clear, loại bỏ mọi chi tiết rườm rà để tập trung tối đa vào thói quen cốt lõi.
+version: 2.0.0
+name: Modern Botanical Zen (Elera-Inspired Aesthetic)
+description: Hệ thống thiết kế tối giản tĩnh tại kết hợp phong cách SaaS chuẩn mực cao cấp (lấy cảm hứng từ bộ thiết kế Elera UI), mang lại trải nghiệm thiền định, tinh tế, tràn đầy sinh khí sinh trưởng và tập trung tối đa vào thói quen cốt lõi.
 colors:
-  canvas: "#F8F7F2"
-  canvas-subtle: "#F2EFE9"
-  surface: "#FFFFFF"
-  surface-soft: "#FAFCFA"
-  surface-container: "#F2EFE9"
-  border: "#E8E4DA"
-  border-subtle: "#F0ECE2"
-  border-focus: "#205A42"
-  primary: "#205A42"
-  on-primary: "#FFFFFF"
-  primary-hover: "#184432"
-  primary-container: "#E8F1EC"
-  on-primary-container: "#174633"
-  text-primary: "#1C2621"
-  text-secondary: "#617169"
-  text-tertiary: "#94A39B"
-  accent-sage: "#528B70"
-  accent-clay: "#C97255"
-  accent-amber: "#D89839"
-  accent-sprout: "#EBF3EE"
-  success: "#205A42"
-  error: "#C2412D"
+  # Backgrounds & Canvas (Cấu trúc phân tầng lớp nền)
+  backdrop: "#EAE8E3" # Nền xám ấm trung tính bên ngoài cửa sổ app
+  canvas: "#F6F7F5" # Nền chính của App Window (Alabaster Off-white êm dịu)
+  canvas-subtle: "#EFF1ED" # Nền phụ, hover background hoặc các container thứ cấp
+  surface: "#FFFFFF" # Nền card trắng tinh khiết, nổi nhẹ
+  surface-soft: "#FAFBFA" # Nền phụ mềm cho các khối lồng nhẹ hoặc ô nhập liệu
+  surface-container: "#F0F2EE" # Nền cột nhịp sinh học / phân nhóm nhẹ
+
+  # Đường viền & Phân cách (Hairline Borders)
+  border: "#E7EAE4" # Viền mảnh siêu nhẹ 1px cho card và phân cách
+  border-subtle: "#F1F3EE" # Viền mờ cho các thành phần thứ cấp
+  border-focus: "#60B647" # Viền khi focus/hover kích hoạt
+
+  # Màu thương hiệu & Sinh trưởng (Primary & Sprout Green)
+  primary: "#1C4E3A" # Xanh bách sẫm sâu lắng (Deep Cypress Ink) - dùng cho text thương hiệu, nút CTA tối quan trọng
+  primary-light: "#256B50" # Tone bách sáng hơn khi hover
+  accent-sprout: "#6DC85A" # Xanh mầm tươi (Fresh Sprout Green) - điểm nhấn check-in, active tab, tăng sinh khí
+  accent-sprout-soft: "#EAF7E6" # Nền pastel xanh mầm cho badge, chip trạng thái tích cực
+  on-accent-sprout: "#184E1A" # Màu chữ trên nền mầm tươi
+
+  # Màu chữ & Tương phản (Typography Inks)
+  text-primary: "#19241E" # Rêu than sẫm (Charcoal Moss) - chữ chính sắc nét nhưng dịu mắt
+  text-secondary: "#5C6C63" # Xám rêu trung tính - mô tả phụ, nhãn thời gian
+  text-tertiary: "#96A59D" # Xám sáng - placeholder, trạng thái hoàn thành mờ
+  text-quaternary: "#B8C4BD" # Icon inactive, đường ray tiến độ
+
+  # Màu ngữ nghĩa Pastel (Elera Soft Pastel Semantics)
+  semantic-green: "#5CB85C" # Tích cực / Hoàn thành / Chuỗi tăng
+  semantic-green-bg: "#ECF8ED"
+  semantic-amber: "#EAA63B" # Ngọn lửa chuỗi Streak / Đang chờ / Cần chú ý
+  semantic-amber-bg: "#FEF7EB"
+  semantic-terracotta: "#DE6B48" # Cảnh báo Never Miss Twice / Thói quen lỡ
+  semantic-terracotta-bg: "#FDF2EE"
+  semantic-sky: "#4B88E4" # Gợi ý ngữ cảnh / Quy tắc 2 phút / Trợ lý AI
+  semantic-sky-bg: "#EEF4FD"
+  semantic-lilac: "#8A68D5" # Phản tư nội tâm / Chiều sâu nhận thức
+  semantic-lilac-bg: "#F4F0FC"
+
+  # Dark Theme Accent (Dành riêng cho Obsidian Matrix Calendar)
+  dark-surface: "#242826" # Nền than đá cao cấp cho widget thống kê đặc biệt
+  dark-surface-hover: "#2F3532"
+  dark-text: "#F2F5F3"
+  dark-text-subtle: "#7E8A83"
+
 typography:
   zen-quote:
     fontFamily: Newsreader
     fontSize: 1.125rem
     fontWeight: 400
     fontStyle: italic
-    lineHeight: 1.4
+    lineHeight: 1.45
+  greeting-h1:
+    fontFamily: Plus Jakarta Sans
+    fontSize: 1.75rem
+    fontWeight: 600
+    lineHeight: 1.25
+    letterSpacing: -0.02em
   h1:
-    fontFamily: Newsreader
+    fontFamily: Plus Jakarta Sans
     fontSize: 1.5rem
     fontWeight: 600
     lineHeight: 1.25
+    letterSpacing: -0.015em
   h2:
     fontFamily: Plus Jakarta Sans
-    fontSize: 1rem
+    fontSize: 1.125rem
     fontWeight: 600
     lineHeight: 1.3
   body-md:
@@ -52,15 +81,15 @@ typography:
     fontSize: 0.8125rem
     fontWeight: 400
     lineHeight: 1.4
-  label-tag:
+  pill-label:
     fontFamily: Plus Jakarta Sans
-    fontSize: 0.6875rem
+    fontSize: 0.75rem
     fontWeight: 600
     lineHeight: 1
-    letterSpacing: 0.02em
+    letterSpacing: 0.01em
   mono-stat:
     fontFamily: JetBrains Mono
-    fontSize: 1.25rem
+    fontSize: 1.375rem
     fontWeight: 600
     lineHeight: 1.2
   mono-streak:
@@ -68,120 +97,178 @@ typography:
     fontSize: 0.75rem
     fontWeight: 600
     lineHeight: 1
+
 rounded:
   xs: 4px
   sm: 6px
   md: 10px
-  lg: 16px
-  full: 9999px
+  lg: 14px
+  xl: 18px
+  2xl: 24px
+  app-frame: 28px # Bo góc khung cửa sổ ứng dụng Elera
+  full: 9999px # Bo tròn dạng Pill cho buttons, tabs, search, badges
+
+shadows:
+  window: "0 24px 64px -12px rgba(28, 46, 36, 0.08), 0 8px 24px -4px rgba(28, 46, 36, 0.04)"
+  card: "0 1px 3px rgba(25, 36, 30, 0.02), 0 6px 16px -4px rgba(25, 36, 30, 0.03)"
+  card-hover: "0 4px 12px rgba(25, 36, 30, 0.04), 0 12px 28px -6px rgba(25, 36, 30, 0.06)"
+  pill-active: "0 2px 6px rgba(0, 0, 0, 0.08)"
+
 spacing:
   xs: 4px
   sm: 8px
   md: 16px
   lg: 24px
   xl: 32px
-  container-max: 680px
+  2xl: 48px
+  container-max: 760px # Khổ xem tập trung cho Timeline
 ---
 
-# Botanical Zen Minimalist Design System
+# Modern Botanical Zen Design System
 
-## 1. Triết Lý Cốt Lõi: Tối Giản Tĩnh Tại & Tập Trung Cao Độ (Zen Minimalism & High Focus)
-
-Hệ thống thiết kế **Botanical Zen Minimalist** kết hợp giữa vẻ đẹp tĩnh lặng của thiên nhiên (*Biophilic Aesthetics*) và tinh thần tối giản của các công cụ năng suất kinh điển (*Less, but better*).
-
-Lấy cảm hứng sâu sắc từ quy luật số 3 của James Clear trong cuốn *Atomic Habits* — **"Make it Easy" (Làm cho nó trở nên dễ dàng và tối giản mọi rào cản)**:
-- **Loại bỏ triệt để Visual Noise (Ô nhiễm thị giác):** Không xếp lớp thẻ lồng thẻ (no card-inside-card), không dùng các đường viền dày hay bóng đổ nặng nề, không biến mọi triết lý thành một khối hộp lớn thường trực.
-- **1 Màn Hình — 1 Tiêu Điểm Tối Thượng (Single Core Focus):** Khi người dùng mở ứng dụng, 90% không gian thị giác và sự chú ý phải dành trọn vẹn cho việc **hoàn thành các thói quen trong ngày**.
-- **Hiển thị theo Ngữ cảnh (Contextual / Progressive Disclosure):** Chỉ hiển thị các lời nhắc nhở hoặc cảnh báo khi có sự kiện thực tế phát sinh. Không trưng bày các bảng hướng dẫn dài dòng chiếm chỗ của danh sách hành động.
-- **Khoảng thở tự nhiên (Breathing Whitespace):** Tạo khoảng cách thoáng đãng, dễ chịu cho mắt, mang lại cảm giác bình yên như lật giở từng trang sổ tay cao cấp.
+> **Phiên bản 2.0.0** — Hệ thống thiết kế được nâng cấp toàn diện dựa trên triết lý cốt lõi của cuốn sách **Atomic Habits** (James Clear) và tinh hoa thẩm mỹ từ bộ giao diện **Elera SaaS** (hiện đại, tinh tế, bố cục thoáng đãng, phân tầng lớp kính và bo góc mềm mại).
 
 ---
 
-## 2. Hệ Màu Zen & Ánh Sáng (Zen Palette)
+## 1. Triết Lý Thiết Kế: Giao Điểm Giữa Tĩnh Tại & Sinh Lực (Zen Clarity & Fresh Growth)
 
-Hệ màu lấy từ tự nhiên (gỗ bách sẫm, lá xô thơm, đất nung mộc và giấy lụa Alabaster), kiên quyết tránh nền trắng tinh gắt mắt (`#FFFFFF` trên diện rộng) và màu đen tuyệt đối (`#000000`):
+Thay vì cảm giác gò bó hoặc có phần cổ điển của phiên bản trước, phong cách **Modern Botanical Zen** kết hợp hai yếu tố tưởng chừng đối lập nhưng hòa quyện tuyệt đối:
+1. **Zen Clarity (Tĩnh Tại & Không Nhiễu Thị Giác):** Giữ vững không gian thở rộng rãi (*Whitespace*), 1 màn hình chỉ 1 tiêu điểm tối thượng, loại bỏ hoàn toàn viền dày, bóng đổ gắt và các khối chữ triết lý thừa thãi.
+2. **Fresh Botanical Energy (Sinh Khí Mầm Non):** Kế thừa từ giao diện Elera, ứng dụng bổ sung sắc **Xanh Mầm Tươi (Fresh Sprout Green - `#6DC85A`)** làm điểm nhấn tương tác sinh động (active state, nút check-in 1 chạm, chuỗi ngày rực rỡ) trên nền **Canvas Alabaster êm dịu (`#F6F7F5`)**.
 
-- **Nền Canvas (`#F8F7F2` - Alabaster Linen):** Nền chính êm dịu, ấm áp, giảm mỏi mắt khi sử dụng sáng sớm hoặc đêm muộn.
-- **Mực Bách Sẫm (`#205A42` - Deep Cypress Ink):** Màu thương hiệu cốt lõi, sử dụng cho điểm nhấn check-in thành công, nút hành động chính và các tiêu đề trang trọng.
-- **Chữ Chính (`#1C2621` - Rêu than sẫm):** Nét mực than pha sắc rêu rừng, tương phản cao trên nền giấy nhưng giữ độ mềm mắt tự nhiên.
-- **Chữ Phụ (`#617169` & `#94A39B`):** Dành cho nhãn thời gian, mô tả phụ và trạng thái hoàn thành mờ nhẹ.
-- **Lá Xô Thơm (`#528B70` - Sage Leaf):** Dành cho các chỉ báo sinh trưởng, đường viền khi hover/focus.
-- **Đất Nung Ấm (`#C97255` - Terracotta Clay):** Dành riêng cho các lời nhắc nhở hồi phục nhân ái hoặc phản tư quan trọng.
-- **Hoàng Kim Hổ Phách (`#D89839` - Warm Amber):** Dành riêng cho ngọn lửa chuỗi kiên trì (`Streak`).
-
----
-
-## 3. Nghệ Thuật Typography (Zen Typography)
-
-* **Newsreader (Serif đương đại):** Được sử dụng tiết chế cho các câu đề tựa bản sắc (`zen-quote`), tạo nét trang nhã, thiền định nhưng không phô trương.
-* **Plus Jakarta Sans (Sans-serif hiện đại):** Dành cho tên thói quen, nhãn thời điểm, các nút bấm thao tác và nội dung nhật ký với độ đọc cao nhất.
-* **JetBrains Mono (Monospace):** Dành riêng cho các thông số định lượng: đếm số thói quen, số chuỗi ngày streak (`18d`), tỉ lệ phần trăm sinh trưởng (`%`).
+### 4 Quy Luật Atomic Habits Trong Ngôn Ngữ Thị Giác Mới
+- **Make it Obvious (Rõ Ràng):** Thanh tìm kiếm bo tròn nhanh (`⌘ K`), các nhịp sinh học được phân cột hoặc phân dải rành mạch với icon màu chuyên biệt.
+- **Make it Attractive (Hấp Dẫn):** Thẻ thói quen trắng tinh khôi bo góc mềm mại (`16px - 18px`), hiệu ứng xúc giác nhẹ khi lướt chuột qua, huy hiệu chuỗi streak vàng hổ phách nổi bật.
+- **Make it Easy (Dễ Dàng):** Nút check-in 1 chạm cực êm, hệ thống tab dạng **Pill** (viên thuốc) chuyển đổi mượt mà không cần tải lại trang.
+- **Make it Satisfying (Thỏa Mãn):** Trực quan hóa thành tựu bằng thanh tiến độ bo tròn mượt mà và widget **Obsidian Matrix Calendar** hiển thị chuỗi ngày rực rỡ.
 
 ---
 
-## 4. Kiến Trúc Thông Tin & Bố Cục (Information Architecture)
+## 2. Hệ Thống Màu & Phân Tầng Thị Giác (Color & Depth Architecture)
 
-Ứng dụng tuân thủ nghiêm ngặt nguyên tắc **Phân Tầng Thông Tin Độc Lập**, tuyệt đối không trộn lẫn các khối chức năng vào một màn hình duy nhất:
+### A. Cấu Trúc Khung Nổi "Floating Canvas" (Học hỏi từ Elera)
+Toàn bộ ứng dụng được trình bày như một khung canvas nổi thanh lịch:
+- **Backdrop bao quanh (`#EAE8E3`):** Nền không gian bên ngoài mang sắc xám linen ấm áp, tôn lên cửa sổ app.
+- **App Frame Window (`#F6F7F5`):** Khung ứng dụng chính bo góc lớn (`28px`), đổ bóng siêu mịn (`shadow-window`), tạo cảm giác như một thiết bị thông minh hoặc cuốn sổ tay tương lai.
+- **White Surface Cards (`#FFFFFF`):** Các thẻ nội dung, danh sách thói quen và bảng thống kê là những khối màu trắng tinh khiết đặt trên nền canvas, viền hairline siêu mảnh `1px solid #E7EAE4`.
 
-### A. Màn hình Thao tác Chính (`Timeline` — Hôm Nay)
-*Độ rộng tối đa container:* `680px` (thay vì 760px cồng kềnh trước đây) để tầm mắt tập trung hoàn hảo vào danh sách thói quen.
-1. **Zen Identity Monologue (Đề tựa Bản Sắc Tinh Tế):** Một câu trích dẫn khẳng định bản sắc ngắn gọn nằm thanh lịch dưới Header (`font-serif italic text-text-secondary text-sm`), không đóng khung hộp to tướng.
-2. **Contextual Never Miss Twice Banner (Chỉ hiện khi cần thiết):** 
-   - *Quy tắc nghiêm ngặt:* **CHỈ HIỂN THỊ** khi người dùng có thói quen bị bỏ lỡ vào ngày hôm qua (`hasMissedYesterday === true`).
-   - Thiết kế dạng dải banner mỏng nhẹ, tinh tế ở đầu danh sách, có nút đóng hoặc tự biến mất khi người dùng hoàn thành check-in thói quen đó. Tuyệt đối không hiển thị thường trực!
-3. **Danh Sách 3 Nhịp Sinh Học Trong Ngày (Morning / Midday / Evening):**
-   - Header mỗi nhịp sinh học tối giản: Tên nhịp + Icon vector nhỏ + Số lượng thói quen. Bỏ toàn bộ các câu giải thích triết lý lê thê.
-   - Thao tác 1 chạm (1-Tap Check-in) tức thì.
-4. **Clean Empty State (Khi chưa có thói quen):**
-   - Giao diện rỗng sạch sẽ, biểu tượng mầm non nhỏ cùng nút mời gọi "Gieo mầm thói quen đầu tiên", không chèn các khung viền nét đứt dày đặc.
-
-### B. Tab Nhật Ký Phản Tư (`Reflections` — Tách Biệt Hoàn Toàn)
-- Toàn bộ khung viết ghi chú nhanh (Quick Jot) và dòng thời gian các ghi chép phản tư (`ReflectionsFeed`) **PHẢI NẰM TẠI TAB NÀY**.
-- **CẤM** đặt `ReflectionsFeed` hoặc `QuickJotBox` cồng kềnh ngay giữa màn hình `Timeline`.
-
-### C. Sidebar Điều Hướng Tinh Gọn (Distraction-Free Sidebar)
-- **Khu vực 1 (Top):** Logo thương hiệu + Chỉ báo trạng thái Đồng bộ Cloud / Offline gọn gàng.
-- **Khu vực 2 (Bộ đếm & Khu vườn):** Gom gọn 3 chỉ số và lưới Heatmap nhỏ vào một khối trực quan, không chiếm diện tích quá lớn.
-- **Khu vực 3 (Menu):** 3 liên kết rõ ràng: *Dòng thời gian (Hôm nay)*, *Nhật ký Phản tư*, *Khu vườn Lưu trữ*.
-  - *Lược bỏ hoàn toàn:* Các mục nhãn tĩnh "Nhịp sinh học" không thể bấm trong menu.
-- **Khu vực 4 (Tài khoản & Phiên bản):** Đăng nhập Google / Hồ sơ người dùng + Version Badge nhỏ ở đáy.
+### B. Hệ Thống Màu Ngữ Nghĩa Pastel (Soft Pastel Chips)
+Kế thừa từ bảng trạng thái trực quan của Elera, các chip trạng thái và thẻ thông báo sử dụng nền pastel trong veo đi kèm chữ màu đậm cùng tone:
+| Trạng Thái / Mục Tiêu | Màu Nền Pastel | Màu Chữ / Biểu Tượng | Ứng Dụng Thực Tế |
+| :--- | :--- | :--- | :--- |
+| **Hoàn Thành / Đạt Chuẩn** | `#ECF8ED` (Sprout Tint) | `#1E6B24` (Deep Forest) | Thói quen đã hoàn thành hôm nay, tỉ lệ sinh trưởng tốt |
+| **Đang Thực Hiện / Streak** | `#FEF7EB` (Amber Tint) | `#A3660C` (Warm Honey) | Huy hiệu Streak kiên trì, thói quen đang trong phiên đếm |
+| **Nhắc Nhở / Cần Hồi Phục** | `#FDF2EE` (Terracotta) | `#A83C19` (Clay Brick) | Cảnh báo *Never Miss Twice*, thói quen đã quên hôm qua |
+| **Gợi Ý / Trợ Lý Ngữ Cảnh** | `#EEF4FD` (Sky Tint) | `#1F59B3` (Soft Azure) | Gợi ý Quy tắc 2 phút, mẹo Atomic Habits thông minh |
+| **Phản Tư / Nhận Thức Sâu** | `#F4F0FC` (Lilac Tint) | `#58329E` (Deep Violet) | Nhãn nhật ký suy ngẫm, danh mục thói quen tâm hồn |
 
 ---
 
-## 5. Quy Chuẩn Thành Phần Giao Diện (Component Specifications)
+## 3. Hệ Thống Typography (Chữ & Số)
 
-### 1. Habit Card (Thẻ Thói Quen Tối Giản)
-- Thiết kế phẳng, 1 lớp viền mỏng hairline `1px solid {colors.border}`.
-- Vòng tròn check-in đường kính `28px - 32px`. Khi hoàn thành: chuyển màu xanh Cypress `{colors.primary}`, icon check trắng hiển thị mượt mà.
-- Tên thói quen: Khi hoàn tất chuyển sang `line-through` và màu rêu mờ `{colors.text-tertiary}`.
-- Badge danh mục và streak hiển thị nhỏ gọn ở góc phải (`JetBrains Mono`, `text-xs`).
-- Không dùng hiệu ứng bóng đổ lòe loẹt; chỉ dùng hiệu ứng chuyển màu viền nhẹ khi hover (`transition: border-color 0.2s`).
-
-### 2. Zen Identity Header (Bản Sắc Tối Giản)
-- Thay thế hoàn toàn `IdentityCard` dạng hộp viền cồng kềnh cũ.
-- Thiết kế: Dòng chữ thanh thoát dạng văn bản tự nhiên ở đầu trang Timeline:
-  *Ví dụ:* `"Tôi là người đọc sách và luôn lắng nghe cơ thể mỗi ngày."` (Kèm icon bút chì nhỏ để chỉnh sửa khi cần).
-
-### 3. Contextual Never Miss Twice Banner
-- Dạng banner thông báo ngữ cảnh viền mảnh màu đất nung nhạt (`#FDF3EE`, viền `border-accent-clay/30`).
-- Chỉ hiện khi có điều kiện kích hoạt. Thiết kế mỏng, gọn gàng, mang tính khích lệ thay vì phán xét.
-
-### 4. Quick Jot Box (Khung Ghi Chú Tối Giản)
-- Nằm trong tab **Nhật ký Phản tư**.
-- Ô nhập liệu sạch, tự động co giãn theo nội dung, thanh công cụ gọn gồm nút chọn tag và nút Lưu.
+1. **Tin Cậy & Rõ Ràng (Plus Jakarta Sans):**
+   - Phông chữ giao diện chủ đạo cho toàn bộ hệ thống (Header, tên thói quen, nút bấm, nhãn danh mục).
+   - Thiết kế hình học mềm mại, độ dễ đọc cao nhất trên cả màn hình di động lẫn máy tính.
+2. **Thiền Định & Bản Sắc (Newsreader - Serif):**
+   - Sử dụng chọn lọc cho câu khẳng định bản sắc danh tính cá nhân (`zen-quote`) và các câu châm ngôn ngắn gọn.
+   - Luôn sử dụng kiểu chữ nghiêng (*italic*), kích thước vừa phải (`14px - 16px`), màu xám rêu nhẹ, không đặt trong khung viền nặng nề.
+3. **Đo Lường & Thành Tựu (JetBrains Mono):**
+   - Dành riêng cho các giá trị số học: Đếm chuỗi (`12d`), tỉ lệ hoàn thành (`85%`), thời lượng (`20m`).
+   - Giúp các con số thẳng hàng, tạo cảm giác chính xác, tin cậy.
 
 ---
 
-## 6. Do's and Don'ts (Quy Tắc Sống Còn)
+## 4. Ngôn Ngữ Thành Phần "Pill-Centric" & Thẻ Tinh Gọn
 
-### Do's (Bắt buộc tuân thủ)
-- Giữ giao diện luôn có **khoảng thở (whitespace)** rộng rãi, thanh tao.
-- Thao tác check-in thói quen phải là hành động nhanh nhất, không bị cản trở bởi bất kỳ cửa sổ hay popup nào.
-- Luôn sử dụng icon vector chuẩn mực từ **Lucide React** (kích thước `16px - 20px`, nét vẽ mỏng `1.75px`).
-- Đảm bảo hiển thị hoàn hảo và phản hồi mượt mà trên cả thiết bị di động (Mobile-first) và máy tính bàn.
+Một trong những đặc điểm cuốn hút nhất của Elera là sự xuất hiện xuyên suốt của hình khối **Pill (Viên thuốc - `rounded-full`)**, tạo cảm giác thân thiện, mềm mại và tân tiến:
+
+### 1. Thanh Tìm Kiếm & Lọc Nhanh (Pill Search & Action Bar)
+- **Ô tìm kiếm:** Nền xám nhạt `#EFF1ED`, bo tròn tuyệt đối (`rounded-full`), biểu tượng kính lúp thanh mảnh ở bên trái, phím tắt `⌘ K` dạng badge nhỏ ở bên phải.
+- **Nút CTA "+ Thói quen mới":** Nút chính màu than sẫm `#19241E` bo tròn (`rounded-full`), chữ trắng, hiệu ứng hover nhẹ sang màu xanh Cypress.
+- **Segmented Filter Pills:** Bộ lọc nhịp sinh học hoặc trạng thái (Tất cả / Sáng / Trưa / Tối):
+  - *Active Tab:* Nền than sẫm `#19241E` chữ trắng (hoặc nền trắng nổi trên ray xám), bo tròn mềm mại.
+  - *Inactive Tab:* Chữ xám trung tính, không viền, hover chuyển màu mượt.
+
+### 2. Thẻ Thói Quen Chuẩn Elera (Refined Habit Card)
+- **Nền & Viền:** Nền trắng `#FFFFFF`, bo góc mềm mại `16px` (`rounded-2xl`), viền hairline `1px solid #E7EAE4`.
+- **Vòng Tròn Check-in (Tap Ring):**
+  - Kích thước chuẩn `32px × 32px`, viền xám nhạt `2px solid #D6DDD8`.
+  - Khi hover: Viền phát sáng nhẹ màu xanh mầm tươi `#6DC85A`.
+  - Khi hoàn thành: Vòng tròn được làm đầy tức thì bằng màu xanh mầm tươi `#6DC85A`, biểu tượng check trắng xuất hiện với animation mượt mà.
+- **Nội dung thẻ:**
+  - Tên thói quen: `Plus Jakarta Sans`, đậm vừa (`font-medium`), màu chữ than rêu `#19241E`. Khi hoàn thành: chuyển sang gạch ngang nhẹ và màu rêu mờ.
+  - Nhãn danh mục & Ngữ cảnh: Badge chữ nhỏ dạng pill pastel (`#EFF1ED`), bo tròn `9999px`.
+  - Huy hiệu Streak: Nằm gọn gàng ở góc phải: Icon ngọn lửa nhỏ + Số ngày bằng `JetBrains Mono` màu hổ phách `#A3660C` trên nền `#FEF7EB`.
+
+### 3. Contextual Insight Banner (Thanh Khích Lệ Ngữ Cảnh)
+Học hỏi từ thanh thông báo ngữ cảnh thông minh của Elera (như thông báo slot trống hay nhắc nhở bệnh nhân):
+- **Cấu trúc:** Banner ngang bo góc `14px - 16px`, nền pastel dịu mắt.
+- **Bên trái:** Biểu tượng tròn chứa icon chuyên biệt (Icon Trái tim cho *Never Miss Twice*, Icon Đồng hồ cát cho *Quy tắc 2 phút*, Icon Tia chớp cho *Habit Stacking*).
+- **Ở giữa:** Lời nhắc ngắn gọn, đầy tính nhân ái và khoa học hành vi.
+- **Bên phải:** Nút hành động nhanh dạng pill (ví dụ: `Thực hiện ngay`, `Bỏ qua hôm nay`).
+- *Quy tắc tối thượng:* **CHỈ HIỂN THỊ KHI CÓ ĐIỀU KIỆN KÍCH HOẠT THỰC TẾ**, tự động biến mất khi người dùng hoàn thành check-in.
+
+---
+
+## 5. Các Mẫu Trực Quan Hóa Đột Phá (Breakthrough Visual Patterns)
+
+### A. Widget "Obsidian Habit Matrix" (Lấy cảm hứng từ Elera Volume Calendar)
+- **Ý tưởng:** Lấy cảm hứng từ thẻ lịch đen sang trọng trong màn hình Dashboard của Elera (`d1ad3837866a06345f7b3.jpg`).
+- **Thiết kế:** Một widget phụ tinh tế với nền than đá cao cấp `#242826`, chữ trắng ngà:
+  - Hiển thị ma trận các ngày trong tuần/tháng dưới dạng các ô tròn tối giản.
+  - Các ngày hoàn thành đủ thói quen được làm nổi bật với viền hoặc fill màu xanh mầm `#6DC85A`.
+  - Ngày hôm nay có vòng sáng bao quanh, kích thích cảm giác "không thể để vòng tròn hôm nay bị bỏ trống".
+
+### B. Zen Reflection & Daily Prompt Shell (Lấy cảm hứng từ Elera AI Chat)
+- **Ý tưởng:** Lấy cảm hứng từ màn hình chào hỏi tĩnh tại "Morning, Dr. Bennet" (`e4a1f13e4f63cf3d96726.jpg`).
+- **Thiết kế màn hình Phản tư (Reflections Tab):**
+  - Lời chào theo buổi trong ngày: *"Chào buổi sáng / Buổi tối tĩnh lặng, [Tên người dùng]"* với kích thước lớn, trang nhã.
+  - 4 Prompt Pills dạng thẻ trắng bo góc nổi nhẹ:
+    - 🌱 *Thói quen nào mang lại nhiều năng lượng nhất?*
+    - ⚡ *Quy tắc 2 phút hôm nay đã giúp ích gì?*
+    - 🛡️ *Rào cản nào khiến tôi suýt bỏ lỡ?*
+    - ✨ *Một điều tôi tự hào về bản thân hôm nay.*
+  - Vùng nhập liệu Quick Jot mở rộng ở phía dưới với hiệu ứng ánh sáng mờ nhẹ (ambient glow) từ đáy, tạo cảm giác tập trung tuyệt đối vào việc viết.
+
+---
+
+## 6. Bảng Phân Chia Không Gian Ứng Dụng (Layout & Space Partitioning)
+
+Ứng dụng duy trì sự phân tách rõ ràng giữa 3 khu vực chính:
+
+```
++-----------------------------------------------------------------------------------+
+|  APP WINDOW (Bo góc 28px, Nền #F6F7F5, Shadow Siêu Mịn)                           |
++-------------------+---------------------------------------------------------------+
+|  SIDEBAR          |  MAIN CONTENT AREA                                            |
+|  (260px)          |  (Max-width 760px, Căn giữa thoáng đãng)                      |
+|                   |                                                               |
+|  [Logo & Brand]   |  [Top Header: Tiêu đề trang + Pill Search Bar + User Avatar]  |
+|                   |                                                               |
+|  [Active Tab Pill]|  [Contextual Banner: Chỉ hiện khi có sự kiện cần phục hồi]    |
+|  - Hôm nay (Check)|                                                               |
+|  - Nhật ký suy ngẫm|  [Danh sách thói quen theo Nhịp Sinh Học: Cards trắng 16px]   |
+|  - Khu vườn dữ liệu|  - Buổi sáng                                                  |
+|                   |  - Buổi trưa                                                  |
+|  [Obsidian Matrix]|  - Buổi tối                                                   |
+|  Calendar Widget  |                                                               |
+|                   |  [Clean Empty State nếu chưa có dữ liệu]                      |
+|  [User & Sync]    |                                                               |
++-------------------+---------------------------------------------------------------+
+```
+
+---
+
+## 7. Do's and Don'ts (Bộ Quy Tắc Bất Di Bất Dịch)
+
+### Do's (Khuyến khích & Chuẩn hóa)
+- ✅ **Bo góc lớn & Mềm mại:** Sử dụng `rounded-2xl` (16px) cho thẻ thói quen và `rounded-full` (9999px) cho nút bấm, badge, tabs, search.
+- ✅ **Khoảng thở hào phóng:** Luôn dành khoảng cách tối thiểu 16px - 24px giữa các khối nội dung, tránh xếp san sát.
+- ✅ **Hiển thị theo ngữ cảnh (Contextual):** Các lời nhắc chỉ xuất hiện khi thực sự cần giải quyết một vấn đề hành vi cụ thể.
+- ✅ **Tương thích hoàn hảo Di động:** Trên thiết bị nhỏ, sidebar tự động thu gọn thành bottom navigation bar dạng dock nổi với các icon pill tinh gọn.
 
 ### Don'ts (Nghiêm cấm tuyệt đối)
-- **CẤM RƯỜM RÀ (Anti-Clutter):** Tuyệt đối không tự ý thêm các thẻ quote, banner triết lý, card thống kê cố định vào màn hình chính `Timeline`.
-- **CẤM CARD LỒNG CARD:** Không bọc card bên trong một container có viền khác, gây cảm giác nặng nề, bí bách.
-- **CẤM RAW EMOJI:** Không sử dụng raw emoji hệ điều hành (như 🌿, 🌙, ☀️) làm biểu tượng nút bấm hoặc nhãn giao diện.
-- **CẤM HIỂN THỊ DỮ LIỆU GIẢ VÀO TÀI KHOẢN THẬT:** Khi người dùng đã đăng nhập Google, không tự ý gieo mầm dữ liệu mock hay streak giả vào cơ sở dữ liệu của họ.
+- ❌ **CẤM VIỀN ĐẬM & BÓNG GẮT:** Tuyệt đối không dùng viền đen đậm hoặc bóng đổ cứng nhắc kiểu retro/brutalist; toàn bộ hệ thống là sự tinh tế, mượt mà.
+- ❌ **CẤM RAW EMOJI LÀM BIỂU TƯỢNG HỆ THỐNG:** Dùng icon vector đồng bộ từ **Lucide React** với nét vẽ mỏng `1.75px` - `2px`.
+- ❌ **CẤM CARD LỒNG CARD:** Không bọc thẻ thói quen bên trong các container viền nét đứt hay khung hộp dày đặc.
+- ❌ **CẤM DỮ LIỆU GIẢ VÀO TÀI KHOẢN THẬT:** Khi người dùng đăng nhập tài khoản cá nhân, giữ nguyên trạng thái dữ liệu thực tế của họ, render Empty State trang nhã thay vì nạp mock data.

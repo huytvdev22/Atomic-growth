@@ -16,7 +16,8 @@ import {
   Cloud,
   CloudOff,
   User as UserIcon,
-  Loader2
+  Loader2,
+  Flame
 } from 'lucide-react';
 import { cn } from '../utils/cn';
 import { VersionBadge } from './VersionBadge';
@@ -26,6 +27,10 @@ interface SidebarProps {
   onCloseMobile: () => void;
 }
 
+/**
+ * Sidebar Điều Hướng Chuẩn Elera (Modern Botanical Zen Sidebar)
+ * Tích hợp Widget Obsidian Habit Matrix nền than sẫm sang trọng và menu dạng Pill mềm mại
+ */
 export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile }) => {
   const {
     habits,
@@ -43,7 +48,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
 
   const { user, loginWithGoogle, logout, isConfigured, isAuthenticating } = useAuth();
 
-  // Sinh 28 ô vuông (4 tuần) cho mini heatmap trong sidebar
+  // Sinh 28 ô vuông (4 tuần) cho Obsidian Habit Matrix trong sidebar
   const miniHeatmapCells = useMemo(() => {
     return generateGardenHeatmap(logs, totalActiveHabits, 28);
   }, [logs, totalActiveHabits]);
@@ -57,22 +62,22 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
   ];
 
   const sidebarContent = (
-    <div className="flex flex-col h-full bg-surface text-text-primary">
-      {/* 1. Header Logo & Cài Đặt */}
-      <div className="flex items-center justify-between p-4 border-b border-border-subtle">
+    <div className="flex flex-col h-full bg-surface text-text-primary select-none">
+      {/* 1. Header Logo & Cài Đặt Phong Cách Elera */}
+      <div className="flex items-center justify-between px-4 py-3.5 border-b border-border-subtle">
         <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent-sprout text-primary shadow-2xs">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent-sprout text-[#103813] shadow-xs font-bold">
             <Sprout className="h-5 w-5" />
           </div>
           <div>
-            <h1 className="font-sans text-sm font-bold tracking-tight text-primary">
+            <h1 className="font-sans text-sm font-bold tracking-tight text-text-primary">
               Atomic Growth
             </h1>
             <div className="flex items-center gap-1.5 text-[11px] text-text-tertiary">
               {isCloudSynced ? (
                 <>
-                  <Cloud className="h-3 w-3 text-accent-sage" />
-                  <span className="text-accent-sage font-medium">Đồng bộ Cloud</span>
+                  <Cloud className="h-3 w-3 text-accent-sprout" />
+                  <span className="text-accent-sprout font-medium">Đồng bộ Cloud</span>
                 </>
               ) : (
                 <>
@@ -87,7 +92,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
         <div className="flex items-center gap-1">
           <button
             type="button"
-            className="rounded-md p-1.5 text-text-tertiary hover:bg-canvas-subtle hover:text-text-primary transition-colors cursor-pointer"
+            className="rounded-full p-1.5 text-text-tertiary hover:bg-canvas-subtle hover:text-text-primary transition-colors cursor-pointer"
             title="Cài đặt"
           >
             <Settings className="h-4 w-4" />
@@ -96,72 +101,91 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
           <button
             type="button"
             onClick={onCloseMobile}
-            className="md:hidden rounded-md p-1.5 text-text-tertiary hover:bg-canvas-subtle hover:text-text-primary transition-colors cursor-pointer"
+            className="md:hidden rounded-full p-1.5 text-text-tertiary hover:bg-canvas-subtle hover:text-text-primary transition-colors cursor-pointer"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
       </div>
 
-      {/* 2. Bộ 3 Chỉ Số Lớn (Top Counters) */}
-      <div className="grid grid-cols-3 gap-2 px-4 py-3.5 border-b border-border-subtle text-center">
+      {/* 2. Bộ 3 Chỉ Số Lớn (Top Counters) với JetBrains Mono */}
+      <div className="grid grid-cols-3 gap-2 px-4 py-3 border-b border-border-subtle text-center">
         <div className="flex flex-col">
-          <span className="font-mono text-xl font-bold text-text-primary">
+          <span className="font-mono text-lg font-bold text-text-primary">
             {habits.length}
           </span>
-          <span className="text-[11px] text-text-tertiary">Thói quen</span>
+          <span className="text-[10px] text-text-tertiary">Thói quen</span>
         </div>
         <div className="flex flex-col">
-          <span className="font-mono text-xl font-bold text-accent-amber">
+          <span className="font-mono text-lg font-bold text-semantic-amber">
             {topStreak}d
           </span>
-          <span className="text-[11px] text-text-tertiary">Kỷ lục</span>
+          <span className="text-[10px] text-text-tertiary">Kỷ lục</span>
         </div>
         <div className="flex flex-col">
-          <span className="font-mono text-xl font-bold text-primary">
+          <span className="font-mono text-lg font-bold text-accent-sprout">
             {completionRate}%
           </span>
-          <span className="text-[11px] text-text-tertiary">Hôm nay</span>
+          <span className="text-[10px] text-text-tertiary">Hôm nay</span>
         </div>
       </div>
 
-      {/* 3. Mini Garden Heatmap (Lưới ô vuông khu vườn) */}
-      <div className="px-4 py-3 border-b border-border-subtle">
-        <div className="flex items-center justify-between text-[11px] font-semibold text-text-secondary mb-2">
-          <span>Khu vườn kiên trì</span>
-          <span className="font-mono text-accent-sage">4 tuần qua</span>
-        </div>
-        <div className="grid grid-cols-7 gap-1.5">
-          {miniHeatmapCells.map((cell, i) => {
-            const levelClass = {
-              0: 'bg-canvas-subtle',
-              1: 'bg-[#D2E7DC]',
-              2: 'bg-[#96CBB0]',
-              3: 'bg-[#528B70]',
-              4: 'bg-primary'
-            }[cell.level];
+      {/* 3. Obsidian Habit Matrix (Widget Lịch Ma Trận Chuỗi Ngày Nền Than Đá Cao Cấp) */}
+      <div className="px-3 py-2.5 border-b border-border-subtle">
+        <div className="rounded-2xl bg-dark-surface p-3 text-dark-text shadow-sm border border-[#2F3532]">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-1.5">
+              <Calendar className="w-3.5 h-3.5 text-accent-sprout" />
+              <span className="text-xs font-semibold tracking-tight text-white">
+                Ma Trận Kiên Trì
+              </span>
+            </div>
+            <div className="inline-flex items-center gap-1 font-mono text-[10px] font-bold text-accent-sprout bg-accent-sprout/15 px-2 py-0.5 rounded-full border border-accent-sprout/30">
+              <Flame className="w-2.5 h-2.5 fill-accent-sprout" />
+              <span>4 tuần</span>
+            </div>
+          </div>
 
-            return (
-              <div
-                key={i}
-                className={cn(
-                  'aspect-square rounded-xs transition-transform duration-100 hover:scale-125 cursor-pointer',
-                  levelClass,
-                  cell.isToday && 'ring-1.5 ring-accent-amber'
-                )}
-                title={`${cell.date}: Hoàn thành ${cell.completedCount} thói quen`}
-              />
-            );
-          })}
-        </div>
-        <div className="flex justify-between text-[10px] text-text-tertiary mt-1.5">
-          <span>Tháng trước</span>
-          <span>Tuần này</span>
+          {/* Lưới 28 ô tròn ma trận */}
+          <div className="grid grid-cols-7 gap-1">
+            {miniHeatmapCells.map((cell, i) => {
+              const dayNumber = new Date(cell.date).getDate();
+              const isCompleted = cell.level >= 2;
+              const isPartial = cell.level === 1;
+
+              return (
+                <div
+                  key={i}
+                  className={cn(
+                    'aspect-square rounded-full flex items-center justify-center font-mono text-[9px] font-semibold transition-all duration-150 cursor-pointer hover:scale-120',
+                    isCompleted
+                      ? 'bg-accent-sprout text-[#103813] font-bold shadow-2xs'
+                      : isPartial
+                      ? 'bg-[#3A4D3E] text-[#9FE58F]'
+                      : 'bg-[#2C312E] text-[#78857D] hover:bg-[#353C38]',
+                    cell.isToday && 'ring-2 ring-white ring-offset-1 ring-offset-dark-surface'
+                  )}
+                  title={`${cell.date}: Hoàn thành ${cell.completedCount} thói quen`}
+                >
+                  {dayNumber}
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="flex justify-between items-center text-[9px] text-dark-text-subtle mt-2 pt-1.5 border-t border-[#313734]">
+            <span className="flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#2C312E]" /> Nghỉ
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent-sprout" /> Đạt chuẩn
+            </span>
+          </div>
         </div>
       </div>
 
-      {/* 4. Menu Điều Hướng Chính */}
-      <nav className="flex-1 overflow-y-auto px-2 py-3 space-y-1">
+      {/* 4. Menu Điều Hướng Dạng Pill Mềm Mại */}
+      <nav className="flex-1 overflow-y-auto px-2.5 py-2.5 space-y-1">
         <button
           type="button"
           onClick={() => {
@@ -170,17 +194,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
             onCloseMobile();
           }}
           className={cn(
-            'w-full flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-md transition-all cursor-pointer',
+            'w-full flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-xl transition-all cursor-pointer',
             activeTab === 'timeline' && activeTag === null
-              ? 'bg-accent-sprout/60 text-primary border-l-[3px] border-primary font-bold shadow-2xs'
+              ? 'bg-accent-sprout/20 text-[#144919] font-bold shadow-2xs'
               : 'text-text-secondary hover:bg-canvas-subtle hover:text-text-primary'
           )}
         >
           <div className="flex items-center gap-2.5">
-            <Calendar className="h-4 w-4" />
+            <Calendar className={cn('h-4 w-4', activeTab === 'timeline' && activeTag === null ? 'text-[#144919]' : 'text-text-tertiary')} />
             <span>Dòng thời gian (Hôm nay)</span>
           </div>
-          <span className="font-mono text-[11px] bg-white/80 text-text-secondary px-2 py-0.2 rounded-full border border-border">
+          <span className="font-mono text-[11px] bg-white/90 text-text-secondary px-2 py-0.5 rounded-full border border-border/60">
             {habits.length}
           </span>
         </button>
@@ -193,17 +217,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
             onCloseMobile();
           }}
           className={cn(
-            'w-full flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-md transition-all cursor-pointer',
+            'w-full flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-xl transition-all cursor-pointer',
             activeTab === 'reflections'
-              ? 'bg-accent-sprout/60 text-primary border-l-[3px] border-primary font-bold shadow-2xs'
+              ? 'bg-accent-sprout/20 text-[#144919] font-bold shadow-2xs'
               : 'text-text-secondary hover:bg-canvas-subtle hover:text-text-primary'
           )}
         >
           <div className="flex items-center gap-2.5">
-            <BookOpen className="h-4 w-4" />
+            <BookOpen className={cn('h-4 w-4', activeTab === 'reflections' ? 'text-[#144919]' : 'text-text-tertiary')} />
             <span>Nhật ký Phản tư</span>
           </div>
-          <span className="font-mono text-[11px] bg-white/80 text-text-secondary px-2 py-0.2 rounded-full border border-border">
+          <span className="font-mono text-[11px] bg-white/90 text-text-secondary px-2 py-0.5 rounded-full border border-border/60">
             {notes.length}
           </span>
         </button>
@@ -216,17 +240,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
             onCloseMobile();
           }}
           className={cn(
-            'w-full flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-md transition-all cursor-pointer',
+            'w-full flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-xl transition-all cursor-pointer',
             activeTab === 'flashcards'
-              ? 'bg-accent-sprout/60 text-primary border-l-[3px] border-primary font-bold shadow-2xs'
+              ? 'bg-accent-sprout/20 text-[#144919] font-bold shadow-2xs'
               : 'text-text-secondary hover:bg-canvas-subtle hover:text-text-primary'
           )}
         >
           <div className="flex items-center gap-2.5">
-            <Brain className="h-4 w-4" />
+            <Brain className={cn('h-4 w-4', activeTab === 'flashcards' ? 'text-[#144919]' : 'text-text-tertiary')} />
             <span>Góc Ôn Tập (Anki)</span>
           </div>
-          <span className="font-mono text-[10px] bg-accent-sage/20 text-primary px-1.5 py-0.2 rounded-full font-semibold">
+          <span className="font-mono text-[10px] bg-semantic-sky-bg text-semantic-sky px-2 py-0.5 rounded-full font-semibold border border-semantic-sky/20">
             2m
           </span>
         </button>
@@ -239,17 +263,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
             onCloseMobile();
           }}
           className={cn(
-            'w-full flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-md transition-all cursor-pointer',
+            'w-full flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-xl transition-all cursor-pointer',
             activeTab === 'anki-decoder'
-              ? 'bg-accent-sprout/60 text-primary border-l-[3px] border-primary font-bold shadow-2xs'
+              ? 'bg-accent-sprout/20 text-[#144919] font-bold shadow-2xs'
               : 'text-text-secondary hover:bg-canvas-subtle hover:text-text-primary'
           )}
         >
           <div className="flex items-center gap-2.5">
-            <FileCode className="h-4 w-4" />
+            <FileCode className={cn('h-4 w-4', activeTab === 'anki-decoder' ? 'text-accent-amber' : 'text-text-tertiary')} />
             <span>Giải Mã Anki Deck</span>
           </div>
-          <span className="font-mono text-[10px] bg-accent-amber/20 text-accent-amber px-1.5 py-0.2 rounded-full font-semibold">
+          <span className="font-mono text-[10px] bg-semantic-amber-bg text-semantic-amber px-2 py-0.5 rounded-full font-semibold border border-semantic-amber/20">
             Studio
           </span>
         </button>
@@ -261,25 +285,25 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
             onCloseMobile();
           }}
           className={cn(
-            'w-full flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-md transition-all cursor-pointer',
+            'w-full flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-xl transition-all cursor-pointer',
             activeTab === 'archive'
-              ? 'bg-accent-sprout/60 text-primary border-l-[3px] border-primary font-bold shadow-2xs'
+              ? 'bg-accent-sprout/20 text-[#144919] font-bold shadow-2xs'
               : 'text-text-secondary hover:bg-canvas-subtle hover:text-text-primary'
           )}
         >
           <div className="flex items-center gap-2.5">
-            <Archive className="h-4 w-4" />
+            <Archive className="h-4 w-4 text-text-tertiary" />
             <span>Lưu trữ</span>
           </div>
           <span className="font-mono text-[11px] text-text-tertiary">0</span>
         </button>
 
         {/* Phân cách */}
-        <div className="pt-3 pb-1 px-3">
+        <div className="pt-2 pb-1 px-3">
           <div className="h-px bg-border-subtle" />
         </div>
 
-        {/* Danh Mục (Tags) */}
+        {/* Danh Mục Tags Dạng Pill */}
         <div className="px-3 pt-1 pb-1 flex items-center justify-between">
           <span className="text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
             Danh mục thẻ
@@ -294,8 +318,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
           )}
         </div>
 
-        <div className="space-y-0.5">
-          {tags.map(t => (
+        <div className="flex flex-wrap gap-1 px-2">
+          {tags.map((t) => (
             <button
               key={t.id}
               type="button"
@@ -304,13 +328,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
                 onCloseMobile();
               }}
               className={cn(
-                'w-full flex items-center gap-2 px-3 py-1.5 text-xs rounded-md transition-colors cursor-pointer',
+                'inline-flex items-center gap-1 px-2.5 py-1 text-[11px] rounded-full transition-colors cursor-pointer border',
                 activeTag === t.id
-                  ? 'bg-accent-sprout font-bold text-primary'
-                  : 'text-text-secondary hover:bg-canvas-subtle hover:text-text-primary'
+                  ? 'bg-accent-sprout text-[#103813] font-bold border-accent-sprout shadow-2xs'
+                  : 'bg-canvas-subtle/80 text-text-secondary border-border/40 hover:bg-canvas-subtle hover:text-text-primary'
               )}
             >
-              <Hash className="h-3.5 w-3.5 text-text-tertiary" />
+              <Hash className="h-3 w-3 text-text-tertiary" />
               <span>{t.label}</span>
             </button>
           ))}
@@ -318,7 +342,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
       </nav>
 
       {/* 5. Footer Tài Khoản Google & Trạng Thái Đồng Bộ */}
-      <div className="p-3 border-t border-border-subtle bg-canvas-subtle/50 text-xs">
+      <div className="p-3 border-t border-border-subtle bg-canvas-subtle/40 text-xs">
         {user ? (
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 min-w-0">
@@ -329,7 +353,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
                   className="w-7 h-7 rounded-full border border-border shrink-0"
                 />
               ) : (
-                <div className="w-7 h-7 rounded-full bg-accent-sprout text-primary flex items-center justify-center shrink-0 font-bold text-xs">
+                <div className="w-7 h-7 rounded-full bg-accent-sprout text-[#103813] flex items-center justify-center shrink-0 font-bold text-xs">
                   <UserIcon className="w-4 h-4" />
                 </div>
               )}
@@ -346,7 +370,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
             <button
               type="button"
               onClick={logout}
-              className="p-1.5 rounded-md text-text-tertiary hover:text-error hover:bg-canvas transition-colors cursor-pointer"
+              className="p-1.5 rounded-full text-text-tertiary hover:text-error hover:bg-canvas transition-colors cursor-pointer"
               title="Đăng xuất"
             >
               <LogOut className="w-4 h-4" />
@@ -358,16 +382,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
               type="button"
               disabled={isAuthenticating}
               onClick={loginWithGoogle}
-              className="w-full flex items-center justify-center gap-2 rounded-md bg-surface border border-border px-3 py-2 text-xs font-semibold text-text-primary hover:bg-canvas hover:border-accent-sage transition-all shadow-2xs cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center gap-2 rounded-full bg-surface border border-border px-3 py-2 text-xs font-semibold text-text-primary hover:bg-canvas hover:border-accent-sprout transition-all shadow-2xs cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
             >
               {isAuthenticating ? (
                 <>
-                  <Loader2 className="w-3.5 h-3.5 animate-spin text-primary shrink-0" />
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-accent-sprout shrink-0" />
                   <span>Đang kết nối Google...</span>
                 </>
               ) : (
                 <>
-                  {/* Google G Logo SVG */}
                   <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24">
                     <path
                       fill="#4285F4"
@@ -398,10 +421,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
           </div>
         )}
 
-        {/* Thanh trạng thái phiên bản PWA (Kiểu FlareMo: 🔄 v1.0.0 🟠) */}
+        {/* Thanh trạng thái phiên bản PWA */}
         <div className="flex items-center justify-between pt-2 border-t border-border-subtle/80">
           <VersionBadge />
-          <span className="text-[10px] text-text-tertiary">Atomic Zen</span>
+          <span className="text-[10px] text-text-tertiary">Elera Zen</span>
         </div>
       </div>
     </div>
@@ -410,11 +433,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
   return (
     <>
       {/* 1. Bản Desktop: Sidebar Cố định bên trái */}
-      <aside className="hidden md:flex flex-col w-[260px] lg:w-[280px] shrink-0 border-r border-border h-dvh sticky top-0 z-20">
+      <aside className="hidden md:flex flex-col w-[260px] lg:w-[275px] shrink-0 border-r border-border h-full bg-surface">
         {sidebarContent}
       </aside>
 
-      {/* 2. Bản Mobile: Off-canvas Drawer trượt từ bên trái ra (Ảnh 2) */}
+      {/* 2. Bản Mobile: Off-canvas Drawer trượt từ bên trái ra */}
       {isOpenMobile && (
         <div className="fixed inset-0 z-50 md:hidden flex">
           {/* Lớp phủ Backdrop */}

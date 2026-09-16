@@ -3,9 +3,9 @@ import { useHabits } from '../context/HabitContext';
 import { Edit3 } from 'lucide-react';
 
 /**
- * Thẻ Bản Sắc (Identity Card)
+ * Thẻ Đề Tựa Bản Sắc Tinh Tế (Zen Identity Monologue)
  * Đóng vai trò ngọn hải đăng tâm lý theo Atomic Habits:
- * "Thói quen bền vững nhất xuất phát từ việc thay đổi danh tính chứ không chỉ là mục tiêu kết quả."
+ * "Thói quen bền vững nhất xuất phát từ việc thay đổi bản sắc chứ không chỉ là mục tiêu kết quả."
  */
 export const IdentityCard: React.FC = () => {
   const { profile, updateProfile } = useHabits();
@@ -20,29 +20,29 @@ export const IdentityCard: React.FC = () => {
   };
 
   return (
-    <div className="py-2 px-1">
+    <div className="py-1 px-0.5">
       {isEditing ? (
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2 bg-surface p-3.5 rounded-2xl border border-border shadow-card">
           <textarea
             value={draftStatement}
             onChange={(e) => setDraftStatement(e.target.value)}
-            className="w-full font-serif italic text-base sm:text-lg text-text-primary bg-surface border border-border-focus rounded-md p-2.5 focus:outline-none focus:ring-1 focus:ring-accent-sage resize-none leading-relaxed"
+            className="w-full font-serif italic text-base text-text-primary bg-canvas-subtle/60 border border-border-focus rounded-xl p-3 focus:outline-none focus:ring-1 focus:ring-accent-sprout resize-none leading-relaxed"
             rows={2}
             placeholder="Tôi là người..."
             autoFocus
           />
-          <div className="flex justify-end gap-2">
+          <div className="flex justify-end items-center gap-2">
             <button
               type="button"
               onClick={() => setIsEditing(false)}
-              className="text-xs px-2.5 py-1 text-text-secondary hover:text-text-primary cursor-pointer"
+              className="text-xs px-3 py-1.5 text-text-secondary hover:text-text-primary cursor-pointer rounded-full"
             >
               Hủy
             </button>
             <button
               type="button"
               onClick={handleSave}
-              className="text-xs px-3 py-1 rounded bg-primary text-white font-medium hover:bg-primary-hover transition-colors cursor-pointer"
+              className="text-xs px-4 py-1.5 rounded-full bg-primary text-white font-semibold hover:bg-primary-hover transition-all cursor-pointer shadow-xs active:scale-95"
             >
               Lưu bản sắc
             </button>
@@ -59,7 +59,7 @@ export const IdentityCard: React.FC = () => {
               setDraftStatement(profile.coreIdentityStatement);
               setIsEditing(true);
             }}
-            className="opacity-0 group-hover:opacity-100 text-text-tertiary hover:text-primary transition-opacity p-1 rounded hover:bg-canvas-subtle shrink-0"
+            className="opacity-0 group-hover:opacity-100 text-text-tertiary hover:text-primary transition-opacity p-1.5 rounded-full hover:bg-canvas-subtle shrink-0 cursor-pointer"
             title="Chỉnh sửa câu tuyên ngôn bản sắc"
           >
             <Edit3 className="w-3.5 h-3.5" />
