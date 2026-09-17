@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { AnkiDeck, AnkiCard, MemoryVitality, calculateCardVitality } from '../../types/anki';
+import { AnkiDeck, AnkiCard } from '../../types/anki';
 import { indexedDbService } from '../../services/indexedDbService';
 import { ankiFirestoreSync } from '../../services/ankiFirestoreSync';
 import { useAuth } from '../../context/AuthContext';
@@ -11,9 +11,6 @@ import {
   calculateDeckStreak,
   generateDeckHeatmapCells
 } from '../../utils/deckAnalytics';
-import { MemoryStrengthIndicator } from './MemoryStrengthIndicator';
-import { WordDetailSheet } from './WordDetailSheet';
-import { DeckThemesView, ThemeGroup } from './DeckThemesView';
 import {
   ArrowLeft,
   BookOpen,
@@ -23,15 +20,11 @@ import {
   Sprout,
   TreeDeciduous,
   Calendar,
-  Search,
-  Volume2,
   RefreshCw,
-  XCircle,
   TrendingUp,
   Cloud,
   CheckCircle2,
   Layers,
-  LayoutGrid,
   List,
   ChevronRight
 } from 'lucide-react';
@@ -40,99 +33,9 @@ import { cn } from '../../utils/cn';
 interface DeckDashboardViewProps {
   deckId: string;
   onBack: () => void;
+  onOpenLexicon?: () => void;
   onStartReview: (deckId: string, targetCardIds?: string[], customSubtitle?: string) => void;
 }
-
-/**
- * Hàm loại bỏ HTML để lấy text thuần cho danh sách từ (Tối ưu tốc độ với Fast Path)
- */
-function stripHtml(html: string): string {
-  if (!html) return '';
-  // Fast path: nếu text thuần túy không chứa ký tự mở thẻ và entity
-  if (!html.includes('<') && !html.includes('&')) {
-    return html.trim();
-  }
-  return html
-    .replace(/<style[^>]*>[\s\S]*?<\/style>|<script[^>]*>[\s\S]*?<\/script>/gi, '')
-    .replace(/<br\s*[/]?>/gi, ' ')
-    .replace(/<[^>]+>/g, '')
-    .replace(/&(?:nbsp|amp|lt|gt|quot|#39);/g, (match) => {
-      switch (match) {
-        case '&nbsp;': return ' ';
-        case '&amp;': return '&';
-        case '&lt;': return '<';
-        case '&gt;': return '>';
-        case '&quot;': return '"';
-        case '&#39;': return "'";
-        default: return '';
-      }
-    })
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-const PAGE_SIZE = 30;
-
-interface WordCardItemProps {
-  card: AnkiCard;
-  isPlaying: boolean;
-  onSelect: (card: AnkiCard) => void;
-  onPlayAudio: (card: AnkiCard, e: React.MouseEvent) => void;
-}
-
-/**
- * Component từ vựng đơn lẻ được tối ưu hóa với React.memo
- * Tránh re-render toàn bộ danh sách khi thay đổi audio hoặc chọn từ
- */
-const WordCardItem: React.FC<WordCardItemProps> = React.memo(({
-  card,
-  isPlaying,
-  onSelect,
-  onPlayAudio
-}) => {
-  const vitality = useMemo(() => calculateCardVitality(card), [card]);
-  const frontText = useMemo(() => stripHtml(card.front), [card.front]);
-  const backText = useMemo(() => stripHtml(card.back), [card.back]);
-
-  return (
-    <div
-      onClick={() => onSelect(card)}
-      className="py-3 px-2 -mx-2 rounded-xl flex items-center justify-between gap-3 hover:bg-canvas-subtle/80 active:bg-canvas-muted transition-all cursor-pointer group"
-    >
-      <div className="flex-1 min-w-0 pr-2">
-        <div className="flex items-center gap-2">
-          <h4 className="font-serif text-base font-bold text-text-primary tracking-tight truncate group-hover:text-primary transition-colors">
-            {frontText || '(Không có từ khóa)'}
-          </h4>
-
-          {/* Nút phát âm 1-tap (Audio gốc hoặc TTS Web Speech API) */}
-          <button
-            type="button"
-            onClick={(e) => onPlayAudio(card, e)}
-            className={cn(
-              'inline-flex items-center justify-center rounded-full p-1 transition-all cursor-pointer shrink-0',
-              isPlaying
-                ? 'bg-primary text-white scale-105 shadow-2xs'
-                : 'text-primary/70 hover:bg-accent-sprout/60 hover:text-primary active:scale-95'
-            )}
-            title="Nghe phát âm"
-          >
-            <Volume2 className={cn('w-3.5 h-3.5', isPlaying && 'animate-pulse')} />
-          </button>
-        </div>
-
-        <p className="text-xs text-text-secondary line-clamp-1 mt-0.5">
-          {backText || '(Chưa có giải nghĩa)'}
-        </p>
-      </div>
-
-      <div className="shrink-0">
-        <MemoryStrengthIndicator vitality={vitality} />
-      </div>
-    </div>
-  );
-});
-WordCardItem.displayName = 'WordCardItem';
 
 /**
  * Màn hình Dashboard Bảng Điều Khiển Bộ Thẻ Anki (DeckDashboardView)
@@ -142,12 +45,13 @@ WordCardItem.displayName = 'WordCardItem';
  * - Biểu đồ dự báo đến hạn (Future Due Forecast) 14 ngày tới
  * - Mini Garden Heatmap của riêng bộ thẻ (Phong cách Sáng Botanical Zen)
  * - Trạm khởi động phiên ôn linh hoạt (Study Launchpad)
- * - Kho từ vựng & Bài học (Words Explorer & Mural Themes) tích hợp
+ * - Cổng kết nối Kho tri thức & Danh mục từ vựng chuyên biệt
  * - Cử chỉ vuốt mép màn hình (Edge Swipe Back) như ứng dụng iOS Native
  */
 export const DeckDashboardView: React.FC<DeckDashboardViewProps> = ({
   deckId,
   onBack,
+  onOpenLexicon,
   onStartReview
 }) => {
   const { user } = useAuth();
@@ -156,25 +60,6 @@ export const DeckDashboardView: React.FC<DeckDashboardViewProps> = ({
   const [deck, setDeck] = useState<AnkiDeck | null>(null);
   const [cards, setCards] = useState<AnkiCard[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-
-  // Quản lý tab danh sách từ vựng vs chủ đề bài học
-  const [explorerTab, setExplorerTab] = useState<'words' | 'themes'>('words');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [vitalityFilter, setVitalityFilter] = useState<'all' | MemoryVitality>('all');
-  const [selectedTheme, setSelectedTheme] = useState<ThemeGroup | null>(null);
-  const [selectedCard, setSelectedCard] = useState<AnkiCard | null>(null);
-
-  // Phân đoạn hiển thị từ vựng (Pagination / Chunk Rendering để chống giật lag khi mở bộ thẻ)
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
-
-  // Tự động reset visibleCount về trang đầu khi thay đổi bộ lọc hoặc tìm kiếm
-  useEffect(() => {
-    setVisibleCount(PAGE_SIZE);
-  }, [searchQuery, vitalityFilter, selectedTheme, deckId]);
-
-  // Audio đang phát
-  const [playingAudioCardId, setPlayingAudioCardId] = useState<string | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Cử chỉ vuốt mép màn hình (Edge Swipe Back) chuẩn iOS Native
   const touchStartXRef = useRef<number | null>(null);
@@ -202,20 +87,9 @@ export const DeckDashboardView: React.FC<DeckDashboardViewProps> = ({
     loadDeckData();
   }, [loadDeckData]);
 
-  // Dọn dẹp audio khi unmount
-  useEffect(() => {
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
-    };
-  }, []);
-
   // Xử lý cử chỉ vuốt mép màn hình từ cạnh trái (iOS Native Edge Swipe to Back)
   const handleTouchStart = (e: React.TouchEvent) => {
     const touch = e.touches[0];
-    // Chỉ kích hoạt khi điểm bắt đầu chạm nằm sát mép trái (< 40px từ cạnh trái)
     if (touch.clientX <= 40) {
       touchStartXRef.current = touch.clientX;
       touchStartYRef.current = touch.clientY;
@@ -232,7 +106,6 @@ export const DeckDashboardView: React.FC<DeckDashboardViewProps> = ({
     const deltaX = touch.clientX - touchStartXRef.current;
     const deltaY = Math.abs(touch.clientY - touchStartYRef.current);
 
-    // Nếu vuốt sang phải tối thiểu 70px và không bị lệch dọc quá nhiều (deltaY < 80px)
     if (deltaX > 70 && deltaY < 80) {
       if (typeof navigator !== 'undefined' && navigator.vibrate) {
         navigator.vibrate(15);
@@ -269,107 +142,6 @@ export const DeckDashboardView: React.FC<DeckDashboardViewProps> = ({
   const todayStr = new Date().toISOString().split('T')[0];
   const studiedTodayCount = reviewHistory[todayStr] || 0;
 
-  // Lọc danh sách từ theo tìm kiếm và bộ lọc cấp độ (Tối ưu Fast Path)
-  const filteredCards = useMemo(() => {
-    const q = searchQuery.toLowerCase().trim();
-    const themeSet = selectedTheme ? new Set(selectedTheme.cardIds) : null;
-    const hasVitalityFilter = vitalityFilter !== 'all';
-
-    // Fast Path: nếu không có bất kỳ bộ lọc hay tìm kiếm nào, trả về trực tiếp mảng cards
-    if (!q && !themeSet && !hasVitalityFilter) {
-      return cards;
-    }
-
-    return cards.filter((card) => {
-      if (themeSet && !themeSet.has(card.id)) {
-        return false;
-      }
-      if (hasVitalityFilter) {
-        const vitality = calculateCardVitality(card);
-        if (vitality !== vitalityFilter) {
-          return false;
-        }
-      }
-      if (!q) return true;
-
-      // Kiểm tra chuỗi thô (raw) trước để tránh gọi stripHtml tốn kém
-      const rawFront = (card.front || '').toLowerCase();
-      const rawBack = (card.back || '').toLowerCase();
-      if (rawFront.includes(q) || rawBack.includes(q)) {
-        return true;
-      }
-
-      const plainFront = stripHtml(card.front).toLowerCase();
-      const plainBack = stripHtml(card.back).toLowerCase();
-      return plainFront.includes(q) || plainBack.includes(q);
-    });
-  }, [cards, searchQuery, vitalityFilter, selectedTheme]);
-
-  // Chỉ lấy phân đoạn từ vựng cần hiển thị vào DOM (Lazy chunking)
-  const displayedCards = useMemo(() => {
-    return filteredCards.slice(0, visibleCount);
-  }, [filteredCards, visibleCount]);
-
-  // Xử lý cuộn danh sách để tự động tải thêm từ vựng (Infinite Scroll)
-  const handleScrollCardsList = (e: React.UIEvent<HTMLDivElement>) => {
-    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
-    if (scrollHeight - scrollTop - clientHeight < 120) {
-      if (visibleCount < filteredCards.length) {
-        setVisibleCount((prev) => Math.min(prev + 50, filteredCards.length));
-      }
-    }
-  };
-
-  // Phát âm thanh hoặc dùng Text-to-Speech (TTS)
-  const playCardAudioOrTts = async (card: AnkiCard, e?: React.MouseEvent) => {
-    e?.stopPropagation();
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current = null;
-    }
-
-    // 1. Ưu tiên phát file âm thanh gốc từ IndexedDB
-    if (card.audioName) {
-      try {
-        const blob = await indexedDbService.getMediaBlob(card.audioName);
-        if (blob) {
-          const url = URL.createObjectURL(blob);
-          const audio = new Audio(url);
-          audioRef.current = audio;
-          setPlayingAudioCardId(card.id);
-
-          audio.onended = () => {
-            setPlayingAudioCardId(null);
-            URL.revokeObjectURL(url);
-          };
-          audio.onerror = () => {
-            setPlayingAudioCardId(null);
-            URL.revokeObjectURL(url);
-          };
-          await audio.play();
-          return;
-        }
-      } catch (err) {
-        console.warn('Lỗi phát âm thanh file:', err);
-      }
-    }
-
-    // 2. Dự phòng: Text-to-Speech (TTS) của trình duyệt
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      const plainText = stripHtml(card.front);
-      if (plainText) {
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(plainText);
-        utterance.lang = 'en-US';
-        utterance.rate = 0.9;
-        setPlayingAudioCardId(card.id);
-        utterance.onend = () => setPlayingAudioCardId(null);
-        utterance.onerror = () => setPlayingAudioCardId(null);
-        window.speechSynthesis.speak(utterance);
-      }
-    }
-  };
-
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-24 space-y-3">
@@ -388,7 +160,7 @@ export const DeckDashboardView: React.FC<DeckDashboardViewProps> = ({
         <button
           type="button"
           onClick={onBack}
-          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-primary text-white text-xs font-semibold"
+          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-primary text-white text-xs font-semibold cursor-pointer"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>Quay lại danh sách</span>
@@ -447,6 +219,19 @@ export const DeckDashboardView: React.FC<DeckDashboardViewProps> = ({
             </p>
           </div>
         </div>
+
+        {/* Nút truy cập nhanh danh sách từ vựng trên Header */}
+        {onOpenLexicon && (
+          <button
+            type="button"
+            onClick={onOpenLexicon}
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-canvas border border-border text-xs font-semibold text-text-secondary hover:text-primary hover:bg-surface transition-all cursor-pointer shadow-2xs self-start sm:self-auto"
+            title="Mở toàn bộ danh sách từ vựng và bài học"
+          >
+            <BookOpen className="w-3.5 h-3.5 text-primary" />
+            <span>Danh sách từ ({cards.length})</span>
+          </button>
+        )}
       </div>
 
       {/* 2. KHỐI TRẠM HÀNH ĐỘNG HÔM NAY (TODAY ACTION HERO) */}
@@ -502,7 +287,7 @@ export const DeckDashboardView: React.FC<DeckDashboardViewProps> = ({
         </div>
       </div>
 
-      {/* 3. KHỐI THÁP SINH TRƯỞNG & CARD COUNTS (LẤY CẢM HỨNG TỪ ANKI STATS) */}
+      {/* 3. KHỐI THÁP SINH TRƯỞNG & CARD COUNTS */}
       <div className="rounded-2xl border border-border bg-surface p-5 sm:p-6 space-y-4 shadow-2xs">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -521,7 +306,7 @@ export const DeckDashboardView: React.FC<DeckDashboardViewProps> = ({
           </div>
         </div>
 
-        {/* Thanh phân đoạn ngang 4 màu Botanical Zen (Segmented Vitality Bar) */}
+        {/* Thanh phân đoạn ngang 4 màu Botanical Zen */}
         <div className="h-3 w-full rounded-full bg-canvas overflow-hidden flex shadow-2xs">
           {vitalityCounts.newPct > 0 && (
             <div
@@ -621,7 +406,7 @@ export const DeckDashboardView: React.FC<DeckDashboardViewProps> = ({
         </div>
       </div>
 
-      {/* 4. HAI CỘT: DỰ BÁO ĐẾN HẠN (FUTURE DUE) & MINI GARDEN HEATMAP SÁNG */}
+      {/* 4. HAI CỘT: DỰ BÁO ĐẾN HẠN & MINI GARDEN HEATMAP SÁNG */}
       <div className="grid gap-6 md:grid-cols-2">
         {/* Khối A: Biểu đồ dự báo đến hạn (Future Due Forecast) */}
         <div className="rounded-2xl border border-border bg-surface p-5 space-y-3.5 shadow-2xs flex flex-col justify-between">
@@ -642,7 +427,6 @@ export const DeckDashboardView: React.FC<DeckDashboardViewProps> = ({
             </p>
           </div>
 
-          {/* Biểu đồ cột mini HTML/CSS tinh gọn */}
           <div className="pt-4">
             <div className="flex items-end gap-1.5 h-28 w-full border-b border-border-subtle pb-1">
               {futureDue.items.map((item) => {
@@ -654,12 +438,10 @@ export const DeckDashboardView: React.FC<DeckDashboardViewProps> = ({
                     key={item.dateStr}
                     className="flex-1 flex flex-col items-center justify-end h-full group relative"
                   >
-                    {/* Tooltip khi hover */}
                     <div className="absolute -top-7 opacity-0 group-hover:opacity-100 transition-opacity bg-text-primary text-white text-[10px] font-mono px-1.5 py-0.5 rounded shadow-xs pointer-events-none whitespace-nowrap z-10">
                       {item.dayLabel}: {item.dueCount} thẻ
                     </div>
 
-                    {/* Cột hiển thị */}
                     <div
                       className={cn(
                         'w-full rounded-t-sm transition-all duration-300',
@@ -676,7 +458,6 @@ export const DeckDashboardView: React.FC<DeckDashboardViewProps> = ({
               })}
             </div>
 
-            {/* Nhãn chân biểu đồ */}
             <div className="flex items-center justify-between text-[10px] font-mono text-text-tertiary pt-1.5">
               <span>Hôm nay ({futureDue.dueToday})</span>
               <span>Ngày mai ({futureDue.dueTomorrow})</span>
@@ -684,7 +465,6 @@ export const DeckDashboardView: React.FC<DeckDashboardViewProps> = ({
             </div>
           </div>
 
-          {/* Tóm tắt chỉ số */}
           <div className="pt-2 border-t border-border-subtle flex items-center justify-between text-xs font-mono text-text-secondary">
             <span>
               TB: <strong className="text-text-primary">{futureDue.averagePerDay} thẻ/ngày</strong>
@@ -696,7 +476,7 @@ export const DeckDashboardView: React.FC<DeckDashboardViewProps> = ({
           </div>
         </div>
 
-        {/* Khối B: Mini Garden Heatmap (PHONG CÁCH SÁNG BOTANICAL ZEN) */}
+        {/* Khối B: Mini Garden Heatmap Sáng */}
         <div className="rounded-2xl border border-border bg-surface p-5 space-y-3.5 shadow-2xs flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between">
@@ -718,12 +498,10 @@ export const DeckDashboardView: React.FC<DeckDashboardViewProps> = ({
             </p>
           </div>
 
-          {/* Lưới ô vuông Heatmap (Phong cách Sáng Botanical Zen) */}
           <div className="py-2">
             <div className="grid grid-cols-7 gap-1.5 w-full">
               {heatmapCells.map((cell) => {
-                // Sắc độ màu xanh sáng Botanical Zen
-                let bgClass = 'bg-[#EFF1ED] border-border-subtle'; // Level 0: Xám ấm lanh nhạt
+                let bgClass = 'bg-[#EFF1ED] border-border-subtle';
                 if (cell.level === 1) bgClass = 'bg-[#EAF7E6] border-[#D4EED0]';
                 if (cell.level === 2) bgClass = 'bg-[#A8DF98] border-[#8ECBA2]';
                 if (cell.level === 3) bgClass = 'bg-[#6DC85A] border-[#528B70]';
@@ -742,7 +520,6 @@ export const DeckDashboardView: React.FC<DeckDashboardViewProps> = ({
               })}
             </div>
 
-            {/* Chú giải cấp độ màu sáng */}
             <div className="flex items-center justify-end gap-1.5 text-[10px] text-text-tertiary pt-3">
               <span>Ít</span>
               <span className="w-2.5 h-2.5 rounded-sm bg-[#EFF1ED] border border-border-subtle inline-block" />
@@ -802,7 +579,7 @@ export const DeckDashboardView: React.FC<DeckDashboardViewProps> = ({
             type="button"
             disabled={vitalityCounts.fragileCount === 0}
             onClick={() => {
-              const fragileCards = cards.filter((c) => calculateCardVitality(c) === 'fragile');
+              const fragileCards = cards.filter((c) => c.reps > 0 && (c.lapses > 2 || (c.reps > 3 && c.interval <= 3)));
               const targetIds = fragileCards.slice(0, 10).map((c) => c.id);
               onStartReview(deckId, targetIds, 'Cấp cứu từ Fragile');
             }}
@@ -873,9 +650,9 @@ export const DeckDashboardView: React.FC<DeckDashboardViewProps> = ({
           <button
             type="button"
             onClick={() => {
-              setExplorerTab('themes');
-              // Cuộn nhẹ xuống kho từ vựng
-              window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+              if (onOpenLexicon) {
+                onOpenLexicon();
+              }
             }}
             className="flex flex-col justify-between p-4 rounded-xl border border-border bg-canvas hover:border-primary/50 hover:bg-surface transition-all text-left group cursor-pointer shadow-2xs"
           >
@@ -899,229 +676,36 @@ export const DeckDashboardView: React.FC<DeckDashboardViewProps> = ({
         </div>
       </div>
 
-      {/* 6. KHỐI KHO TỪ VỰNG & BÀI HỌC TÍCH HỢP (WORDS EXPLORER & THEMES) */}
-      <div className="rounded-2xl border border-border bg-surface p-5 sm:p-6 space-y-4 shadow-2xs">
-        {/* Header kho từ & Nút chuyển đổi Tab */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-2 border-b border-border-subtle">
-          <div>
-            <h3 className="font-serif text-lg font-bold text-text-primary">
-              Kho Tri Thức Của Bộ Thẻ
-            </h3>
-            <p className="text-xs text-text-secondary mt-0.5">
-              Tra cứu nhanh, nghe phát âm và thực hành đặt câu cho từng từ vựng
-            </p>
+      {/* 6. THẺ CỔNG KHO TRI THỨC TINH GỌN (LEXICON GATEWAY CARD) */}
+      <div className="rounded-2xl border border-border bg-surface p-5 sm:p-6 shadow-2xs relative overflow-hidden flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex items-start gap-3.5">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent-sprout/60 text-primary shrink-0 mt-0.5">
+            <BookOpen className="w-5 h-5" />
           </div>
-
-          <div className="flex items-center gap-1 p-1 bg-canvas rounded-xl border border-border-subtle self-start sm:self-auto">
-            <button
-              type="button"
-              onClick={() => setExplorerTab('words')}
-              className={cn(
-                'flex items-center gap-1.5 py-1.5 px-3 text-xs font-semibold rounded-lg transition-all cursor-pointer',
-                explorerTab === 'words'
-                  ? 'bg-surface text-primary shadow-2xs font-bold'
-                  : 'text-text-secondary hover:text-text-primary'
-              )}
-            >
-              <List className="w-3.5 h-3.5" />
-              <span>Danh Sách Từ ({cards.length})</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setExplorerTab('themes')}
-              className={cn(
-                'flex items-center gap-1.5 py-1.5 px-3 text-xs font-semibold rounded-lg transition-all cursor-pointer',
-                explorerTab === 'themes'
-                  ? 'bg-surface text-primary shadow-2xs font-bold'
-                  : 'text-text-secondary hover:text-text-primary'
-              )}
-            >
-              <LayoutGrid className="w-3.5 h-3.5" />
-              <span>Chủ Đề & Bài Học</span>
-            </button>
+          <div className="space-y-1">
+            <h3 className="font-serif text-base sm:text-lg font-bold text-text-primary">
+              Kho Tri Thức & Danh Mục Từ Vựng
+            </h3>
+            <p className="text-xs text-text-secondary leading-relaxed max-w-lg">
+              Tra cứu nhanh {cards.length} từ vựng, nghe phát âm chuẩn bản xứ, thực hành đặt câu và khám phá các phân nhóm bài học.
+            </p>
           </div>
         </div>
 
-        {explorerTab === 'themes' ? (
-          /* Chế độ xem chủ đề phân nhóm (DeckThemesView) */
-          <div className="pt-2">
-            <DeckThemesView
-              cards={cards}
-              onSelectTheme={(theme) => {
-                setSelectedTheme(theme);
-                setExplorerTab('words');
-              }}
-              onReviewTheme={(theme) => {
-                onStartReview(deckId, theme.cardIds, `Ôn nhóm: ${theme.title}`);
-              }}
-            />
-          </div>
-        ) : (
-          /* Chế độ xem danh sách từ vựng thông thường */
-          <div className="space-y-3 pt-1">
-            {/* Thanh tìm kiếm & bộ lọc */}
-            <div className="space-y-3">
-              <div className="relative">
-                <Search className="w-4 h-4 text-text-tertiary absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Tìm kiếm từ vựng hoặc giải nghĩa..."
-                  className="w-full rounded-xl bg-canvas border border-border pl-10 pr-9 py-2 text-xs sm:text-sm text-text-primary placeholder:text-text-tertiary focus:border-primary/50 focus:bg-surface focus:outline-none transition-all"
-                />
-                {searchQuery && (
-                  <button
-                    type="button"
-                    onClick={() => setSearchQuery('')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-text-tertiary hover:text-text-primary p-0.5"
-                  >
-                    <XCircle className="w-4 h-4" />
-                  </button>
-                )}
-              </div>
-
-              {/* Bộ lọc theo cấp độ ghi nhớ */}
-              <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none text-xs">
-                <button
-                  type="button"
-                  onClick={() => setVitalityFilter('all')}
-                  className={cn(
-                    'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium transition-all whitespace-nowrap cursor-pointer',
-                    vitalityFilter === 'all'
-                      ? 'bg-primary text-white shadow-2xs font-semibold'
-                      : 'bg-canvas border border-border text-text-secondary hover:bg-canvas-subtle'
-                  )}
-                >
-                  <span>Tất cả ({cards.length})</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setVitalityFilter('fragile')}
-                  className={cn(
-                    'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium transition-all whitespace-nowrap cursor-pointer',
-                    vitalityFilter === 'fragile'
-                      ? 'bg-accent-clay text-white shadow-2xs font-semibold'
-                      : 'bg-canvas border border-border text-text-secondary hover:border-accent-clay/40'
-                  )}
-                >
-                  <span className="w-2 h-2 rounded-full bg-accent-clay" />
-                  <span>Fragile ({vitalityCounts.fragileCount})</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setVitalityFilter('growing')}
-                  className={cn(
-                    'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium transition-all whitespace-nowrap cursor-pointer',
-                    vitalityFilter === 'growing'
-                      ? 'bg-accent-sage text-white shadow-2xs font-semibold'
-                      : 'bg-canvas border border-border text-text-secondary hover:border-accent-sage/40'
-                  )}
-                >
-                  <span className="w-2 h-2 rounded-full bg-accent-sage" />
-                  <span>Growing ({vitalityCounts.growingCount})</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setVitalityFilter('steady')}
-                  className={cn(
-                    'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium transition-all whitespace-nowrap cursor-pointer',
-                    vitalityFilter === 'steady'
-                      ? 'bg-primary text-white shadow-2xs font-semibold'
-                      : 'bg-canvas border border-border text-text-secondary hover:border-primary/40'
-                  )}
-                >
-                  <span className="w-2 h-2 rounded-full bg-primary" />
-                  <span>Steady ({vitalityCounts.steadyCount})</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Thông báo nếu đang lọc theo theme */}
-            {selectedTheme && (
-              <div className="flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/20 text-xs text-primary font-medium">
-                <span>
-                  Đang lọc theo chủ đề: <strong>{selectedTheme.title}</strong>
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setSelectedTheme(null)}
-                  className="underline hover:text-primary-dark cursor-pointer font-semibold text-[11px]"
-                >
-                  Xem tất cả
-                </button>
-              </div>
-            )}
-
-            {/* Danh sách các thẻ từ vựng (Tối ưu hóa phân đoạn & cuộn mượt mà) */}
-            <div
-              onScroll={handleScrollCardsList}
-              className="divide-y divide-border-subtle/70 max-h-[420px] overflow-y-auto pr-1 scroll-smooth"
+        <div className="flex items-center gap-2.5 shrink-0 pt-1 sm:pt-0">
+          {onOpenLexicon && (
+            <button
+              type="button"
+              onClick={onOpenLexicon}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-canvas border border-border hover:border-primary/50 hover:bg-surface px-5 py-2.5 text-xs sm:text-sm font-semibold text-text-primary hover:text-primary active:scale-95 transition-all shadow-2xs cursor-pointer"
             >
-              {filteredCards.length === 0 ? (
-                <div className="py-12 text-center text-xs text-text-tertiary">
-                  Không tìm thấy từ vựng nào phù hợp với bộ lọc hiện tại.
-                </div>
-              ) : (
-                <>
-                  {displayedCards.map((card) => (
-                    <WordCardItem
-                      key={card.id}
-                      card={card}
-                      isPlaying={playingAudioCardId === card.id}
-                      onSelect={(c) => setSelectedCard(c)}
-                      onPlayAudio={(c, e) => playCardAudioOrTts(c, e)}
-                    />
-                  ))}
-
-                  {/* Nút tải thêm từ vựng khi còn thẻ chưa hiển thị */}
-                  {visibleCount < filteredCards.length && (
-                    <div className="pt-3 pb-2 flex flex-col sm:flex-row items-center justify-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setVisibleCount((prev) => Math.min(prev + 50, filteredCards.length))}
-                        className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl border border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary text-xs font-semibold transition-all cursor-pointer shadow-2xs active:scale-98"
-                      >
-                        <span>Tải thêm 50 từ vựng</span>
-                        <span className="font-mono text-[11px] opacity-75">
-                          ({displayedCards.length}/{filteredCards.length})
-                        </span>
-                      </button>
-
-                      {filteredCards.length <= 500 && (
-                        <button
-                          type="button"
-                          onClick={() => setVisibleCount(filteredCards.length)}
-                          className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-text-tertiary hover:text-text-primary text-xs font-medium transition-all cursor-pointer"
-                        >
-                          <span>Xem toàn bộ ({filteredCards.length} từ)</span>
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-          </div>
-        )}
+              <List className="w-4 h-4 text-primary" />
+              <span>Khám Phá Danh Sách ({cards.length} từ)</span>
+              <ChevronRight className="w-3.5 h-3.5 text-text-tertiary" />
+            </button>
+          )}
+        </div>
       </div>
-
-      {/* Sheet Chi Tiết Từ Vựng & Đặt Câu */}
-      <WordDetailSheet
-        card={selectedCard}
-        deckTitle={deck.title}
-        isOpen={Boolean(selectedCard)}
-        onClose={() => setSelectedCard(null)}
-        onReviewSingle={(cardId) => {
-          setSelectedCard(null);
-          const singleCard = cards.find((c) => c.id === cardId);
-          const singleTitle = singleCard ? stripHtml(singleCard.front).slice(0, 20) : '';
-          onStartReview(deckId, [cardId], singleTitle ? `Ôn từ: ${singleTitle}` : 'Ôn 1 từ');
-        }}
-      />
     </div>
   );
 };

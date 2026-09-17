@@ -9,6 +9,7 @@ import { ZenFlashcardViewer } from './ZenFlashcardViewer';
 import { DriveSyncModal } from './DriveSyncModal';
 import { DeckWordsModal } from './DeckWordsModal';
 import { DeckDashboardView } from './DeckDashboardView';
+import { DeckLexiconView } from './DeckLexiconView';
 import { cn } from '../../utils/cn';
 import {
   Layers,
@@ -23,7 +24,8 @@ import {
   RefreshCw,
   Loader2,
   FileCode,
-  BarChart3
+  BarChart3,
+  List
 } from 'lucide-react';
 
 interface FlashcardsTabProps {
@@ -46,7 +48,7 @@ export const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ onSessionCompleted
   const legacyFileInputRef = useRef<HTMLInputElement>(null);
   const [legacyDeckTarget, setLegacyDeckTarget] = useState<AnkiDeck | null>(null);
 
-  // Modal quản lý
+  // Modal quản lý & Điều hướng Sub-view
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isDriveModalOpen, setIsDriveModalOpen] = useState(false);
   const [activeReviewDeckId, setActiveReviewDeckId] = useState<string | null>(null);
@@ -54,6 +56,7 @@ export const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ onSessionCompleted
   const [reviewCustomSubtitle, setReviewCustomSubtitle] = useState<string | undefined>(undefined);
   const [activeWordsDeckId, setActiveWordsDeckId] = useState<string | null>(null);
   const [selectedDashboardDeckId, setSelectedDashboardDeckId] = useState<string | null>(null);
+  const [selectedLexiconDeckId, setSelectedLexiconDeckId] = useState<string | null>(null);
 
   // Tải danh sách bộ thẻ từ IndexedDB
   const loadDecks = useCallback(async () => {
@@ -264,13 +267,35 @@ export const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ onSessionCompleted
         className="hidden"
       />
 
-      {selectedDashboardDeckId ? (
+      {selectedLexiconDeckId ? (
+        /* Màn hình Kho Tri Thức & Danh Sách Từ Vựng Chuyên Biệt */
+        <DeckLexiconView
+          deckId={selectedLexiconDeckId}
+          onBack={() => {
+            setSelectedLexiconDeckId(null);
+            loadDecks();
+          }}
+          onOpenDashboard={() => {
+            setSelectedDashboardDeckId(selectedLexiconDeckId);
+            setSelectedLexiconDeckId(null);
+          }}
+          onStartReview={(deckId, targetCardIds, customSubtitle) => {
+            setReviewTargetCardIds(targetCardIds);
+            setReviewCustomSubtitle(customSubtitle);
+            setActiveReviewDeckId(deckId);
+          }}
+        />
+      ) : selectedDashboardDeckId ? (
         /* Màn hình Dashboard chi tiết bộ thẻ */
         <DeckDashboardView
           deckId={selectedDashboardDeckId}
           onBack={() => {
             setSelectedDashboardDeckId(null);
             loadDecks();
+          }}
+          onOpenLexicon={() => {
+            setSelectedLexiconDeckId(selectedDashboardDeckId);
+            setSelectedDashboardDeckId(null);
           }}
           onStartReview={(deckId, targetCardIds, customSubtitle) => {
             setReviewTargetCardIds(targetCardIds);
@@ -477,16 +502,26 @@ export const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ onSessionCompleted
                     )}
                   </div>
 
-                  {/* Cụm nút hành động: Bảng điều khiển & Ôn tập 2 phút */}
-                  <div className="grid grid-cols-2 gap-2 pt-0.5 min-w-0">
+                  {/* Cụm 3 nút hành động: Danh sách, Thống kê & Ôn 2 phút */}
+                  <div className="grid grid-cols-3 gap-1.5 pt-0.5 min-w-0">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedLexiconDeckId(deck.id)}
+                      className="inline-flex items-center justify-center gap-1 rounded-xl bg-canvas border border-border py-2 px-1.5 sm:px-2 text-xs font-semibold text-text-secondary hover:text-primary hover:bg-surface hover:border-primary/40 active:scale-98 transition-all cursor-pointer shadow-2xs min-w-0"
+                      title="Xem danh sách từ vựng và chủ đề bài học"
+                    >
+                      <List className="w-3.5 h-3.5 text-primary shrink-0" />
+                      <span className="truncate">Danh sách</span>
+                    </button>
+
                     <button
                       type="button"
                       onClick={() => setSelectedDashboardDeckId(deck.id)}
-                      className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-canvas border border-border py-2 px-2.5 sm:px-3 text-xs font-semibold text-text-secondary hover:text-text-primary hover:bg-surface hover:border-primary/40 active:scale-98 transition-all cursor-pointer shadow-2xs min-w-0"
-                      title="Mở bảng điều khiển, dự báo và kho từ vựng"
+                      className="inline-flex items-center justify-center gap-1 rounded-xl bg-canvas border border-border py-2 px-1.5 sm:px-2 text-xs font-semibold text-text-secondary hover:text-primary hover:bg-surface hover:border-primary/40 active:scale-98 transition-all cursor-pointer shadow-2xs min-w-0"
+                      title="Mở bảng điều khiển, dự báo và sức sống bộ thẻ"
                     >
-                      <BarChart3 className="w-3.5 h-3.5 text-primary shrink-0" />
-                      <span className="truncate">Bảng điều khiển</span>
+                      <BarChart3 className="w-3.5 h-3.5 text-accent-sage shrink-0" />
+                      <span className="truncate">Thống kê</span>
                     </button>
 
                     <button
@@ -496,10 +531,11 @@ export const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ onSessionCompleted
                         setReviewCustomSubtitle(undefined);
                         setActiveReviewDeckId(deck.id);
                       }}
-                      className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-primary py-2 px-2.5 sm:px-3 text-xs font-semibold text-white hover:bg-primary-hover active:scale-98 transition-all cursor-pointer shadow-xs min-w-0"
+                      className="inline-flex items-center justify-center gap-1 rounded-xl bg-primary py-2 px-1.5 sm:px-2 text-xs font-semibold text-white hover:bg-primary-hover active:scale-98 transition-all cursor-pointer shadow-xs min-w-0"
+                      title="Bắt đầu phiên ôn 2 phút ngay"
                     >
                       <Play className="w-3.5 h-3.5 fill-white shrink-0" />
-                      <span className="truncate">Ôn 2 phút</span>
+                      <span className="truncate">Ôn 2p</span>
                     </button>
                   </div>
                 </div>
