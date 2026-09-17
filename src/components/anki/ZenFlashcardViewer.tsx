@@ -14,7 +14,8 @@ import {
   Sparkles,
   ArrowRight,
   RefreshCw,
-  Brain
+  Brain,
+  Undo2
 } from 'lucide-react';
 import { cn } from '../../utils/cn';
 
@@ -261,7 +262,9 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
     }
   };
 
-  // Cử chỉ vuốt thẻ (Swipe Gesture) trên thiết bị di động
+  // Cử chỉ vuốt thẻ thời gian thực (Swipe Gesture with Realtime Physics)
+  const [swipeOffset, setSwipeOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [isSwiping, setIsSwiping] = useState(false);
   const swipeTouchStartXRef = useRef<number | null>(null);
   const swipeTouchStartYRef = useRef<number | null>(null);
 
@@ -269,16 +272,25 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
     const touch = e.touches[0];
     swipeTouchStartXRef.current = touch.clientX;
     swipeTouchStartYRef.current = touch.clientY;
+    setIsSwiping(true);
   };
 
-  const handleCardTouchEnd = (e: React.TouchEvent) => {
+  const handleCardTouchMove = (e: React.TouchEvent) => {
     if (swipeTouchStartXRef.current === null || swipeTouchStartYRef.current === null) return;
-    const touch = e.changedTouches[0];
+    const touch = e.touches[0];
     const deltaX = touch.clientX - swipeTouchStartXRef.current;
-    const deltaY = Math.abs(touch.clientY - swipeTouchStartYRef.current);
+    const deltaY = touch.clientY - swipeTouchStartYRef.current;
+    setSwipeOffset({ x: deltaX, y: deltaY });
+  };
 
-    // Nếu vuốt ngang rõ ràng (tối thiểu 50px và không bị lệch dọc quá nhiều)
-    if (Math.abs(deltaX) > 50 && deltaY < 80) {
+  const handleCardTouchEnd = () => {
+    setIsSwiping(false);
+    const { x: deltaX, y: deltaY } = swipeOffset;
+    const absX = Math.abs(deltaX);
+    const absY = Math.abs(deltaY);
+
+    // Ngưỡng vuốt kích hoạt hành động (tối thiểu 70px và không bị lệch dọc quá mức)
+    if (absX > 70 && absY < 120) {
       if (!isFlipped) {
         // Nếu ở mặt trước: Vuốt để lật đáp án
         handleFlip();
@@ -291,6 +303,9 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
         }
       }
     }
+
+    // Đưa thẻ hồi phục về vị trí trung tâm
+    setSwipeOffset({ x: 0, y: 0 });
     swipeTouchStartXRef.current = null;
     swipeTouchStartYRef.current = null;
   };
@@ -308,12 +323,49 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
     setIsFlipped((prev) => !prev);
   };
 
+  // Quay lại thẻ trước đó (Undo / Previous Card)
+  const handlePreviousCard = () => {
+    if (currentIndex > 0) {
+      triggerHaptic();
+      const prevIndex = currentIndex - 1;
+      setIsFlipped(false);
+      setSwipeOffset({ x: 0, y: 0 });
+      setCurrentIndex(prevIndex);
+    }
+  };
+
+  // Nhảy trực tiếp đến thẻ bất kỳ từ thanh tiến độ
+  const handleJumpToCard = (targetIndex: number) => {
+    if (targetIndex >= 0 && targetIndex < cards.length && targetIndex !== currentIndex) {
+      triggerHaptic();
+      setIsFlipped(false);
+      setSwipeOffset({ x: 0, y: 0 });
+      setCurrentIndex(targetIndex);
+    }
+  };
+
   // Đánh giá thẻ và chuyển thẻ tiếp theo
   const handleRate = async (remembered: boolean) => {
     triggerHaptic();
     if (!currentCard) return;
 
-    // Lưu kết quả của thẻ hiện tại để hiển thị hàng chấm hạt mầm
+    // Kiểm tra xem thẻ này đã từng được đánh giá trước đó chưa (trong trường hợp quay lại sửa kết quả)
+    const prevEvaluation = cardResults[currentIndex];
+    if (prevEvaluation === 'remembered' && !remembered) {
+      setRememberedCount((c) => Math.max(0, c - 1));
+      setAgainCount((c) => c + 1);
+    } else if (prevEvaluation === 'again' && remembered) {
+      setAgainCount((c) => Math.max(0, c - 1));
+      setRememberedCount((c) => c + 1);
+    } else if (!prevEvaluation) {
+      if (remembered) {
+        setRememberedCount((c) => c + 1);
+      } else {
+        setAgainCount((c) => c + 1);
+      }
+    }
+
+    // Lưu kết quả của thẻ hiện tại để hiển thị trên thanh tiến độ
     setCardResults((prev) => ({
       ...prev,
       [currentIndex]: remembered ? 'remembered' : 'again'
@@ -322,15 +374,10 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
     // Cập nhật SRS vào IndexedDB
     await indexedDbService.recordCardReview(currentCard.id, remembered);
 
-    if (remembered) {
-      setRememberedCount((c) => c + 1);
-    } else {
-      setAgainCount((c) => c + 1);
-    }
-
     // Chuyển thẻ tiếp theo hoặc hoàn thành phiên
     if (currentIndex + 1 < cards.length) {
       setIsFlipped(false);
+      setSwipeOffset({ x: 0, y: 0 });
       setCurrentIndex((i) => i + 1);
     } else {
       // Hoàn thành phiên học 2 phút
@@ -371,15 +418,6 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, isCompleted, currentCard, isFlipped]);
 
-  // Tính toán tiến độ học thẻ (%)
-  const progressPercentage =
-    cards.length > 0
-      ? Math.min(
-          100,
-          Math.round(((currentIndex + (isCompleted ? 1 : 0)) / cards.length) * 100)
-        )
-      : 0;
-
   return (
     <BottomSheet
       isOpen={isOpen}
@@ -394,44 +432,69 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
           : 'Phiên ôn tập vi mô'
       }
       headerExtra={
-        <div className="w-full space-y-1.5 px-0.5">
-          {/* Hàng chấm hạt mầm vi mô (Seedling Dots) */}
+        <div className="w-full px-1 py-1">
+          {/* Hàng thanh tiến độ trạng thái DUY NHẤT (Segmented Status Bar) */}
           {cards.length > 0 && !isCompleted && (
-            <div className="flex items-center justify-center gap-1.5 py-1 overflow-x-auto scrollbar-none">
-              {cards.map((_, idx) => {
-                const result = cardResults[idx];
-                const isCurrent = idx === currentIndex;
-                const isPast = idx < currentIndex;
+            <div className="flex items-center justify-between gap-2">
+              {/* Nút quay lại thẻ trước */}
+              <button
+                type="button"
+                onClick={handlePreviousCard}
+                disabled={currentIndex === 0}
+                className={cn(
+                  'inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer shrink-0',
+                  currentIndex > 0
+                    ? 'text-text-secondary hover:text-primary hover:bg-canvas border border-border-subtle active:scale-95 shadow-2xs'
+                    : 'opacity-25 cursor-not-allowed border border-transparent'
+                )}
+                title="Quay lại thẻ trước đó"
+              >
+                <Undo2 className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Thẻ trước</span>
+              </button>
 
-                return (
-                  <div
-                    key={idx}
-                    className={cn(
-                      'h-1.5 rounded-full transition-all duration-300',
-                      isCurrent
-                        ? 'w-6 bg-primary ring-2 ring-primary/20'
-                        : result === 'remembered'
-                        ? 'w-2 bg-accent-sprout'
-                        : result === 'again'
-                        ? 'w-2 bg-accent-clay'
-                        : isPast
-                        ? 'w-2 bg-text-tertiary/40'
-                        : 'w-2 bg-border-subtle'
-                    )}
-                    title={`Thẻ ${idx + 1}`}
-                  />
-                );
-              })}
+              {/* Các chấm trạng thái đúng/sai có thể click để điều hướng */}
+              <div className="flex-1 flex items-center justify-center gap-1.5 py-1 overflow-x-auto scrollbar-none px-1">
+                {cards.map((_, idx) => {
+                  const result = cardResults[idx];
+                  const isCurrent = idx === currentIndex;
+
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => handleJumpToCard(idx)}
+                      className={cn(
+                        'h-2 rounded-full transition-all duration-200 cursor-pointer',
+                        isCurrent
+                          ? 'w-7 sm:w-8 bg-primary ring-2 ring-primary/20 shadow-2xs'
+                          : result === 'remembered'
+                          ? 'w-2.5 sm:w-3 bg-accent-sprout hover:scale-125'
+                          : result === 'again'
+                          ? 'w-2.5 sm:w-3 bg-accent-clay hover:scale-125'
+                          : 'w-2.5 sm:w-3 bg-border-subtle hover:bg-border'
+                      )}
+                      title={`Thẻ ${idx + 1}: ${
+                        result === 'remembered'
+                          ? 'Đã nhớ (Xanh)'
+                          : result === 'again'
+                          ? 'Cần ôn lại (Đỏ)'
+                          : isCurrent
+                          ? 'Đang học'
+                          : 'Chưa học'
+                      } (Bấm để nhảy đến thẻ này)`}
+                    />
+                  );
+                })}
+              </div>
+
+              {/* Chỉ báo số thứ tự thẻ */}
+              <div className="font-mono text-xs font-semibold text-text-tertiary shrink-0">
+                <span className="text-primary font-bold">{currentIndex + 1}</span>
+                <span>/{cards.length}</span>
+              </div>
             </div>
           )}
-
-          {/* Thanh tiến độ phẳng mỏng */}
-          <div className="w-full bg-border-subtle/60 h-0.5 overflow-hidden rounded-full">
-            <div
-              className="h-full bg-primary transition-all duration-300 ease-out"
-              style={{ width: `${progressPercentage}%` }}
-            />
-          </div>
         </div>
       }
       className="h-[92dvh] sm:h-auto sm:max-h-[640px] sm:min-h-[520px]"
@@ -494,23 +557,98 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
       ) : currentCard ? (
         /* Trình Lật Thẻ Flashcard */
         <div className="flex-1 flex flex-col justify-between overflow-hidden">
-          {/* Khung thẻ bài (Card Canvas với hiệu ứng lật và cử chỉ vuốt thẻ) */}
+          {/* Khung thẻ bài (Card Canvas với hiệu ứng lật, cử chỉ vuốt thời gian thực và phản hồi thị giác) */}
           <div
             onClick={handleFlip}
             onTouchStart={handleCardTouchStart}
+            onTouchMove={handleCardTouchMove}
             onTouchEnd={handleCardTouchEnd}
+            style={{
+              transform: `translate3d(${swipeOffset.x}px, ${swipeOffset.y * 0.12}px, 0) rotate(${swipeOffset.x * 0.05}deg)`,
+              transition: isSwiping
+                ? 'none'
+                : 'transform 0.28s cubic-bezier(0.18, 0.89, 0.32, 1.28), border-color 0.2s, box-shadow 0.2s',
+              borderColor:
+                isSwiping && Math.abs(swipeOffset.x) > 25
+                  ? !isFlipped
+                    ? undefined
+                    : swipeOffset.x > 0
+                    ? 'rgba(82, 139, 112, 0.85)'
+                    : 'rgba(201, 114, 85, 0.85)'
+                  : undefined
+            }}
             className={cn(
-              'relative flex-1 rounded-2xl border p-4 sm:p-6 flex flex-col justify-between transition-all duration-300 cursor-pointer select-none overflow-hidden',
+              'relative flex-1 rounded-2xl border p-4 sm:p-6 flex flex-col justify-between cursor-pointer select-none overflow-hidden',
               isFlipped
                 ? 'bg-surface border-accent-sage/40 shadow-md ring-1 ring-accent-sage/20'
-                : 'bg-canvas border-border shadow-xs hover:border-primary/40'
+                : 'bg-canvas border-border shadow-xs hover:border-primary/40',
+              isSwiping && Math.abs(swipeOffset.x) > 25 && 'shadow-lg'
             )}
           >
-            {/* Nhãn mặt trước / mặt sau & Nút âm thanh */}
+            {/* CON DẤU THỊ GIÁC (STAMP BADGES) KHI ĐANG VUỐT THẺ */}
+            {/* 1. Stamp ĐÃ NHỚ khi vuốt sang phải */}
+            {isFlipped && swipeOffset.x > 15 && (
+              <div
+                className="absolute top-4 left-4 z-30 pointer-events-none border-2 border-primary bg-accent-sprout/95 text-primary px-3 py-1.5 rounded-xl font-bold font-serif text-xs sm:text-sm tracking-wider uppercase shadow-md flex items-center gap-1.5"
+                style={{
+                  opacity: Math.min(1, Math.max(0, (swipeOffset.x - 15) / 50)),
+                  transform: `rotate(-8deg) scale(${Math.min(1.15, 0.85 + (swipeOffset.x - 15) / 120)})`
+                }}
+              >
+                <CheckCircle2 className="w-4 h-4 text-primary" />
+                <span>ĐÃ NHỚ</span>
+              </div>
+            )}
+
+            {/* 2. Stamp CẦN ÔN LẠI khi vuốt sang trái */}
+            {isFlipped && swipeOffset.x < -15 && (
+              <div
+                className="absolute top-4 right-4 z-30 pointer-events-none border-2 border-accent-clay bg-accent-clay/95 text-white px-3 py-1.5 rounded-xl font-bold font-serif text-xs sm:text-sm tracking-wider uppercase shadow-md flex items-center gap-1.5"
+                style={{
+                  opacity: Math.min(1, Math.max(0, (-swipeOffset.x - 15) / 50)),
+                  transform: `rotate(8deg) scale(${Math.min(1.15, 0.85 + (-swipeOffset.x - 15) / 120)})`
+                }}
+              >
+                <AlertCircle className="w-4 h-4 text-white" />
+                <span>CẦN ÔN LẠI</span>
+              </div>
+            )}
+
+            {/* 3. Stamp LẬT ĐÁP ÁN khi vuốt ở mặt trước */}
+            {!isFlipped && Math.abs(swipeOffset.x) > 20 && (
+              <div
+                className="absolute top-4 inset-x-0 mx-auto w-fit z-30 pointer-events-none border border-primary/40 bg-surface/95 text-primary px-3.5 py-1.5 rounded-full font-semibold text-xs shadow-md flex items-center gap-2"
+                style={{
+                  opacity: Math.min(1, Math.max(0, (Math.abs(swipeOffset.x) - 20) / 45))
+                }}
+              >
+                <RotateCw className="w-3.5 h-3.5 text-primary animate-spin" />
+                <span>Thả tay để lật đáp án</span>
+              </div>
+            )}
+
+            {/* Nhãn mặt trước / mặt sau & Nút âm thanh & Nút lùi thẻ */}
             <div className="flex items-center justify-between text-[11px] font-semibold text-text-tertiary shrink-0 mb-2">
-              <span className="uppercase tracking-wider">
-                {isFlipped ? 'Mặt sau (Giải nghĩa)' : 'Mặt trước (Từ khóa)'}
-              </span>
+              <div className="flex items-center gap-2">
+                {currentIndex > 0 && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handlePreviousCard();
+                    }}
+                    className="inline-flex items-center gap-1 rounded-full bg-canvas border border-border px-2 py-0.5 text-text-secondary hover:text-primary hover:border-primary/40 active:scale-95 transition-all text-[11px] font-medium cursor-pointer"
+                    title="Quay lại thẻ trước đó"
+                  >
+                    <Undo2 className="w-3 h-3" />
+                    <span>Lùi thẻ</span>
+                  </button>
+                )}
+                <span className="uppercase tracking-wider">
+                  {isFlipped ? 'Mặt sau (Giải nghĩa)' : 'Mặt trước (Từ khóa)'}
+                </span>
+              </div>
+
               <button
                 type="button"
                 onClick={(e) => {
@@ -537,7 +675,7 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
                     }}
                   />
                   <p className="text-[11px] text-text-tertiary italic">
-                    (Chạm vào thẻ để lật đáp án)
+                    (Chạm hoặc vuốt ngang để lật đáp án)
                   </p>
                 </div>
               ) : (
@@ -559,11 +697,15 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
               )}
             </div>
 
-            {/* Dấu hiệu gợi ý lật thẻ */}
+            {/* Dấu hiệu gợi ý lật thẻ & vuốt */}
             <div className="flex items-center justify-center text-[10px] text-text-tertiary shrink-0 pt-2 border-t border-border-subtle/40 mt-2">
               <span className="flex items-center gap-1">
                 <RotateCw className="w-3 h-3" />
-                <span>Chạm bất kỳ đâu trên thẻ để lật</span>
+                <span>
+                  {isFlipped
+                    ? 'Vuốt trái: Cần ôn lại  •  Vuốt phải: Đã nhớ'
+                    : 'Chạm hoặc vuốt bất kỳ đâu để lật'}
+                </span>
               </span>
             </div>
           </div>
@@ -580,32 +722,43 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
                 <ArrowRight className="w-4 h-4 text-text-tertiary" />
               </button>
             ) : (
-              <div className="grid grid-cols-2 gap-3">
+              <div className="flex items-center gap-2.5">
+                {currentIndex > 0 && (
+                  <button
+                    type="button"
+                    onClick={handlePreviousCard}
+                    className="p-3 rounded-xl border border-border bg-canvas text-text-secondary hover:text-primary hover:border-primary/40 active:scale-95 transition-all cursor-pointer shrink-0 shadow-2xs"
+                    title="Quay lại thẻ trước đó"
+                  >
+                    <Undo2 className="w-4 h-4" />
+                  </button>
+                )}
+
                 <button
                   type="button"
                   onClick={() => handleRate(false)}
-                  className="flex flex-col items-center justify-center gap-1 rounded-xl border border-accent-clay/30 bg-accent-clay/10 py-2.5 sm:py-3 px-4 text-accent-clay hover:bg-accent-clay/20 active:scale-95 transition-all cursor-pointer font-semibold text-xs sm:text-sm"
+                  className="flex-1 flex flex-col items-center justify-center gap-1 rounded-xl border border-accent-clay/30 bg-accent-clay/10 py-2.5 sm:py-3 px-3 text-accent-clay hover:bg-accent-clay/20 active:scale-95 transition-all cursor-pointer font-semibold text-xs sm:text-sm shadow-2xs"
                 >
                   <span className="flex items-center gap-1.5">
                     <AlertCircle className="w-4 h-4" />
                     <span>Cần ôn lại</span>
                   </span>
                   <span className="text-[10px] opacity-80 font-mono font-medium">
-                    (Gặp lại: 1 ngày)
+                    (1 ngày • Vuốt trái)
                   </span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => handleRate(true)}
-                  className="flex flex-col items-center justify-center gap-1 rounded-xl border border-accent-sage/30 bg-accent-sprout/70 py-2.5 sm:py-3 px-4 text-primary hover:bg-accent-sprout active:scale-95 transition-all cursor-pointer font-semibold text-xs sm:text-sm shadow-2xs"
+                  className="flex-1 flex flex-col items-center justify-center gap-1 rounded-xl border border-accent-sage/30 bg-accent-sprout/70 py-2.5 sm:py-3 px-3 text-primary hover:bg-accent-sprout active:scale-95 transition-all cursor-pointer font-semibold text-xs sm:text-sm shadow-2xs"
                 >
                   <span className="flex items-center gap-1.5">
                     <CheckCircle2 className="w-4 h-4" />
                     <span>Đã nhớ</span>
                   </span>
                   <span className="text-[10px] opacity-80 font-mono font-medium">
-                    (Gặp lại sau: {predictNextInterval(currentCard, true)})
+                    ({predictNextInterval(currentCard, true)} • Vuốt phải)
                   </span>
                 </button>
               </div>
