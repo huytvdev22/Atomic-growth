@@ -263,53 +263,185 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
     }
   };
 
-  // Cử chỉ vuốt thẻ thời gian thực (Swipe Gesture with Realtime Physics)
-  const [swipeOffset, setSwipeOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
-  const [isSwiping, setIsSwiping] = useState(false);
-  const swipeTouchStartXRef = useRef<number | null>(null);
-  const swipeTouchStartYRef = useRef<number | null>(null);
+  // Cử chỉ vuốt thẻ tối ưu hiệu năng cao bằng GPU & CSS Variables (Zero React Re-renders)
+  const cardElementRef = useRef<HTMLDivElement>(null);
+  const swipeStartXRef = useRef<number | null>(null);
+  const swipeStartYRef = useRef<number | null>(null);
+  const currentDeltaXRef = useRef<number>(0);
+  const currentDeltaYRef = useRef<number>(0);
+  const isSwipingRef = useRef<boolean>(false);
+  const ignoreClickRef = useRef<boolean>(false);
+  const rafIdRef = useRef<number | null>(null);
+
+  // Đưa style của thẻ về trạng thái cân bằng
+  const resetCardStyles = useCallback((withTransition = true) => {
+    const el = cardElementRef.current;
+    if (!el) return;
+    if (withTransition) {
+      el.style.transition = 'transform 0.25s cubic-bezier(0.18, 0.89, 0.32, 1.28), opacity 0.2s, border-color 0.2s, box-shadow 0.2s';
+    } else {
+      el.style.transition = 'none';
+    }
+    el.style.setProperty('--swipe-x', '0px');
+    el.style.setProperty('--swipe-y', '0px');
+    el.style.setProperty('--swipe-rot', '0deg');
+    el.style.setProperty('--stamp-right-op', '0');
+    el.style.setProperty('--stamp-left-op', '0');
+    el.style.setProperty('--stamp-flip-op', '0');
+    el.style.setProperty('--stamp-scale', '0.85');
+    el.style.borderColor = '';
+    el.style.opacity = '1';
+  }, []);
+
+  // Cập nhật biến CSS trực tiếp lên phần tử DOM qua requestAnimationFrame (120 FPS không re-render React)
+  const updateCardTransform = useCallback(() => {
+    const el = cardElementRef.current;
+    if (!el) return;
+    const deltaX = currentDeltaXRef.current;
+    const deltaY = currentDeltaYRef.current;
+
+    el.style.setProperty('--swipe-x', `${deltaX}px`);
+    el.style.setProperty('--swipe-y', `${deltaY}px`);
+    el.style.setProperty('--swipe-rot', `${deltaX * 0.05}deg`);
+
+    if (isFlipped) {
+      if (deltaX > 15) {
+        const op = Math.min(1, Math.max(0, (deltaX - 15) / 50));
+        const scale = Math.min(1.15, 0.85 + (deltaX - 15) / 120);
+        el.style.setProperty('--stamp-right-op', `${op}`);
+        el.style.setProperty('--stamp-left-op', '0');
+        el.style.setProperty('--stamp-scale', `${scale}`);
+        el.style.borderColor = deltaX > 25 ? 'rgba(82, 139, 112, 0.85)' : '';
+      } else if (deltaX < -15) {
+        const op = Math.min(1, Math.max(0, (-deltaX - 15) / 50));
+        const scale = Math.min(1.15, 0.85 + (-deltaX - 15) / 120);
+        el.style.setProperty('--stamp-left-op', `${op}`);
+        el.style.setProperty('--stamp-right-op', '0');
+        el.style.setProperty('--stamp-scale', `${scale}`);
+        el.style.borderColor = deltaX < -25 ? 'rgba(201, 114, 85, 0.85)' : '';
+      } else {
+        el.style.setProperty('--stamp-right-op', '0');
+        el.style.setProperty('--stamp-left-op', '0');
+        el.style.setProperty('--stamp-scale', '0.85');
+        el.style.borderColor = '';
+      }
+    } else {
+      const absX = Math.abs(deltaX);
+      if (absX > 20) {
+        const op = Math.min(1, Math.max(0, (absX - 20) / 45));
+        el.style.setProperty('--stamp-flip-op', `${op}`);
+      } else {
+        el.style.setProperty('--stamp-flip-op', '0');
+      }
+      el.style.borderColor = '';
+    }
+  }, [isFlipped]);
 
   const handleCardTouchStart = (e: React.TouchEvent) => {
     const touch = e.touches[0];
-    swipeTouchStartXRef.current = touch.clientX;
-    swipeTouchStartYRef.current = touch.clientY;
-    setIsSwiping(true);
+    swipeStartXRef.current = touch.clientX;
+    swipeStartYRef.current = touch.clientY;
+    currentDeltaXRef.current = 0;
+    currentDeltaYRef.current = 0;
+    isSwipingRef.current = true;
+    ignoreClickRef.current = false;
+
+    if (cardElementRef.current) {
+      cardElementRef.current.style.transition = 'none';
+    }
   };
 
   const handleCardTouchMove = (e: React.TouchEvent) => {
-    if (swipeTouchStartXRef.current === null || swipeTouchStartYRef.current === null) return;
+    if (!isSwipingRef.current || swipeStartXRef.current === null || swipeStartYRef.current === null) return;
     const touch = e.touches[0];
-    const deltaX = touch.clientX - swipeTouchStartXRef.current;
-    const deltaY = touch.clientY - swipeTouchStartYRef.current;
-    setSwipeOffset({ x: deltaX, y: deltaY });
+    const deltaX = touch.clientX - swipeStartXRef.current;
+    const deltaY = touch.clientY - swipeStartYRef.current;
+
+    currentDeltaXRef.current = deltaX;
+    currentDeltaYRef.current = deltaY;
+
+    // Nếu di chuyển quá 8px, đánh dấu là swipe để ngăn sự kiện click giả mạo sau touchend
+    if (Math.hypot(deltaX, deltaY) > 8) {
+      ignoreClickRef.current = true;
+    }
+
+    if (rafIdRef.current === null) {
+      rafIdRef.current = requestAnimationFrame(() => {
+        updateCardTransform();
+        rafIdRef.current = null;
+      });
+    }
   };
 
   const handleCardTouchEnd = () => {
-    setIsSwiping(false);
-    const { x: deltaX, y: deltaY } = swipeOffset;
+    if (!isSwipingRef.current) return;
+    isSwipingRef.current = false;
+    if (rafIdRef.current !== null) {
+      cancelAnimationFrame(rafIdRef.current);
+      rafIdRef.current = null;
+    }
+
+    const deltaX = currentDeltaXRef.current;
+    const deltaY = currentDeltaYRef.current;
     const absX = Math.abs(deltaX);
     const absY = Math.abs(deltaY);
 
-    // Ngưỡng vuốt kích hoạt hành động (tối thiểu 70px và không bị lệch dọc quá mức)
-    if (absX > 70 && absY < 120) {
+    // Ngưỡng vuốt kích hoạt hành động (ngang tối thiểu 65px và ưu thế hơn chiều dọc)
+    if (absX > 65 && absX > absY * 0.75) {
+      ignoreClickRef.current = true;
+
       if (!isFlipped) {
-        // Nếu ở mặt trước: Vuốt để lật đáp án
+        // Mặt trước: Lật thẻ ngay lập tức
+        resetCardStyles(true);
         handleFlip();
       } else {
-        // Nếu đã lật: Vuốt trái = Cần ôn lại, Vuốt phải = Đã nhớ
-        if (deltaX < 0) {
-          handleRate(false);
-        } else {
-          handleRate(true);
+        // Mặt sau: Hiệu ứng bay vút ra ngoài siêu mượt (160ms) rồi chuyển thẻ
+        const el = cardElementRef.current;
+        const isRight = deltaX > 0;
+        if (el) {
+          el.style.transition = 'transform 0.16s ease-out, opacity 0.16s ease-out';
+          el.style.setProperty('--swipe-x', isRight ? '120vw' : '-120vw');
+          el.style.setProperty('--swipe-rot', isRight ? '15deg' : '-15deg');
+          el.style.opacity = '0';
         }
+
+        setTimeout(() => {
+          resetCardStyles(false);
+          handleRate(isRight);
+        }, 160);
       }
+    } else {
+      // Dưới ngưỡng: Trở về tâm êm ái
+      resetCardStyles(true);
     }
 
-    // Đưa thẻ hồi phục về vị trí trung tâm
-    setSwipeOffset({ x: 0, y: 0 });
-    swipeTouchStartXRef.current = null;
-    swipeTouchStartYRef.current = null;
+    swipeStartXRef.current = null;
+    swipeStartYRef.current = null;
+    currentDeltaXRef.current = 0;
+    currentDeltaYRef.current = 0;
   };
+
+  const handleCardClick = () => {
+    if (ignoreClickRef.current) {
+      ignoreClickRef.current = false;
+      return;
+    }
+    handleFlip();
+  };
+
+  // Reset vị trí thẻ khi chuyển sang thẻ mới
+  useEffect(() => {
+    resetCardStyles(false);
+  }, [currentIndex, resetCardStyles]);
+
+  // Hủy RAF khi unmount
+  useEffect(() => {
+    return () => {
+      if (rafIdRef.current !== null) {
+        cancelAnimationFrame(rafIdRef.current);
+      }
+    };
+  }, []);
 
   // Rung phản hồi haptic trên thiết bị di động
   const triggerHaptic = () => {
@@ -330,7 +462,7 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
       triggerHaptic();
       const prevIndex = currentIndex - 1;
       setIsFlipped(false);
-      setSwipeOffset({ x: 0, y: 0 });
+      resetCardStyles(false);
       setCurrentIndex(prevIndex);
     }
   };
@@ -340,7 +472,7 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
     if (targetIndex >= 0 && targetIndex < cards.length && targetIndex !== currentIndex) {
       triggerHaptic();
       setIsFlipped(false);
-      setSwipeOffset({ x: 0, y: 0 });
+      resetCardStyles(false);
       setCurrentIndex(targetIndex);
     }
   };
@@ -378,7 +510,7 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
     // Chuyển thẻ tiếp theo hoặc hoàn thành phiên
     if (currentIndex + 1 < cards.length) {
       setIsFlipped(false);
-      setSwipeOffset({ x: 0, y: 0 });
+      resetCardStyles(false);
       setCurrentIndex((i) => i + 1);
     } else {
       // Hoàn thành phiên học 2 phút
@@ -558,42 +690,33 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
       ) : currentCard ? (
         /* Trình Lật Thẻ Flashcard */
         <div className="flex-1 flex flex-col justify-between overflow-hidden">
-          {/* Khung thẻ bài (Card Canvas với hiệu ứng lật, cử chỉ vuốt thời gian thực và phản hồi thị giác) */}
+          {/* Khung thẻ bài (Card Canvas với GPU acceleration và CSS Variables) */}
           <div
-            onClick={handleFlip}
+            ref={cardElementRef}
+            onClick={handleCardClick}
             onTouchStart={handleCardTouchStart}
             onTouchMove={handleCardTouchMove}
             onTouchEnd={handleCardTouchEnd}
             style={{
-              transform: `translate3d(${swipeOffset.x}px, ${swipeOffset.y * 0.12}px, 0) rotate(${swipeOffset.x * 0.05}deg)`,
-              transition: isSwiping
-                ? 'none'
-                : 'transform 0.28s cubic-bezier(0.18, 0.89, 0.32, 1.28), border-color 0.2s, box-shadow 0.2s',
-              borderColor:
-                isSwiping && Math.abs(swipeOffset.x) > 25
-                  ? !isFlipped
-                    ? undefined
-                    : swipeOffset.x > 0
-                    ? 'rgba(82, 139, 112, 0.85)'
-                    : 'rgba(201, 114, 85, 0.85)'
-                  : undefined
-            }}
+              transform: 'translate3d(var(--swipe-x, 0px), calc(var(--swipe-y, 0px) * 0.12), 0) rotate(var(--swipe-rot, 0deg))',
+              willChange: 'transform',
+              touchAction: 'pan-y'
+            } as React.CSSProperties}
             className={cn(
               'relative flex-1 rounded-2xl border p-4 sm:p-6 flex flex-col justify-between cursor-pointer select-none overflow-hidden',
               isFlipped
                 ? 'bg-surface border-accent-sage/40 shadow-md ring-1 ring-accent-sage/20'
-                : 'bg-canvas border-border shadow-xs hover:border-primary/40',
-              isSwiping && Math.abs(swipeOffset.x) > 25 && 'shadow-lg'
+                : 'bg-canvas border-border shadow-xs hover:border-primary/40'
             )}
           >
             {/* CON DẤU THỊ GIÁC (STAMP BADGES) KHI ĐANG VUỐT THẺ */}
             {/* 1. Stamp ĐÃ NHỚ khi vuốt sang phải */}
-            {isFlipped && swipeOffset.x > 15 && (
+            {isFlipped && (
               <div
-                className="absolute top-4 left-4 z-30 pointer-events-none border-2 border-primary bg-accent-sprout/95 text-primary px-3 py-1.5 rounded-xl font-bold font-serif text-xs sm:text-sm tracking-wider uppercase shadow-md flex items-center gap-1.5"
+                className="absolute top-4 left-4 z-30 pointer-events-none border-2 border-primary bg-accent-sprout/95 text-primary px-3 py-1.5 rounded-xl font-bold font-serif text-xs sm:text-sm tracking-wider uppercase shadow-md flex items-center gap-1.5 transition-transform duration-75"
                 style={{
-                  opacity: Math.min(1, Math.max(0, (swipeOffset.x - 15) / 50)),
-                  transform: `rotate(-8deg) scale(${Math.min(1.15, 0.85 + (swipeOffset.x - 15) / 120)})`
+                  opacity: 'var(--stamp-right-op, 0)',
+                  transform: 'rotate(-8deg) scale(var(--stamp-scale, 0.85))'
                 }}
               >
                 <CheckCircle2 className="w-4 h-4 text-primary" />
@@ -602,12 +725,12 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
             )}
 
             {/* 2. Stamp CẦN ÔN LẠI khi vuốt sang trái */}
-            {isFlipped && swipeOffset.x < -15 && (
+            {isFlipped && (
               <div
-                className="absolute top-4 right-4 z-30 pointer-events-none border-2 border-accent-clay bg-accent-clay/95 text-white px-3 py-1.5 rounded-xl font-bold font-serif text-xs sm:text-sm tracking-wider uppercase shadow-md flex items-center gap-1.5"
+                className="absolute top-4 right-4 z-30 pointer-events-none border-2 border-accent-clay bg-accent-clay/95 text-white px-3 py-1.5 rounded-xl font-bold font-serif text-xs sm:text-sm tracking-wider uppercase shadow-md flex items-center gap-1.5 transition-transform duration-75"
                 style={{
-                  opacity: Math.min(1, Math.max(0, (-swipeOffset.x - 15) / 50)),
-                  transform: `rotate(8deg) scale(${Math.min(1.15, 0.85 + (-swipeOffset.x - 15) / 120)})`
+                  opacity: 'var(--stamp-left-op, 0)',
+                  transform: 'rotate(8deg) scale(var(--stamp-scale, 0.85))'
                 }}
               >
                 <AlertCircle className="w-4 h-4 text-white" />
@@ -616,11 +739,11 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
             )}
 
             {/* 3. Stamp LẬT ĐÁP ÁN khi vuốt ở mặt trước */}
-            {!isFlipped && Math.abs(swipeOffset.x) > 20 && (
+            {!isFlipped && (
               <div
                 className="absolute top-4 inset-x-0 mx-auto w-fit z-30 pointer-events-none border border-primary/40 bg-surface/95 text-primary px-3.5 py-1.5 rounded-full font-semibold text-xs shadow-md flex items-center gap-2"
                 style={{
-                  opacity: Math.min(1, Math.max(0, (Math.abs(swipeOffset.x) - 20) / 45))
+                  opacity: 'var(--stamp-flip-op, 0)'
                 }}
               >
                 <RotateCw className="w-3.5 h-3.5 text-primary animate-spin" />
