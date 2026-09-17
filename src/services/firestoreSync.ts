@@ -17,9 +17,13 @@ import { DEFAULT_PROFILE } from './habitStorage';
  */
 export function subscribeToHabits(
   userId: string,
-  onUpdate: (habits: Habit[]) => void
+  onUpdate: (habits: Habit[]) => void,
+  onError?: (err: unknown) => void
 ): Unsubscribe | null {
-  if (!db) return null;
+  if (!db) {
+    onUpdate([]);
+    return null;
+  }
 
   const habitsRef = collection(db, 'users', userId, 'habits');
   return onSnapshot(habitsRef, (snapshot) => {
@@ -28,6 +32,11 @@ export function subscribeToHabits(
     onUpdate(list.sort((a, b) => a.order - b.order));
   }, (err) => {
     console.warn('Lỗi khi đồng bộ Firestore habits:', err);
+    if (onError) {
+      onError(err);
+    } else {
+      onUpdate([]);
+    }
   });
 }
 
@@ -37,9 +46,13 @@ export function subscribeToHabits(
  */
 export function subscribeToLogs(
   userId: string,
-  onUpdate: (logs: HabitLog[]) => void
+  onUpdate: (logs: HabitLog[]) => void,
+  onError?: (err: unknown) => void
 ): Unsubscribe | null {
-  if (!db) return null;
+  if (!db) {
+    onUpdate([]);
+    return null;
+  }
 
   const logsRef = collection(db, 'users', userId, 'logs');
   return onSnapshot(logsRef, (snapshot) => {
@@ -48,6 +61,11 @@ export function subscribeToLogs(
     onUpdate(list);
   }, (err) => {
     console.warn('Lỗi khi đồng bộ Firestore logs:', err);
+    if (onError) {
+      onError(err);
+    } else {
+      onUpdate([]);
+    }
   });
 }
 
@@ -57,9 +75,13 @@ export function subscribeToLogs(
  */
 export function subscribeToNotes(
   userId: string,
-  onUpdate: (notes: MicroNote[]) => void
+  onUpdate: (notes: MicroNote[]) => void,
+  onError?: (err: unknown) => void
 ): Unsubscribe | null {
-  if (!db) return null;
+  if (!db) {
+    onUpdate([]);
+    return null;
+  }
 
   const notesRef = collection(db, 'users', userId, 'notes');
   return onSnapshot(notesRef, (snapshot) => {
@@ -68,6 +90,11 @@ export function subscribeToNotes(
     onUpdate(list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
   }, (err) => {
     console.warn('Lỗi khi đồng bộ Firestore notes:', err);
+    if (onError) {
+      onError(err);
+    } else {
+      onUpdate([]);
+    }
   });
 }
 

@@ -54,9 +54,17 @@ const HabitContext = createContext<HabitContextType | null>(null);
 export const HabitProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
 
-  const [habits, setHabits] = useState<Habit[]>(() => habitStorage.getHabits());
-  const [logs, setLogs] = useState<HabitLog[]>(() => habitStorage.getLogs());
-  const [notes, setNotes] = useState<MicroNote[]>(() => habitStorage.getNotes());
+  // Khởi tạo state: Luôn thanh lọc dữ liệu demo cũ và ưu tiên trạng thái sạch
+  const [habits, setHabits] = useState<Habit[]>(() => {
+    habitStorage.cleanLegacyDemoData();
+    return user ? [] : habitStorage.getHabits();
+  });
+  const [logs, setLogs] = useState<HabitLog[]>(() => {
+    return user ? [] : habitStorage.getLogs();
+  });
+  const [notes, setNotes] = useState<MicroNote[]>(() => {
+    return user ? [] : habitStorage.getNotes();
+  });
   const [profile, setProfile] = useState<UserProfile>(() => habitStorage.getProfile());
   const [activeTab, setActiveTabState] = useState<'timeline' | 'reflections' | 'flashcards' | 'anki-decoder' | 'archive' | 'dashboard'>('timeline');
   const [flashcardsResetKey, setFlashcardsResetKey] = useState<number>(0);
@@ -79,8 +87,11 @@ export const HabitProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // Khi người dùng đăng nhập bằng Google: Lắng nghe và đồng bộ dữ liệu Real-time với Cloud Firestore
   useEffect(() => {
+    // 1. Luôn loại bỏ dữ liệu demo cũ khỏi LocalStorage
+    habitStorage.cleanLegacyDemoData();
+
     if (!user) {
-      // Chế độ Guest/Offline: Tải dữ liệu từ LocalStorage
+      // Khi chưa đăng nhập: Tải dữ liệu sạch cục bộ từ LocalStorage
       setHabits(habitStorage.getHabits());
       setLogs(habitStorage.getLogs());
       setNotes(habitStorage.getNotes());
@@ -88,25 +99,53 @@ export const HabitProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       return;
     }
 
+    // Khi đã đăng nhập Google:
+    // Reset state về mảng rỗng ngay lập tức để không lưu giữ hoặc chớp thói quen từ LocalStorage
+    setHabits([]);
+    setLogs([]);
+    setNotes([]);
+
     const userId = user.uid;
 
-    // Khởi tạo hồ sơ người dùng sạch trên Cloud nếu là lần đầu đăng nhập
+    // Khởi tạo hồ sơ người dùng sạch trên Cloud nếu là lần đầu đăng nhập (Clean Slate)
     seedUserDataIfEmpty(userId, user.displayName || undefined);
 
-    // Lắng nghe danh sách thói quen thực từ Cloud (cho phép mảng rỗng nếu là tài khoản mới)
-    const unsubHabits = subscribeToHabits(userId, (cloudHabits) => {
-      setHabits(cloudHabits);
-    });
+    // Lắng nghe danh sách thói quen thực từ Cloud
+    const unsubHabits = subscribeToHabits(
+      userId,
+      (cloudHabits) => {
+        // Luôn cập nhật trực tiếp danh sách từ Cloud (kể cả mảng rỗng cho tài khoản mới)
+        setHabits(cloudHabits);
+      },
+      (err) => {
+        console.warn('[HabitContext] Lỗi khi đồng bộ Firestore habits, giữ Clean Slate:', err);
+        setHabits([]);
+      }
+    );
 
     // Lắng nghe lịch sử check-in thực từ Cloud
-    const unsubLogs = subscribeToLogs(userId, (cloudLogs) => {
-      setLogs(cloudLogs);
-    });
+    const unsubLogs = subscribeToLogs(
+      userId,
+      (cloudLogs) => {
+        setLogs(cloudLogs);
+      },
+      (err) => {
+        console.warn('[HabitContext] Lỗi khi đồng bộ Firestore logs:', err);
+        setLogs([]);
+      }
+    );
 
     // Lắng nghe ghi chép phản tư thực từ Cloud
-    const unsubNotes = subscribeToNotes(userId, (cloudNotes) => {
-      setNotes(cloudNotes);
-    });
+    const unsubNotes = subscribeToNotes(
+      userId,
+      (cloudNotes) => {
+        setNotes(cloudNotes);
+      },
+      (err) => {
+        console.warn('[HabitContext] Lỗi khi đồng bộ Firestore notes:', err);
+        setNotes([]);
+      }
+    );
 
     // Lắng nghe hồ sơ người dùng thực từ Cloud
     const unsubProfile = subscribeToProfile(userId, (cloudProfile) => {
