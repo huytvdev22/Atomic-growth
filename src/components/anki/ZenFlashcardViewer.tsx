@@ -56,6 +56,7 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
   const [rememberedCount, setRememberedCount] = useState(0);
   const [againCount, setAgainCount] = useState(0);
   const [cardResults, setCardResults] = useState<Record<number, 'remembered' | 'again'>>({});
+  const hasEvaluatedAnyCardRef = useRef<boolean>(false);
 
   // Quản lý audio của thẻ hiện tại
   const [currentAudioUrl, setCurrentAudioUrl] = useState<string | null>(null);
@@ -509,6 +510,10 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
       } else {
         setAgainCount((c) => c + 1);
       }
+      // Ghi nhận ngay từng thẻ học mới vào lịch sử bộ thẻ và cập nhật mốc thời gian ôn gần nhất
+      hasEvaluatedAnyCardRef.current = true;
+      recordDeckStudySession(deckId, 1);
+      indexedDbService.updateDeckLastReviewed(deckId).catch(console.warn);
     }
 
     // Lưu kết quả của thẻ hiện tại để hiển thị trên thanh tiến độ
@@ -530,10 +535,7 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
       setIsCompleted(true);
       triggerCelebrationConfetti();
 
-      // Ghi nhận phiên ôn tập vào lịch sử của bộ thẻ (để vẽ Mini Garden Heatmap)
-      recordDeckStudySession(deckId, cards.length);
-      indexedDbService.updateDeckLastReviewed(deckId).catch(console.warn);
-
+      // Đã ghi nhận từng thẻ trong lúc học, kích hoạt callback báo hoàn thành phiên
       onCompleteSession?.();
 
       // Tự động đồng bộ tiến độ ghi nhớ lên Cloud Firestore nếu đã đăng nhập
@@ -564,10 +566,18 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, isCompleted, currentCard, isFlipped]);
 
+  // Xử lý đóng Viewer: nếu đã có ít nhất 1 thẻ được đánh giá, báo cho bên ngoài reload dữ liệu
+  const handleCloseViewer = () => {
+    if (hasEvaluatedAnyCardRef.current) {
+      onCompleteSession?.();
+    }
+    onClose();
+  };
+
   return (
     <BottomSheet
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={handleCloseViewer}
       icon={<Brain className="h-4.5 w-4.5" />}
       title={deck?.title || 'Bộ thẻ Flashcards'}
       subtitle={
@@ -677,7 +687,7 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
             </button>
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleCloseViewer}
               className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-full bg-primary px-5 py-2.5 text-xs font-semibold text-white hover:bg-primary-hover active:scale-95 transition-all cursor-pointer shadow-xs"
             >
               <span>Xong</span>

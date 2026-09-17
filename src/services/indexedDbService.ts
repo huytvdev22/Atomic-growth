@@ -142,7 +142,8 @@ export const indexedDbService = {
    */
   async getDueCards(deckId: string, limit = 10): Promise<AnkiCard[]> {
     const allCards = await this.getCardsByDeckId(deckId);
-    const todayStr = new Date().toISOString().split('T')[0];
+    const d = new Date();
+    const todayStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
     // Lọc các thẻ có dueDate <= hôm nay, hoặc thẻ mới chưa học
     const dueCards = allCards.filter(
@@ -171,6 +172,8 @@ export const indexedDbService = {
         }
 
         const now = new Date();
+        const toLocalStr = (dateObj: Date) =>
+          `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
 
         if (remembered) {
           // Nếu nhớ: tăng số lần lặp, tăng khoảng cách ngày (1 ngày -> 3 ngày -> 7 ngày -> 16 ngày)
@@ -181,7 +184,7 @@ export const indexedDbService = {
 
           const nextDate = new Date();
           nextDate.setDate(now.getDate() + newInterval);
-          card.dueDate = nextDate.toISOString().split('T')[0];
+          card.dueDate = toLocalStr(nextDate);
         } else {
           // Nếu quên: đặt lại chu kỳ về 1 ngày, tăng số lần lapse
           card.lapses += 1;
@@ -190,7 +193,7 @@ export const indexedDbService = {
 
           const tomorrow = new Date();
           tomorrow.setDate(now.getDate() + 1);
-          card.dueDate = tomorrow.toISOString().split('T')[0];
+          card.dueDate = toLocalStr(tomorrow);
         }
 
         store.put(card);

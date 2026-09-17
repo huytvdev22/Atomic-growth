@@ -54,6 +54,7 @@ export const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ onSessionCompleted
   const [activeWordsDeckId, setActiveWordsDeckId] = useState<string | null>(null);
   const [selectedDashboardDeckId, setSelectedDashboardDeckId] = useState<string | null>(null);
   const [selectedLexiconDeckId, setSelectedLexiconDeckId] = useState<string | null>(null);
+  const [dashboardRefreshKey, setDashboardRefreshKey] = useState<number>(0);
 
   // Tải danh sách bộ thẻ từ IndexedDB
   const loadDecks = useCallback(async () => {
@@ -287,7 +288,9 @@ export const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ onSessionCompleted
       ) : selectedDashboardDeckId ? (
         /* Màn hình Dashboard chi tiết bộ thẻ */
         <DeckDashboardView
+          key={`${selectedDashboardDeckId}_${dashboardRefreshKey}`}
           deckId={selectedDashboardDeckId}
+          refreshKey={dashboardRefreshKey}
           onBack={() => {
             setSelectedDashboardDeckId(null);
             loadDecks();
@@ -539,8 +542,12 @@ export const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ onSessionCompleted
             setActiveReviewDeckId(null);
             setReviewTargetCardIds(undefined);
             setReviewCustomSubtitle(undefined);
+            setDashboardRefreshKey((k) => k + 1);
+            loadDecks();
           }}
           onCompleteSession={() => {
+            setDashboardRefreshKey((k) => k + 1);
+            loadDecks();
             onSessionCompleted?.();
           }}
         />
