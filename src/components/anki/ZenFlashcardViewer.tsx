@@ -74,6 +74,7 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
     setIsFlipped(false);
     setRememberedCount(0);
     setAgainCount(0);
+    setCardResults({});
 
     try {
       const fetchedDeck = await indexedDbService.getDeckById(deckId);

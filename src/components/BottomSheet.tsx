@@ -121,9 +121,9 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
-            className="flex flex-col items-center pt-3 pb-1 cursor-grab active:cursor-grabbing select-none sm:hidden shrink-0 touch-none"
+            className="flex flex-col items-center pt-2.5 pb-1 cursor-grab active:cursor-grabbing select-none sm:hidden shrink-0 touch-none"
           >
-            <div className="w-12 h-1.5 rounded-full bg-border" />
+            <div className="w-10 h-1 rounded-full bg-border/90" />
           </div>
         )}
 
