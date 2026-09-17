@@ -18,6 +18,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { cn } from '../../utils/cn';
+import { SwipeBackView } from '../common/SwipeBackView';
 
 interface DeckLexiconViewProps {
   deckId: string;
@@ -202,10 +203,6 @@ export const DeckLexiconView: React.FC<DeckLexiconViewProps> = ({
   const [playingAudioCardId, setPlayingAudioCardId] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Cử chỉ vuốt mép màn hình từ cạnh trái (iOS Native Edge Swipe to Back)
-  const touchStartXRef = useRef<number | null>(null);
-  const touchStartYRef = useRef<number | null>(null);
-
   // Nạp dữ liệu
   const loadDeckData = React.useCallback(async () => {
     setIsLoading(true);
@@ -242,34 +239,6 @@ export const DeckLexiconView: React.FC<DeckLexiconViewProps> = ({
       }
     };
   }, []);
-
-  // Xử lý Edge Swipe Back
-  const handleTouchStart = (e: React.TouchEvent) => {
-    const touch = e.touches[0];
-    if (touch.clientX <= 40) {
-      touchStartXRef.current = touch.clientX;
-      touchStartYRef.current = touch.clientY;
-    } else {
-      touchStartXRef.current = null;
-      touchStartYRef.current = null;
-    }
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (touchStartXRef.current === null || touchStartYRef.current === null) return;
-    const touch = e.changedTouches[0];
-    const deltaX = touch.clientX - touchStartXRef.current;
-    const deltaY = Math.abs(touch.clientY - touchStartYRef.current);
-
-    if (deltaX > 70 && deltaY < 80) {
-      if (typeof navigator !== 'undefined' && navigator.vibrate) {
-        navigator.vibrate(15);
-      }
-      onBack();
-    }
-    touchStartXRef.current = null;
-    touchStartYRef.current = null;
-  };
 
   // Đếm số lượng theo Vitality
   const vitalityCounts = useMemo(() => {
@@ -403,12 +372,9 @@ export const DeckLexiconView: React.FC<DeckLexiconViewProps> = ({
   }
 
   return (
-    <div
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
-      className="space-y-5 w-full max-w-full overflow-hidden pb-12 animate-in fade-in duration-200 select-none sm:select-auto"
-    >
-      {/* 1. TOP HEADER APP BAR (1 HÀNG TINH GỌN TRÊN CẢ MOBILE LẪN DESKTOP) */}
+    <SwipeBackView onBack={onBack}>
+      <div className="space-y-5 w-full max-w-full overflow-hidden pb-12 animate-in fade-in duration-200 select-none sm:select-auto">
+        {/* 1. TOP HEADER APP BAR (1 HÀNG TINH GỌN TRÊN CẢ MOBILE LẪN DESKTOP) */}
       <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-border-subtle">
         {/* Nút Back + Tên Deck + Số thẻ */}
         <div className="flex items-center gap-2 min-w-0 flex-1">
@@ -717,6 +683,7 @@ export const DeckLexiconView: React.FC<DeckLexiconViewProps> = ({
           onStartReview(deckId, [cardId], singleTitle ? `Ôn từ: ${singleTitle}` : 'Ôn 1 từ');
         }}
       />
-    </div>
+      </div>
+    </SwipeBackView>
   );
 };

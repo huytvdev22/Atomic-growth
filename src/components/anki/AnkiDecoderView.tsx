@@ -7,6 +7,7 @@ import {
 import { AnkiDecoderService } from '../../services/ankiDecoderService';
 import { useHabits } from '../../context/HabitContext';
 import { cn } from '../../utils/cn';
+import { SwipeBackView } from '../common/SwipeBackView';
 import {
   UploadCloud,
   FileCode,
@@ -390,14 +391,23 @@ export const AnkiDecoderView: React.FC<AnkiDecoderViewProps> = ({ onImportComple
       .slice(0, 50);
   }, [report, explorerSearch]);
 
+  const handleBack = () => {
+    if (onBack) {
+      onBack();
+    } else {
+      setActiveTab('flashcards');
+    }
+  };
+
   return (
-    <div className="space-y-6">
-      {/* 1. Tiêu đề Phong cách Zen Minimalist */}
+    <SwipeBackView onBack={handleBack}>
+      <div className="space-y-6">
+        {/* 1. Tiêu đề Phong cách Zen Minimalist */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-border-subtle">
         <div className="flex items-start gap-3">
           <button
             type="button"
-            onClick={() => onBack ? onBack() : setActiveTab('flashcards')}
+            onClick={handleBack}
             className="p-2 -ml-1 rounded-xl text-text-secondary hover:text-text-primary hover:bg-canvas-subtle transition-all cursor-pointer shrink-0 mt-0.5"
             title="Quay lại danh sách bộ thẻ"
           >
@@ -1233,6 +1243,7 @@ export const AnkiDecoderView: React.FC<AnkiDecoderViewProps> = ({ onImportComple
           )}
         </div>
       )}
-    </div>
+      </div>
+    </SwipeBackView>
   );
 };

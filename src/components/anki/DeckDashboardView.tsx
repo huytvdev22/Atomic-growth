@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { AnkiDeck, AnkiCard } from '../../types/anki';
 import { indexedDbService } from '../../services/indexedDbService';
 import { ankiFirestoreSync } from '../../services/ankiFirestoreSync';
@@ -29,6 +29,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { cn } from '../../utils/cn';
+import { SwipeBackView } from '../common/SwipeBackView';
 
 interface DeckDashboardViewProps {
   deckId: string;
@@ -61,10 +62,6 @@ export const DeckDashboardView: React.FC<DeckDashboardViewProps> = ({
   const [cards, setCards] = useState<AnkiCard[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Cử chỉ vuốt mép màn hình (Edge Swipe Back) chuẩn iOS Native
-  const touchStartXRef = useRef<number | null>(null);
-  const touchStartYRef = useRef<number | null>(null);
-
   // Nạp dữ liệu bộ thẻ và danh sách thẻ từ IndexedDB
   const loadDeckData = React.useCallback(async () => {
     setIsLoading(true);
@@ -86,36 +83,6 @@ export const DeckDashboardView: React.FC<DeckDashboardViewProps> = ({
   useEffect(() => {
     loadDeckData();
   }, [loadDeckData]);
-
-  // Xử lý cử chỉ vuốt mép màn hình từ cạnh trái (iOS Native Edge Swipe to Back)
-  const handleTouchStart = (e: React.TouchEvent) => {
-    const touch = e.touches[0];
-    if (touch.clientX <= 40) {
-      touchStartXRef.current = touch.clientX;
-      touchStartYRef.current = touch.clientY;
-    } else {
-      touchStartXRef.current = null;
-      touchStartYRef.current = null;
-    }
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (touchStartXRef.current === null || touchStartYRef.current === null) return;
-
-    const touch = e.changedTouches[0];
-    const deltaX = touch.clientX - touchStartXRef.current;
-    const deltaY = Math.abs(touch.clientY - touchStartYRef.current);
-
-    if (deltaX > 70 && deltaY < 80) {
-      if (typeof navigator !== 'undefined' && navigator.vibrate) {
-        navigator.vibrate(15);
-      }
-      onBack();
-    }
-
-    touchStartXRef.current = null;
-    touchStartYRef.current = null;
-  };
 
   // Tính toán số liệu phân tích chuyên sâu
   const vitalityCounts = useMemo(() => calculateDeckVitalityCounts(cards), [cards]);
@@ -170,12 +137,9 @@ export const DeckDashboardView: React.FC<DeckDashboardViewProps> = ({
   }
 
   return (
-    <div
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
-      className="space-y-6 w-full max-w-full overflow-hidden pb-12 animate-in fade-in duration-200 select-none sm:select-auto"
-    >
-      {/* 1. TOP HEADER & BREADCRUMB */}
+    <SwipeBackView onBack={onBack}>
+      <div className="space-y-6 w-full max-w-full overflow-hidden pb-12 animate-in fade-in duration-200 select-none sm:select-auto">
+        {/* 1. TOP HEADER & BREADCRUMB */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-border-subtle">
         <div className="flex items-center gap-2.5 min-w-0">
           <button
@@ -706,6 +670,7 @@ export const DeckDashboardView: React.FC<DeckDashboardViewProps> = ({
           )}
         </div>
       </div>
-    </div>
+      </div>
+    </SwipeBackView>
   );
 };
