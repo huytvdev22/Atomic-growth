@@ -315,6 +315,9 @@ export const App: React.FC = () => {
                   onImportCompleted={() => {
                     setActiveTab('flashcards');
                   }}
+                  onBack={() => {
+                    setActiveTab('flashcards');
+                  }}
                 />
               )}
 

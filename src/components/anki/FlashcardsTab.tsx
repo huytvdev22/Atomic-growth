@@ -4,7 +4,6 @@ import { indexedDbService } from '../../services/indexedDbService';
 import { useAuth } from '../../context/AuthContext';
 import { useHabits } from '../../context/HabitContext';
 import { googleDriveService, DriveDeckItem, GoogleDriveAuthError } from '../../services/googleDriveService';
-import { AnkiImportModal } from './AnkiImportModal';
 import { ZenFlashcardViewer } from './ZenFlashcardViewer';
 import { DriveSyncModal } from './DriveSyncModal';
 import { DeckWordsModal } from './DeckWordsModal';
@@ -23,7 +22,6 @@ import {
   CheckCircle2,
   RefreshCw,
   Loader2,
-  FileCode,
   BarChart3,
   List
 } from 'lucide-react';
@@ -49,7 +47,6 @@ export const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ onSessionCompleted
   const [legacyDeckTarget, setLegacyDeckTarget] = useState<AnkiDeck | null>(null);
 
   // Modal quản lý & Điều hướng Sub-view
-  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isDriveModalOpen, setIsDriveModalOpen] = useState(false);
   const [activeReviewDeckId, setActiveReviewDeckId] = useState<string | null>(null);
   const [reviewTargetCardIds, setReviewTargetCardIds] = useState<string[] | undefined>(undefined);
@@ -105,15 +102,6 @@ export const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ onSessionCompleted
         console.error('Lỗi khi xóa deck:', err);
       }
     }
-  };
-
-  const handleImportSuccess = (deckId: string) => {
-    loadDecks();
-    if (driveToken) {
-      refreshDriveList(driveToken);
-    }
-    // Tự động mở viewer để người dùng ôn ngay 2 phút nếu muốn
-    setActiveReviewDeckId(deckId);
   };
 
   /**
@@ -337,18 +325,8 @@ export const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ onSessionCompleted
           <button
             type="button"
             onClick={() => setActiveTab('anki-decoder')}
-            className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-xs font-semibold text-text-secondary hover:border-primary/40 hover:text-primary transition-all cursor-pointer shadow-2xs shrink-0"
-            title="Mở phòng thí nghiệm bóc tách và giải mã lỗi file Anki"
-          >
-            <FileCode className="w-3.5 h-3.5 text-accent-amber shrink-0" />
-            <span className="hidden sm:inline">Giải Mã Deck</span>
-            <span className="sm:hidden">Giải Mã</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setIsImportModalOpen(true)}
             className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3.5 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-primary-hover active:scale-95 transition-all cursor-pointer shrink-0 ml-auto sm:ml-0"
+            title="Nhập bộ thẻ .apkg qua Studio Inspector"
           >
             <Plus className="w-3.5 h-3.5 shrink-0" />
             <span className="hidden sm:inline">Nhập Bộ Thẻ (.apkg)</span>
@@ -378,19 +356,11 @@ export const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ onSessionCompleted
           <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
             <button
               type="button"
-              onClick={() => setIsImportModalOpen(true)}
-              className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-white hover:bg-primary-hover active:scale-95 transition-all cursor-pointer shadow-xs"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Nhập bộ thẻ Anki đầu tiên</span>
-            </button>
-            <button
-              type="button"
               onClick={() => setActiveTab('anki-decoder')}
-              className="inline-flex items-center gap-1.5 rounded-full border border-border bg-canvas px-4 py-2 text-xs font-semibold text-text-secondary hover:text-text-primary hover:bg-canvas-subtle transition-all cursor-pointer"
+              className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-xs font-semibold text-white hover:bg-primary-hover active:scale-95 transition-all cursor-pointer shadow-xs"
             >
-              <FileCode className="w-3.5 h-3.5 text-accent-amber" />
-              <span>Công Cụ Giải Mã Deck (Studio)</span>
+              <Plus className="w-4 h-4" />
+              <span>Nhập bộ thẻ Anki (.apkg)</span>
             </button>
           </div>
         </div>
@@ -546,13 +516,6 @@ export const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ onSessionCompleted
       )}
       </>
     )}
-
-      {/* Modal Nhập Thẻ */}
-      <AnkiImportModal
-        isOpen={isImportModalOpen}
-        onClose={() => setIsImportModalOpen(false)}
-        onImportSuccess={handleImportSuccess}
-      />
 
       {/* Trình Lật Thẻ Zen */}
       {activeReviewDeckId && (

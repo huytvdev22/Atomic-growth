@@ -28,16 +28,18 @@ import {
   ChevronRight,
   FileCheck,
   Loader2,
-  Check
+  Check,
+  ArrowLeft
 } from 'lucide-react';
 
 interface AnkiDecoderViewProps {
   onImportCompleted?: (deckId: string) => void;
+  onBack?: () => void;
 }
 
 type DecoderTab = 'overview' | 'decks' | 'mapping' | 'explorer' | 'preview';
 
-export const AnkiDecoderView: React.FC<AnkiDecoderViewProps> = ({ onImportCompleted }) => {
+export const AnkiDecoderView: React.FC<AnkiDecoderViewProps> = ({ onImportCompleted, onBack }) => {
   const { setActiveTab } = useHabits();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -392,21 +394,31 @@ export const AnkiDecoderView: React.FC<AnkiDecoderViewProps> = ({ onImportComple
     <div className="space-y-6">
       {/* 1. Tiêu đề Phong cách Zen Minimalist */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-border-subtle">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1 rounded-full bg-accent-sage/20 text-primary px-2.5 py-0.5 text-[11px] font-semibold font-mono">
-              <FileCode className="w-3 h-3" />
-              <span>Studio Inspector</span>
-            </span>
-            <span className="text-xs text-text-tertiary">•</span>
-            <span className="text-xs text-text-secondary">WebAssembly SQLite Engine</span>
+        <div className="flex items-start gap-3">
+          <button
+            type="button"
+            onClick={() => onBack ? onBack() : setActiveTab('flashcards')}
+            className="p-2 -ml-1 rounded-xl text-text-secondary hover:text-text-primary hover:bg-canvas-subtle transition-all cursor-pointer shrink-0 mt-0.5"
+            title="Quay lại danh sách bộ thẻ"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1 rounded-full bg-accent-sage/20 text-primary px-2.5 py-0.5 text-[11px] font-semibold font-mono">
+                <FileCode className="w-3 h-3" />
+                <span>Studio Inspector</span>
+              </span>
+              <span className="text-xs text-text-tertiary">•</span>
+              <span className="text-xs text-text-secondary">Nhập & Tùy Biến Thẻ Thông Minh</span>
+            </div>
+            <h2 className="font-serif text-2xl font-semibold text-text-primary mt-1">
+              Studio Nhập Thẻ Anki (.apkg)
+            </h2>
+            <p className="text-xs text-text-secondary mt-0.5">
+              Phân tích cấu trúc tệp .apkg, tùy biến các trường hiển thị và kiểm tra nội dung trước khi lưu.
+            </p>
           </div>
-          <h2 className="font-serif text-2xl font-semibold text-text-primary mt-1">
-            Giải Mã & Chẩn Đoán Bộ Thẻ Anki
-          </h2>
-          <p className="text-xs text-text-secondary mt-0.5">
-            Phân tích cấu trúc tệp .apkg, bóc tách các trường dữ liệu tùy biến và kiểm tra trước khi nhập.
-          </p>
         </div>
 
         {report && (
