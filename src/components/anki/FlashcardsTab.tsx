@@ -8,6 +8,7 @@ import { AnkiImportModal } from './AnkiImportModal';
 import { ZenFlashcardViewer } from './ZenFlashcardViewer';
 import { DriveSyncModal } from './DriveSyncModal';
 import { DeckWordsModal } from './DeckWordsModal';
+import { DeckDashboardView } from './DeckDashboardView';
 import { cn } from '../../utils/cn';
 import {
   Layers,
@@ -21,7 +22,8 @@ import {
   CheckCircle2,
   RefreshCw,
   Loader2,
-  FileCode
+  FileCode,
+  BarChart3
 } from 'lucide-react';
 
 interface FlashcardsTabProps {
@@ -51,6 +53,7 @@ export const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ onSessionCompleted
   const [reviewTargetCardIds, setReviewTargetCardIds] = useState<string[] | undefined>(undefined);
   const [reviewCustomSubtitle, setReviewCustomSubtitle] = useState<string | undefined>(undefined);
   const [activeWordsDeckId, setActiveWordsDeckId] = useState<string | null>(null);
+  const [selectedDashboardDeckId, setSelectedDashboardDeckId] = useState<string | null>(null);
 
   // Tải danh sách bộ thẻ từ IndexedDB
   const loadDecks = useCallback(async () => {
@@ -250,6 +253,24 @@ export const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ onSessionCompleted
     });
   };
 
+  // Nếu người dùng đang mở Dashboard của một bộ thẻ cụ thể
+  if (selectedDashboardDeckId) {
+    return (
+      <DeckDashboardView
+        deckId={selectedDashboardDeckId}
+        onBack={() => {
+          setSelectedDashboardDeckId(null);
+          loadDecks();
+        }}
+        onStartReview={(deckId, targetCardIds, customSubtitle) => {
+          setReviewTargetCardIds(targetCardIds);
+          setReviewCustomSubtitle(customSubtitle);
+          setActiveReviewDeckId(deckId);
+        }}
+      />
+    );
+  }
+
   return (
     <div className="space-y-6 w-full max-w-full overflow-hidden min-w-0">
       {/* Hidden file input cho bộ thẻ cũ */}
@@ -363,11 +384,15 @@ export const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ onSessionCompleted
               >
                 <div className="space-y-2 min-w-0">
                   <div className="flex items-start justify-between gap-2 min-w-0">
-                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent-sprout text-primary shrink-0">
+                    <div
+                      onClick={() => setSelectedDashboardDeckId(deck.id)}
+                      className="flex items-center gap-2.5 min-w-0 flex-1 cursor-pointer group"
+                      title="Bấm để mở Dashboard thống kê và quản lý bộ thẻ"
+                    >
+                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent-sprout text-primary shrink-0 group-hover:scale-105 transition-transform">
                         <BookOpen className="h-4 w-4" />
                       </div>
-                      <h3 className="font-serif text-base font-bold text-text-primary truncate" title={deck.title}>
+                      <h3 className="font-serif text-base font-bold text-text-primary truncate group-hover:text-primary transition-colors" title={deck.title}>
                         {deck.title}
                       </h3>
                     </div>
@@ -381,7 +406,10 @@ export const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ onSessionCompleted
                     </button>
                   </div>
 
-                  <div className="flex items-center gap-2 sm:gap-3 text-xs font-mono text-text-tertiary pt-0.5 flex-wrap">
+                  <div
+                    onClick={() => setSelectedDashboardDeckId(deck.id)}
+                    className="flex items-center gap-2 sm:gap-3 text-xs font-mono text-text-tertiary pt-0.5 flex-wrap cursor-pointer"
+                  >
                     <span className="shrink-0">
                       Quy mô: <strong className="text-text-primary">{deck.cardCount} thẻ</strong>
                     </span>
@@ -451,15 +479,16 @@ export const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ onSessionCompleted
                     )}
                   </div>
 
-                  {/* Cụm nút hành động: Xem danh sách từ & Ôn tập 2 phút */}
+                  {/* Cụm nút hành động: Bảng điều khiển & Ôn tập 2 phút */}
                   <div className="grid grid-cols-2 gap-2 pt-0.5 min-w-0">
                     <button
                       type="button"
-                      onClick={() => setActiveWordsDeckId(deck.id)}
+                      onClick={() => setSelectedDashboardDeckId(deck.id)}
                       className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-canvas border border-border py-2 px-2.5 sm:px-3 text-xs font-semibold text-text-secondary hover:text-text-primary hover:bg-surface hover:border-primary/40 active:scale-98 transition-all cursor-pointer shadow-2xs min-w-0"
+                      title="Mở bảng điều khiển, dự báo và kho từ vựng"
                     >
-                      <BookOpen className="w-3.5 h-3.5 text-text-tertiary shrink-0" />
-                      <span className="truncate">Xem từ vựng</span>
+                      <BarChart3 className="w-3.5 h-3.5 text-primary shrink-0" />
+                      <span className="truncate">Bảng điều khiển</span>
                     </button>
 
                     <button

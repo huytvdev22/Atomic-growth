@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { AnkiCard, AnkiDeck } from '../../types/anki';
 import { indexedDbService } from '../../services/indexedDbService';
 import { ankiFirestoreSync } from '../../services/ankiFirestoreSync';
+import { predictNextInterval, recordDeckStudySession } from '../../utils/deckAnalytics';
 import { useAuth } from '../../context/AuthContext';
 import { triggerCelebrationConfetti } from '../../utils/soundEffects';
 import { BottomSheet } from '../BottomSheet';
@@ -27,9 +28,12 @@ interface ZenFlashcardViewerProps {
 }
 
 /**
- * Component Trình Lật Thẻ Zen (ZenFlashcardViewer)
- * Sử dụng Common BottomSheet component để chuẩn hóa trải nghiệm PWA / Mobile & Desktop.
- * Hỗ trợ ôn tập mặc định 10 thẻ hoặc ôn riêng danh sách mục tiêu (targetCardIds).
+ * Component Trình Lật Thẻ Zen 2.0 (ZenFlashcardViewer)
+ * Trải nghiệm ôn tập tĩnh lặng, tập trung sâu theo triết lý Atomic Habits:
+ * - Hàng chấm hạt mầm vi mô (Seedling Dots) trực quan hóa tiến độ
+ * - Dự báo thời gian lặp lại SRS (Next Interval Preview) 1-tap
+ * - Phát âm đa phương tiện thông minh (IndexedDB Audio + TTS Web Speech API dự phòng)
+ * - Cử chỉ lật thẻ & vuốt đánh giá mượt mà trên thiết bị di động
  */
 export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
   deckId,
@@ -47,9 +51,10 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [isCompleted, setIsCompleted] = useState(false);
 
-  // Thống kê phiên học
+  // Thống kê phiên học & lịch sử kết quả từng thẻ trong phiên
   const [rememberedCount, setRememberedCount] = useState(0);
   const [againCount, setAgainCount] = useState(0);
+  const [cardResults, setCardResults] = useState<Record<number, 'remembered' | 'again'>>({});
 
   // Quản lý audio của thẻ hiện tại
   const [currentAudioUrl, setCurrentAudioUrl] = useState<string | null>(null);
@@ -232,11 +237,27 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
     };
   }, []);
 
-  // Hàm phát lại âm thanh
+  // Hàm phát âm thanh (Ưu tiên tệp âm thanh gốc, nếu không có sẽ tự động dùng Web Speech TTS)
   const playAudio = () => {
     if (currentAudioUrl) {
       const audio = new Audio(currentAudioUrl);
       audio.play().catch(console.warn);
+      return;
+    }
+
+    // Dự phòng bằng Web Speech API (TTS) nếu không có tệp audio
+    if (currentCard && typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      const plainText = currentCard.front
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/&nbsp;/g, ' ')
+        .trim();
+      if (plainText) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(plainText);
+        utterance.lang = 'en-US';
+        utterance.rate = 0.9;
+        window.speechSynthesis.speak(utterance);
+      }
     }
   };
 
@@ -258,6 +279,12 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
     triggerHaptic();
     if (!currentCard) return;
 
+    // Lưu kết quả của thẻ hiện tại để hiển thị hàng chấm hạt mầm
+    setCardResults((prev) => ({
+      ...prev,
+      [currentIndex]: remembered ? 'remembered' : 'again'
+    }));
+
     // Cập nhật SRS vào IndexedDB
     await indexedDbService.recordCardReview(currentCard.id, remembered);
 
@@ -275,6 +302,11 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
       // Hoàn thành phiên học 2 phút
       setIsCompleted(true);
       triggerCelebrationConfetti();
+
+      // Ghi nhận phiên ôn tập vào lịch sử của bộ thẻ (để vẽ Mini Garden Heatmap)
+      recordDeckStudySession(deckId, cards.length);
+      indexedDbService.updateDeckLastReviewed(deckId).catch(console.warn);
+
       onCompleteSession?.();
 
       // Tự động đồng bộ tiến độ ghi nhớ lên Cloud Firestore nếu đã đăng nhập
@@ -328,11 +360,44 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
           : 'Phiên ôn tập vi mô'
       }
       headerExtra={
-        <div className="w-full bg-border-subtle/60 h-1 overflow-hidden">
-          <div
-            className="h-full bg-primary transition-all duration-300 ease-out"
-            style={{ width: `${progressPercentage}%` }}
-          />
+        <div className="w-full space-y-1.5 px-0.5">
+          {/* Hàng chấm hạt mầm vi mô (Seedling Dots) */}
+          {cards.length > 0 && !isCompleted && (
+            <div className="flex items-center justify-center gap-1.5 py-1 overflow-x-auto scrollbar-none">
+              {cards.map((_, idx) => {
+                const result = cardResults[idx];
+                const isCurrent = idx === currentIndex;
+                const isPast = idx < currentIndex;
+
+                return (
+                  <div
+                    key={idx}
+                    className={cn(
+                      'h-1.5 rounded-full transition-all duration-300',
+                      isCurrent
+                        ? 'w-6 bg-primary ring-2 ring-primary/20'
+                        : result === 'remembered'
+                        ? 'w-2 bg-accent-sprout'
+                        : result === 'again'
+                        ? 'w-2 bg-accent-clay'
+                        : isPast
+                        ? 'w-2 bg-text-tertiary/40'
+                        : 'w-2 bg-border-subtle'
+                    )}
+                    title={`Thẻ ${idx + 1}`}
+                  />
+                );
+              })}
+            </div>
+          )}
+
+          {/* Thanh tiến độ phẳng mỏng */}
+          <div className="w-full bg-border-subtle/60 h-0.5 overflow-hidden rounded-full">
+            <div
+              className="h-full bg-primary transition-all duration-300 ease-out"
+              style={{ width: `${progressPercentage}%` }}
+            />
+          </div>
         </div>
       }
       className="h-[92dvh] sm:h-auto sm:max-h-[640px] sm:min-h-[520px]"
@@ -410,20 +475,18 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
               <span className="uppercase tracking-wider">
                 {isFlipped ? 'Mặt sau (Giải nghĩa)' : 'Mặt trước (Từ khóa)'}
               </span>
-              {currentAudioUrl && (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    playAudio();
-                  }}
-                  className="inline-flex items-center gap-1 rounded-full bg-accent-sprout/60 px-3 py-1 text-primary hover:bg-accent-sprout active:scale-95 transition-all cursor-pointer text-xs font-medium"
-                  title="Nghe phát âm (Phím R)"
-                >
-                  <Volume2 className="w-3.5 h-3.5" />
-                  <span>Nghe</span>
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  playAudio();
+                }}
+                className="inline-flex items-center gap-1 rounded-full bg-accent-sprout/60 px-3 py-1 text-primary hover:bg-accent-sprout active:scale-95 transition-all cursor-pointer text-xs font-medium"
+                title="Nghe phát âm (Phím R)"
+              >
+                <Volume2 className="w-3.5 h-3.5" />
+                <span>Nghe</span>
+              </button>
             </div>
 
             {/* Nội dung trung tâm thẻ - Cuộn mượt mà độc lập khi nội dung dài */}
@@ -485,28 +548,28 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
                 <button
                   type="button"
                   onClick={() => handleRate(false)}
-                  className="flex flex-col items-center justify-center gap-1 rounded-xl border border-accent-clay/30 bg-accent-clay/10 py-3 sm:py-3.5 px-4 text-accent-clay hover:bg-accent-clay/20 active:scale-95 transition-all cursor-pointer font-semibold text-xs sm:text-sm"
+                  className="flex flex-col items-center justify-center gap-1 rounded-xl border border-accent-clay/30 bg-accent-clay/10 py-2.5 sm:py-3 px-4 text-accent-clay hover:bg-accent-clay/20 active:scale-95 transition-all cursor-pointer font-semibold text-xs sm:text-sm"
                 >
                   <span className="flex items-center gap-1.5">
                     <AlertCircle className="w-4 h-4" />
                     <span>Cần ôn lại</span>
                   </span>
-                  <span className="text-[10px] opacity-70 font-mono font-normal">
-                    (Phím 1 hoặc ←)
+                  <span className="text-[10px] opacity-80 font-mono font-medium">
+                    (Gặp lại: 1 ngày)
                   </span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => handleRate(true)}
-                  className="flex flex-col items-center justify-center gap-1 rounded-xl border border-accent-sage/30 bg-accent-sprout/70 py-3 sm:py-3.5 px-4 text-primary hover:bg-accent-sprout active:scale-95 transition-all cursor-pointer font-semibold text-xs sm:text-sm shadow-2xs"
+                  className="flex flex-col items-center justify-center gap-1 rounded-xl border border-accent-sage/30 bg-accent-sprout/70 py-2.5 sm:py-3 px-4 text-primary hover:bg-accent-sprout active:scale-95 transition-all cursor-pointer font-semibold text-xs sm:text-sm shadow-2xs"
                 >
                   <span className="flex items-center gap-1.5">
                     <CheckCircle2 className="w-4 h-4" />
                     <span>Đã nhớ</span>
                   </span>
-                  <span className="text-[10px] opacity-70 font-mono font-normal">
-                    (Phím 2 hoặc →)
+                  <span className="text-[10px] opacity-80 font-mono font-medium">
+                    (Gặp lại sau: {predictNextInterval(currentCard, true)})
                   </span>
                 </button>
               </div>

@@ -69,6 +69,16 @@ export const indexedDbService = {
   },
 
   /**
+   * Cập nhật thời điểm ôn tập gần nhất (lastReviewedAt) của một Bộ thẻ
+   */
+  async updateDeckLastReviewed(deckId: string): Promise<void> {
+    const deck = await this.getDeckById(deckId);
+    if (!deck) return;
+    deck.lastReviewedAt = new Date().toISOString();
+    await this.saveDeck(deck);
+  },
+
+  /**
    * Lấy danh sách toàn bộ các bộ thẻ đã nạp
    */
   async getAllDecks(): Promise<AnkiDeck[]> {
