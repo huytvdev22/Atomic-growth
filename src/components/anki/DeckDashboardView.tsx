@@ -44,22 +44,95 @@ interface DeckDashboardViewProps {
 }
 
 /**
- * Hàm loại bỏ HTML để lấy text thuần cho danh sách từ
+ * Hàm loại bỏ HTML để lấy text thuần cho danh sách từ (Tối ưu tốc độ với Fast Path)
  */
 function stripHtml(html: string): string {
   if (!html) return '';
+  // Fast path: nếu text thuần túy không chứa ký tự mở thẻ và entity
+  if (!html.includes('<') && !html.includes('&')) {
+    return html.trim();
+  }
   return html
-    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
-    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+    .replace(/<style[^>]*>[\s\S]*?<\/style>|<script[^>]*>[\s\S]*?<\/script>/gi, '')
     .replace(/<br\s*[/]?>/gi, ' ')
     .replace(/<[^>]+>/g, '')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
+    .replace(/&(?:nbsp|amp|lt|gt|quot|#39);/g, (match) => {
+      switch (match) {
+        case '&nbsp;': return ' ';
+        case '&amp;': return '&';
+        case '&lt;': return '<';
+        case '&gt;': return '>';
+        case '&quot;': return '"';
+        case '&#39;': return "'";
+        default: return '';
+      }
+    })
     .replace(/\s+/g, ' ')
     .trim();
 }
+
+const PAGE_SIZE = 30;
+
+interface WordCardItemProps {
+  card: AnkiCard;
+  isPlaying: boolean;
+  onSelect: (card: AnkiCard) => void;
+  onPlayAudio: (card: AnkiCard, e: React.MouseEvent) => void;
+}
+
+/**
+ * Component từ vựng đơn lẻ được tối ưu hóa với React.memo
+ * Tránh re-render toàn bộ danh sách khi thay đổi audio hoặc chọn từ
+ */
+const WordCardItem: React.FC<WordCardItemProps> = React.memo(({
+  card,
+  isPlaying,
+  onSelect,
+  onPlayAudio
+}) => {
+  const vitality = useMemo(() => calculateCardVitality(card), [card]);
+  const frontText = useMemo(() => stripHtml(card.front), [card.front]);
+  const backText = useMemo(() => stripHtml(card.back), [card.back]);
+
+  return (
+    <div
+      onClick={() => onSelect(card)}
+      className="py-3 px-2 -mx-2 rounded-xl flex items-center justify-between gap-3 hover:bg-canvas-subtle/80 active:bg-canvas-muted transition-all cursor-pointer group"
+    >
+      <div className="flex-1 min-w-0 pr-2">
+        <div className="flex items-center gap-2">
+          <h4 className="font-serif text-base font-bold text-text-primary tracking-tight truncate group-hover:text-primary transition-colors">
+            {frontText || '(Không có từ khóa)'}
+          </h4>
+
+          {/* Nút phát âm 1-tap (Audio gốc hoặc TTS Web Speech API) */}
+          <button
+            type="button"
+            onClick={(e) => onPlayAudio(card, e)}
+            className={cn(
+              'inline-flex items-center justify-center rounded-full p-1 transition-all cursor-pointer shrink-0',
+              isPlaying
+                ? 'bg-primary text-white scale-105 shadow-2xs'
+                : 'text-primary/70 hover:bg-accent-sprout/60 hover:text-primary active:scale-95'
+            )}
+            title="Nghe phát âm"
+          >
+            <Volume2 className={cn('w-3.5 h-3.5', isPlaying && 'animate-pulse')} />
+          </button>
+        </div>
+
+        <p className="text-xs text-text-secondary line-clamp-1 mt-0.5">
+          {backText || '(Chưa có giải nghĩa)'}
+        </p>
+      </div>
+
+      <div className="shrink-0">
+        <MemoryStrengthIndicator vitality={vitality} />
+      </div>
+    </div>
+  );
+});
+WordCardItem.displayName = 'WordCardItem';
 
 /**
  * Màn hình Dashboard Bảng Điều Khiển Bộ Thẻ Anki (DeckDashboardView)
@@ -90,6 +163,14 @@ export const DeckDashboardView: React.FC<DeckDashboardViewProps> = ({
   const [vitalityFilter, setVitalityFilter] = useState<'all' | MemoryVitality>('all');
   const [selectedTheme, setSelectedTheme] = useState<ThemeGroup | null>(null);
   const [selectedCard, setSelectedCard] = useState<AnkiCard | null>(null);
+
+  // Phân đoạn hiển thị từ vựng (Pagination / Chunk Rendering để chống giật lag khi mở bộ thẻ)
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
+  // Tự động reset visibleCount về trang đầu khi thay đổi bộ lọc hoặc tìm kiếm
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [searchQuery, vitalityFilter, selectedTheme, deckId]);
 
   // Audio đang phát
   const [playingAudioCardId, setPlayingAudioCardId] = useState<string | null>(null);
@@ -188,25 +269,56 @@ export const DeckDashboardView: React.FC<DeckDashboardViewProps> = ({
   const todayStr = new Date().toISOString().split('T')[0];
   const studiedTodayCount = reviewHistory[todayStr] || 0;
 
-  // Lọc danh sách từ theo tìm kiếm và bộ lọc cấp độ
+  // Lọc danh sách từ theo tìm kiếm và bộ lọc cấp độ (Tối ưu Fast Path)
   const filteredCards = useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
     const themeSet = selectedTheme ? new Set(selectedTheme.cardIds) : null;
+    const hasVitalityFilter = vitalityFilter !== 'all';
+
+    // Fast Path: nếu không có bất kỳ bộ lọc hay tìm kiếm nào, trả về trực tiếp mảng cards
+    if (!q && !themeSet && !hasVitalityFilter) {
+      return cards;
+    }
 
     return cards.filter((card) => {
       if (themeSet && !themeSet.has(card.id)) {
         return false;
       }
-      const vitality = calculateCardVitality(card);
-      if (vitalityFilter !== 'all' && vitality !== vitalityFilter) {
-        return false;
+      if (hasVitalityFilter) {
+        const vitality = calculateCardVitality(card);
+        if (vitality !== vitalityFilter) {
+          return false;
+        }
       }
       if (!q) return true;
+
+      // Kiểm tra chuỗi thô (raw) trước để tránh gọi stripHtml tốn kém
+      const rawFront = (card.front || '').toLowerCase();
+      const rawBack = (card.back || '').toLowerCase();
+      if (rawFront.includes(q) || rawBack.includes(q)) {
+        return true;
+      }
+
       const plainFront = stripHtml(card.front).toLowerCase();
       const plainBack = stripHtml(card.back).toLowerCase();
       return plainFront.includes(q) || plainBack.includes(q);
     });
   }, [cards, searchQuery, vitalityFilter, selectedTheme]);
+
+  // Chỉ lấy phân đoạn từ vựng cần hiển thị vào DOM (Lazy chunking)
+  const displayedCards = useMemo(() => {
+    return filteredCards.slice(0, visibleCount);
+  }, [filteredCards, visibleCount]);
+
+  // Xử lý cuộn danh sách để tự động tải thêm từ vựng (Infinite Scroll)
+  const handleScrollCardsList = (e: React.UIEvent<HTMLDivElement>) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+    if (scrollHeight - scrollTop - clientHeight < 120) {
+      if (visibleCount < filteredCards.length) {
+        setVisibleCount((prev) => Math.min(prev + 50, filteredCards.length));
+      }
+    }
+  };
 
   // Phát âm thanh hoặc dùng Text-to-Speech (TTS)
   const playCardAudioOrTts = async (card: AnkiCard, e?: React.MouseEvent) => {
@@ -944,58 +1056,53 @@ export const DeckDashboardView: React.FC<DeckDashboardViewProps> = ({
               </div>
             )}
 
-            {/* Danh sách các thẻ từ vựng */}
-            <div className="divide-y divide-border-subtle/70 max-h-[420px] overflow-y-auto pr-1">
+            {/* Danh sách các thẻ từ vựng (Tối ưu hóa phân đoạn & cuộn mượt mà) */}
+            <div
+              onScroll={handleScrollCardsList}
+              className="divide-y divide-border-subtle/70 max-h-[420px] overflow-y-auto pr-1 scroll-smooth"
+            >
               {filteredCards.length === 0 ? (
                 <div className="py-12 text-center text-xs text-text-tertiary">
                   Không tìm thấy từ vựng nào phù hợp với bộ lọc hiện tại.
                 </div>
               ) : (
-                filteredCards.map((card) => {
-                  const vitality = calculateCardVitality(card);
-                  const frontText = stripHtml(card.front);
-                  const backText = stripHtml(card.back);
-                  const isPlaying = playingAudioCardId === card.id;
-
-                  return (
-                    <div
+                <>
+                  {displayedCards.map((card) => (
+                    <WordCardItem
                       key={card.id}
-                      onClick={() => setSelectedCard(card)}
-                      className="py-3 px-2 -mx-2 rounded-xl flex items-center justify-between gap-3 hover:bg-canvas-subtle/80 active:bg-canvas-muted transition-all cursor-pointer group"
-                    >
-                      <div className="flex-1 min-w-0 pr-2">
-                        <div className="flex items-center gap-2">
-                          <h4 className="font-serif text-base font-bold text-text-primary tracking-tight truncate group-hover:text-primary transition-colors">
-                            {frontText || '(Không có từ khóa)'}
-                          </h4>
+                      card={card}
+                      isPlaying={playingAudioCardId === card.id}
+                      onSelect={(c) => setSelectedCard(c)}
+                      onPlayAudio={(c, e) => playCardAudioOrTts(c, e)}
+                    />
+                  ))}
 
-                          {/* Nút phát âm 1-tap (Audio gốc hoặc TTS Web Speech API) */}
-                          <button
-                            type="button"
-                            onClick={(e) => playCardAudioOrTts(card, e)}
-                            className={cn(
-                              'inline-flex items-center justify-center rounded-full p-1 transition-all cursor-pointer shrink-0',
-                              isPlaying
-                                ? 'bg-primary text-white scale-105 shadow-2xs'
-                                : 'text-primary/70 hover:bg-accent-sprout/60 hover:text-primary active:scale-95'
-                            )}
-                            title="Nghe phát âm"
-                          >
-                            <Volume2 className={cn('w-3.5 h-3.5', isPlaying && 'animate-pulse')} />
-                          </button>
-                        </div>
+                  {/* Nút tải thêm từ vựng khi còn thẻ chưa hiển thị */}
+                  {visibleCount < filteredCards.length && (
+                    <div className="pt-3 pb-2 flex flex-col sm:flex-row items-center justify-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setVisibleCount((prev) => Math.min(prev + 50, filteredCards.length))}
+                        className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl border border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary text-xs font-semibold transition-all cursor-pointer shadow-2xs active:scale-98"
+                      >
+                        <span>Tải thêm 50 từ vựng</span>
+                        <span className="font-mono text-[11px] opacity-75">
+                          ({displayedCards.length}/{filteredCards.length})
+                        </span>
+                      </button>
 
-                        <p className="text-xs text-text-secondary line-clamp-1 mt-0.5">
-                          {backText || '(Chưa có giải nghĩa)'}
-                        </p>
-                      </div>
-
-                      <div className="shrink-0">
-                        <MemoryStrengthIndicator vitality={vitality} />
-                      </div>
+                      {filteredCards.length <= 500 && (
+                        <button
+                          type="button"
+                          onClick={() => setVisibleCount(filteredCards.length)}
+                          className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-text-tertiary hover:text-text-primary text-xs font-medium transition-all cursor-pointer"
+                        >
+                          <span>Xem toàn bộ ({filteredCards.length} từ)</span>
+                        </button>
+                      )}
                     </div>
-                  );
-                })
+                  )}
+                </>
               )}
             </div>
           </div>
