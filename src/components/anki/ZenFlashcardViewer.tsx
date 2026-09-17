@@ -568,23 +568,7 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
         <div className="w-full px-1 py-1">
           {/* Hàng thanh tiến độ trạng thái DUY NHẤT (Segmented Status Bar) */}
           {cards.length > 0 && !isCompleted && (
-            <div className="flex items-center justify-between gap-2">
-              {/* Nút quay lại thẻ trước */}
-              <button
-                type="button"
-                onClick={handlePreviousCard}
-                disabled={currentIndex === 0}
-                className={cn(
-                  'inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer shrink-0',
-                  currentIndex > 0
-                    ? 'text-text-secondary hover:text-primary hover:bg-canvas border border-border-subtle active:scale-95 shadow-2xs'
-                    : 'opacity-25 cursor-not-allowed border border-transparent'
-                )}
-                title="Quay lại thẻ trước đó"
-              >
-                <Undo2 className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Thẻ trước</span>
-              </button>
+            <div className="flex items-center justify-between gap-3">
 
               {/* Các chấm trạng thái đúng/sai có thể click để điều hướng */}
               <div className="flex-1 flex items-center justify-center gap-1.5 py-1 overflow-x-auto scrollbar-none px-1">
@@ -751,27 +735,11 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
               </div>
             )}
 
-            {/* Nhãn mặt trước / mặt sau & Nút âm thanh & Nút lùi thẻ */}
+            {/* Nhãn mặt trước / mặt sau & Nút âm thanh */}
             <div className="flex items-center justify-between text-[11px] font-semibold text-text-tertiary shrink-0 mb-2">
-              <div className="flex items-center gap-2">
-                {currentIndex > 0 && (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handlePreviousCard();
-                    }}
-                    className="inline-flex items-center gap-1 rounded-full bg-canvas border border-border px-2 py-0.5 text-text-secondary hover:text-primary hover:border-primary/40 active:scale-95 transition-all text-[11px] font-medium cursor-pointer"
-                    title="Quay lại thẻ trước đó"
-                  >
-                    <Undo2 className="w-3 h-3" />
-                    <span>Lùi thẻ</span>
-                  </button>
-                )}
-                <span className="uppercase tracking-wider">
-                  {isFlipped ? 'Mặt sau (Giải nghĩa)' : 'Mặt trước (Từ khóa)'}
-                </span>
-              </div>
+              <span className="uppercase tracking-wider">
+                {isFlipped ? 'Mặt sau (Giải nghĩa)' : 'Mặt trước (Từ khóa)'}
+              </span>
 
               <button
                 type="button"
@@ -837,14 +805,26 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
           {/* Thanh điều khiển đánh giá (Rating Buttons) - Sát ngón cái ở đáy Bottom Sheet */}
           <div className="pt-3.5 shrink-0">
             {!isFlipped ? (
-              <button
-                type="button"
-                onClick={handleFlip}
-                className="w-full rounded-xl bg-canvas border border-border py-3.5 sm:py-3 text-xs sm:text-sm font-semibold text-text-primary hover:bg-surface hover:border-primary/40 active:scale-98 transition-all cursor-pointer shadow-xs flex items-center justify-center gap-2"
-              >
-                <span>Xem Đáp Án (Lật Thẻ)</span>
-                <ArrowRight className="w-4 h-4 text-text-tertiary" />
-              </button>
+              <div className="flex items-center gap-2.5">
+                {currentIndex > 0 && (
+                  <button
+                    type="button"
+                    onClick={handlePreviousCard}
+                    className="p-3 rounded-xl border border-border bg-canvas text-text-secondary hover:text-primary hover:border-primary/40 active:scale-95 transition-all cursor-pointer shrink-0 shadow-2xs"
+                    title="Quay lại thẻ trước đó"
+                  >
+                    <Undo2 className="w-4 h-4" />
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={handleFlip}
+                  className="flex-1 rounded-xl bg-canvas border border-border py-3.5 sm:py-3 text-xs sm:text-sm font-semibold text-text-primary hover:bg-surface hover:border-primary/40 active:scale-98 transition-all cursor-pointer shadow-xs flex items-center justify-center gap-2"
+                >
+                  <span>Xem Đáp Án (Lật Thẻ)</span>
+                  <ArrowRight className="w-4 h-4 text-text-tertiary" />
+                </button>
+              </div>
             ) : (
               <div className="flex items-center gap-2.5">
                 {currentIndex > 0 && (
