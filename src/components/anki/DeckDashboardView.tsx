@@ -109,6 +109,7 @@ export const DeckDashboardView: React.FC<DeckDashboardViewProps> = ({
     return (
       habits.find(
         (h) =>
+          h.linkedDeckId === deck.id ||
           (deck.linkedHabitId && h.id === deck.linkedHabitId) ||
           h.title.toLowerCase().includes('thẻ') ||
           h.title.toLowerCase().includes('từ vựng') ||
@@ -180,11 +181,14 @@ export const DeckDashboardView: React.FC<DeckDashboardViewProps> = ({
                 </h2>
                 {linkedHabit && (
                   <span
-                    className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-accent-sprout/20 text-[#144919] text-[11px] font-semibold border border-accent-sprout/30 shrink-0"
-                    title={`Thói quen liên kết trên Timeline: ${linkedHabit.title}`}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-accent-sprout/20 text-[#144919] text-[11px] font-semibold border border-accent-sprout/30 shrink-0"
+                    title={`Thói quen liên kết trên Timeline: ${linkedHabit.title} (Chuỗi ${linkedHabit.currentStreak} ngày)`}
                   >
                     <Sprout className="w-3 h-3 text-accent-sprout shrink-0" />
                     <span className="truncate max-w-[140px] sm:max-w-xs">{linkedHabit.title}</span>
+                    {linkedHabit.currentStreak > 0 && (
+                      <span className="font-mono text-[10px] opacity-80">{linkedHabit.currentStreak}d</span>
+                    )}
                   </span>
                 )}
                 {deck.driveFileId && (

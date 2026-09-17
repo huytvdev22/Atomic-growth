@@ -42,8 +42,6 @@ export const App: React.FC = () => {
 
   const {
     habits,
-    toggleHabit,
-    isHabitCompletedToday,
     getHabitsByRitual,
     totalActiveHabits,
     activeTab,
@@ -51,7 +49,8 @@ export const App: React.FC = () => {
     activeTag,
     setActiveTag,
     searchQuery,
-    setSearchQuery
+    setSearchQuery,
+    completeHabitByDeckId
   } = useHabits();
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -295,16 +294,8 @@ export const App: React.FC = () => {
               {/* D. Xem Góc Ôn Tập Thẻ Nhớ (Flashcards) */}
               {activeTab === 'flashcards' && (
                 <FlashcardsTab
-                  onSessionCompleted={() => {
-                    const flashcardHabit = habits.find(
-                      (h) =>
-                        h.title.toLowerCase().includes('thẻ') ||
-                        h.title.toLowerCase().includes('anki') ||
-                        h.title.toLowerCase().includes('từ vựng')
-                    );
-                    if (flashcardHabit && !isHabitCompletedToday(flashcardHabit.id)) {
-                      toggleHabit(flashcardHabit.id);
-                    }
+                  onSessionCompleted={(completedDeckId) => {
+                    completeHabitByDeckId(completedDeckId);
                   }}
                 />
               )}

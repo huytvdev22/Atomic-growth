@@ -344,5 +344,38 @@ export const indexedDbService = {
       tx.oncomplete = () => resolve();
       tx.onerror = () => reject(tx.error);
     });
+  },
+
+  /**
+   * Cập nhật liên kết giữa Bộ thẻ và Thói quen trên Timeline
+   */
+  async updateDeckLinkedHabit(deckId: string, habitId?: string): Promise<void> {
+    const deck = await this.getDeckById(deckId);
+    if (!deck) return;
+    deck.linkedHabitId = habitId;
+    await this.saveDeck(deck);
+  },
+
+  /**
+   * Gỡ liên kết thói quen khỏi các bộ thẻ (khi thói quen bị xóa)
+   */
+  async unlinkDeckHabit(habitId: string): Promise<void> {
+    const decks = await this.getAllDecks();
+    for (const deck of decks) {
+      if (deck.linkedHabitId === habitId) {
+        deck.linkedHabitId = undefined;
+        await this.saveDeck(deck);
+      }
+    }
+  },
+
+  /**
+   * Lấy số lượng thẻ đến hạn hôm nay của một bộ thẻ
+   */
+  async getDeckDueCardsCount(deckId: string): Promise<number> {
+    const cards = await this.getCardsByDeckId(deckId);
+    const now = new Date();
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    return cards.filter((c) => c.dueDate <= todayStr).length;
   }
 };

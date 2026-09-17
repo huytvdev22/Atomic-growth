@@ -4,6 +4,7 @@ import { habitStorage } from '../services/habitStorage';
 import { getTodayString, evaluateStreakOnCheckIn, calculateEffectiveHabitStreak } from '../utils/habitCalculations';
 import { playZenTapSound, triggerCelebrationConfetti } from '../utils/soundEffects';
 import { useAuth } from './AuthContext';
+import { indexedDbService } from '../services/indexedDbService';
 import {
   subscribeToHabits,
   subscribeToLogs,
@@ -47,6 +48,12 @@ interface HabitContextType {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   isCloudSynced: boolean;
+  // Điều phối mở phiên ôn tập bộ thẻ từ bất cứ đâu
+  activeReviewDeckId: string | null;
+  startDeckReview: (deckId: string) => void;
+  clearDeckReview: () => void;
+  // Hoàn thành thói quen khi kết thúc phiên ôn của một bộ thẻ
+  completeHabitByDeckId: (deckId: string) => void;
 }
 
 const HabitContext = createContext<HabitContextType | null>(null);
@@ -81,6 +88,16 @@ export const HabitProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, []);
   const [activeTag, setActiveTag] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [activeReviewDeckId, setActiveReviewDeckId] = useState<string | null>(null);
+
+  const startDeckReview = useCallback((deckId: string) => {
+    setActiveReviewDeckId(deckId);
+    setActiveTabState('flashcards');
+  }, []);
+
+  const clearDeckReview = useCallback(() => {
+    setActiveReviewDeckId(null);
+  }, []);
 
   const todayDate = useMemo(() => getTodayString(), []);
   const isCloudSynced = Boolean(user);
@@ -285,9 +302,10 @@ export const HabitProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const addHabit = useCallback(
     async (newHabitData: Omit<Habit, 'id' | 'currentStreak' | 'bestStreak' | 'order' | 'createdAt'>) => {
+      const newId = `habit-${Date.now()}`;
       const newHabit: Habit = {
         ...newHabitData,
-        id: `habit-${Date.now()}`,
+        id: newId,
         currentStreak: 0,
         bestStreak: 0,
         order: habits.length + 1,
@@ -295,6 +313,13 @@ export const HabitProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       };
 
       setHabits(prev => [...prev, newHabit]);
+
+      // Nếu có liên kết bộ thẻ -> Cập nhật 2 chiều vào IndexedDB
+      if (newHabit.linkedDeckId) {
+        indexedDbService.updateDeckLinkedHabit(newHabit.linkedDeckId, newId).catch(err => {
+          console.warn('Không thể cập nhật liên kết bộ thẻ trong IndexedDB:', err);
+        });
+      }
 
       if (user) {
         await syncHabit(user.uid, newHabit);
@@ -305,6 +330,13 @@ export const HabitProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const deleteHabit = useCallback(
     async (habitId: string) => {
+      const habitToDelete = habits.find(h => h.id === habitId);
+      if (habitToDelete?.linkedDeckId) {
+        indexedDbService.unlinkDeckHabit(habitId).catch(err => {
+          console.warn('Không thể gỡ liên kết bộ thẻ trong IndexedDB:', err);
+        });
+      }
+
       setHabits(prev => prev.filter(h => h.id !== habitId));
       setLogs(prev => prev.filter(l => l.habitId !== habitId));
 
@@ -312,7 +344,33 @@ export const HabitProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         await removeHabit(user.uid, habitId);
       }
     },
-    [user]
+    [habits, user]
+  );
+
+  const completeHabitByDeckId = useCallback(
+    (deckId: string) => {
+      // 1. Tìm thói quen có liên kết chính xác với bộ thẻ này
+      const linkedHabit = habits.find((h) => h.linkedDeckId === deckId);
+      if (linkedHabit) {
+        // Kiểm tra cờ autoCheckInOnReview (mặc định bật trừ khi explicit false)
+        if (linkedHabit.autoCheckInOnReview !== false && !isHabitCompletedToday(linkedHabit.id)) {
+          toggleHabit(linkedHabit.id);
+        }
+        return;
+      }
+
+      // 2. Fallback cho các thói quen cũ chưa gán linkedDeckId
+      const fallbackHabit = habits.find(
+        (h) =>
+          h.title.toLowerCase().includes('thẻ') ||
+          h.title.toLowerCase().includes('anki') ||
+          h.title.toLowerCase().includes('từ vựng')
+      );
+      if (fallbackHabit && !isHabitCompletedToday(fallbackHabit.id)) {
+        toggleHabit(fallbackHabit.id);
+      }
+    },
+    [habits, isHabitCompletedToday, toggleHabit]
   );
 
   const addNote = useCallback(
@@ -399,7 +457,11 @@ export const HabitProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setActiveTag,
       searchQuery,
       setSearchQuery,
-      isCloudSynced
+      isCloudSynced,
+      activeReviewDeckId,
+      startDeckReview,
+      clearDeckReview,
+      completeHabitByDeckId
     }),
     [
       habits,
@@ -426,7 +488,11 @@ export const HabitProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       resetFlashcardsToList,
       activeTag,
       searchQuery,
-      isCloudSynced
+      isCloudSynced,
+      activeReviewDeckId,
+      startDeckReview,
+      clearDeckReview,
+      completeHabitByDeckId
     ]
   );
 

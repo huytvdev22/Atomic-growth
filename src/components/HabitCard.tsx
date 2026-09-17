@@ -14,7 +14,7 @@ interface HabitCardProps {
  * Thiết kế phẳng tinh khiết, bo góc 16px, nút check-in 1 chạm xanh mầm tươi mượt mà
  */
 export const HabitCard: React.FC<HabitCardProps> = ({ habit }) => {
-  const { isHabitCompletedToday, toggleHabit, deleteHabit, setActiveTab } = useHabits();
+  const { isHabitCompletedToday, toggleHabit, deleteHabit, setActiveTab, startDeckReview } = useHabits();
   const completed = isHabitCompletedToday(habit.id);
   const effectiveStreak = calculateEffectiveHabitStreak(habit);
 
@@ -86,8 +86,21 @@ export const HabitCard: React.FC<HabitCardProps> = ({ habit }) => {
               </span>
             )}
 
-            {/* Phím tắt mở ôn thẻ Anki */}
-            {isFlashcardHabit && (
+            {/* Phím tắt mở ôn bộ thẻ liên kết hoặc mở tab thẻ nhớ */}
+            {habit.linkedDeckId ? (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  startDeckReview(habit.linkedDeckId!);
+                }}
+                className="inline-flex items-center gap-1 rounded-full bg-accent-sprout/20 text-[#144919] hover:bg-accent-sprout/30 px-2.5 py-0.5 font-semibold text-[11px] border border-accent-sprout/40 transition-all cursor-pointer shadow-2xs group/btn"
+                title="Bắt đầu ngay phiên ôn tập 2 phút cho bộ thẻ này"
+              >
+                <Brain className="w-3 h-3 text-accent-sage shrink-0 group-hover/btn:scale-110 transition-transform" />
+                <span>Ôn 2p ▶</span>
+              </button>
+            ) : isFlashcardHabit ? (
               <button
                 type="button"
                 onClick={(e) => {
@@ -100,7 +113,7 @@ export const HabitCard: React.FC<HabitCardProps> = ({ habit }) => {
                 <Brain className="w-3 h-3" />
                 <span>Ôn thẻ 2m</span>
               </button>
-            )}
+            ) : null}
           </div>
         </div>
       </div>

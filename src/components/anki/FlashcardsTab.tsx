@@ -27,12 +27,17 @@ import {
 } from 'lucide-react';
 
 interface FlashcardsTabProps {
-  onSessionCompleted?: () => void;
+  onSessionCompleted?: (deckId: string) => void;
 }
 
 export const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ onSessionCompleted }) => {
   const { driveToken, requestDriveAccess, clearDriveToken } = useAuth();
-  const { setActiveTab, flashcardsResetKey } = useHabits();
+  const {
+    setActiveTab,
+    flashcardsResetKey,
+    activeReviewDeckId: contextReviewDeckId,
+    clearDeckReview
+  } = useHabits();
 
   const [decks, setDecks] = useState<AnkiDeck[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -79,6 +84,14 @@ export const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ onSessionCompleted
       loadDecks();
     }
   }, [flashcardsResetKey, loadDecks]);
+
+  // Lắng nghe yêu cầu mở phiên ôn tập trực tiếp từ Timeline / HabitCard
+  useEffect(() => {
+    if (contextReviewDeckId) {
+      setActiveReviewDeckId(contextReviewDeckId);
+      clearDeckReview();
+    }
+  }, [contextReviewDeckId, clearDeckReview]);
 
   // Tải danh sách tệp từ Google Drive (thư mục Atomic Growth/Anki Decks/)
   const refreshDriveList = useCallback(async (token: string) => {
@@ -546,9 +559,12 @@ export const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ onSessionCompleted
             loadDecks();
           }}
           onCompleteSession={() => {
+            const completedId = activeReviewDeckId;
             setDashboardRefreshKey((k) => k + 1);
             loadDecks();
-            onSessionCompleted?.();
+            if (completedId) {
+              onSessionCompleted?.(completedId);
+            }
           }}
         />
       )}

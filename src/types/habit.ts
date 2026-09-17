@@ -36,6 +36,14 @@ export interface Habit {
   order: number;
   // Thời điểm tạo
   createdAt: string;
+
+  // --- Liên kết Bộ Thẻ Flashcard (Anki Deck Linking) ---
+  // ID của bộ thẻ Anki/Flashcard được liên kết trong IndexedDB
+  linkedDeckId?: string;
+  // Số thẻ mục tiêu vi mô cần ôn mỗi ngày (Mặc định: 5 hoặc 10)
+  deckDailyTarget?: number;
+  // Tự động đánh dấu hoàn thành thói quen khi kết thúc phiên học thẻ
+  autoCheckInOnReview?: boolean;
 }
 
 /**
