@@ -263,14 +263,15 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
     }
   };
 
-  // Cử chỉ vuốt thẻ tối ưu hiệu năng cao bằng GPU & CSS Variables (Zero React Re-renders)
+  // Cử chỉ vuốt thẻ dạng Smooth Carousel 2 chiều phẳng (Zero React Re-renders, không xoay cong)
   const cardElementRef = useRef<HTMLDivElement>(null);
   const swipeStartXRef = useRef<number | null>(null);
   const swipeStartYRef = useRef<number | null>(null);
+  const touchStartTimeRef = useRef<number>(0);
   const currentDeltaXRef = useRef<number>(0);
   const currentDeltaYRef = useRef<number>(0);
   const isSwipingRef = useRef<boolean>(false);
-  const ignoreClickRef = useRef<boolean>(false);
+  const ignoreNextClickRef = useRef<boolean>(false);
   const rafIdRef = useRef<number | null>(null);
 
   // Đưa style của thẻ về trạng thái cân bằng
@@ -278,61 +279,51 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
     const el = cardElementRef.current;
     if (!el) return;
     if (withTransition) {
-      el.style.transition = 'transform 0.25s cubic-bezier(0.18, 0.89, 0.32, 1.28), opacity 0.2s, border-color 0.2s, box-shadow 0.2s';
+      el.style.transition = 'transform 0.22s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.2s, border-color 0.2s';
     } else {
       el.style.transition = 'none';
     }
     el.style.setProperty('--swipe-x', '0px');
-    el.style.setProperty('--swipe-y', '0px');
-    el.style.setProperty('--swipe-rot', '0deg');
     el.style.setProperty('--stamp-right-op', '0');
     el.style.setProperty('--stamp-left-op', '0');
-    el.style.setProperty('--stamp-flip-op', '0');
-    el.style.setProperty('--stamp-scale', '0.85');
+    el.style.setProperty('--card-opacity', '1');
     el.style.borderColor = '';
     el.style.opacity = '1';
   }, []);
 
-  // Cập nhật biến CSS trực tiếp lên phần tử DOM qua requestAnimationFrame (120 FPS không re-render React)
+  // Cập nhật biến CSS trực tiếp lên phần tử DOM qua requestAnimationFrame (Hoàn toàn phẳng, 0 xoay cong)
   const updateCardTransform = useCallback(() => {
     const el = cardElementRef.current;
     if (!el) return;
     const deltaX = currentDeltaXRef.current;
-    const deltaY = currentDeltaYRef.current;
+    const absX = Math.abs(deltaX);
 
+    // Di chuyển phẳng tịnh tiến 1:1 theo trục X
     el.style.setProperty('--swipe-x', `${deltaX}px`);
-    el.style.setProperty('--swipe-y', `${deltaY}px`);
-    el.style.setProperty('--swipe-rot', `${deltaX * 0.05}deg`);
+
+    // Độ mờ nhẹ khi kéo sang hai bên (từ 1.0 xuống tối đa 0.75)
+    const cardOp = Math.max(0.75, 1 - (absX / 600));
+    el.style.setProperty('--card-opacity', `${cardOp}`);
 
     if (isFlipped) {
       if (deltaX > 15) {
-        const op = Math.min(1, Math.max(0, (deltaX - 15) / 50));
-        const scale = Math.min(1.15, 0.85 + (deltaX - 15) / 120);
+        // Kéo sang phải: Đã nhớ
+        const op = Math.min(1, (deltaX - 15) / 45);
         el.style.setProperty('--stamp-right-op', `${op}`);
         el.style.setProperty('--stamp-left-op', '0');
-        el.style.setProperty('--stamp-scale', `${scale}`);
         el.style.borderColor = deltaX > 25 ? 'rgba(82, 139, 112, 0.85)' : '';
       } else if (deltaX < -15) {
-        const op = Math.min(1, Math.max(0, (-deltaX - 15) / 50));
-        const scale = Math.min(1.15, 0.85 + (-deltaX - 15) / 120);
+        // Kéo sang trái: Cần ôn lại
+        const op = Math.min(1, (-deltaX - 15) / 45);
         el.style.setProperty('--stamp-left-op', `${op}`);
         el.style.setProperty('--stamp-right-op', '0');
-        el.style.setProperty('--stamp-scale', `${scale}`);
         el.style.borderColor = deltaX < -25 ? 'rgba(201, 114, 85, 0.85)' : '';
       } else {
         el.style.setProperty('--stamp-right-op', '0');
         el.style.setProperty('--stamp-left-op', '0');
-        el.style.setProperty('--stamp-scale', '0.85');
         el.style.borderColor = '';
       }
     } else {
-      const absX = Math.abs(deltaX);
-      if (absX > 20) {
-        const op = Math.min(1, Math.max(0, (absX - 20) / 45));
-        el.style.setProperty('--stamp-flip-op', `${op}`);
-      } else {
-        el.style.setProperty('--stamp-flip-op', '0');
-      }
       el.style.borderColor = '';
     }
   }, [isFlipped]);
@@ -341,10 +332,10 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
     const touch = e.touches[0];
     swipeStartXRef.current = touch.clientX;
     swipeStartYRef.current = touch.clientY;
+    touchStartTimeRef.current = Date.now();
     currentDeltaXRef.current = 0;
     currentDeltaYRef.current = 0;
     isSwipingRef.current = true;
-    ignoreClickRef.current = false;
 
     if (cardElementRef.current) {
       cardElementRef.current.style.transition = 'none';
@@ -360,9 +351,9 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
     currentDeltaXRef.current = deltaX;
     currentDeltaYRef.current = deltaY;
 
-    // Nếu di chuyển quá 8px, đánh dấu là swipe để ngăn sự kiện click giả mạo sau touchend
-    if (Math.hypot(deltaX, deltaY) > 8) {
-      ignoreClickRef.current = true;
+    // Nếu dịch chuyển ngón tay quá 6px, đánh dấu để chặn sự kiện click giả lập của trình duyệt
+    if (Math.hypot(deltaX, deltaY) > 6) {
+      ignoreNextClickRef.current = true;
     }
 
     if (rafIdRef.current === null) {
@@ -381,37 +372,56 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
       rafIdRef.current = null;
     }
 
+    const duration = Date.now() - touchStartTimeRef.current;
     const deltaX = currentDeltaXRef.current;
     const deltaY = currentDeltaYRef.current;
     const absX = Math.abs(deltaX);
     const absY = Math.abs(deltaY);
+    const totalDist = Math.hypot(deltaX, deltaY);
 
-    // Ngưỡng vuốt kích hoạt hành động (ngang tối thiểu 65px và ưu thế hơn chiều dọc)
-    if (absX > 65 && absX > absY * 0.75) {
-      ignoreClickRef.current = true;
+    // KỊCH BẢN 1: CHẠM (TAP) ĐỂ LẬT THẺ
+    // Chạm nhanh (< 280ms) và hầu như không di chuyển (< 12px)
+    if (duration < 280 && totalDist < 12) {
+      ignoreNextClickRef.current = true;
+      resetCardStyles(false);
+      handleFlip();
+      swipeStartXRef.current = null;
+      swipeStartYRef.current = null;
+      currentDeltaXRef.current = 0;
+      currentDeltaYRef.current = 0;
+      return;
+    }
 
-      if (!isFlipped) {
-        // Mặt trước: Lật thẻ ngay lập tức
-        resetCardStyles(true);
-        handleFlip();
-      } else {
-        // Mặt sau: Hiệu ứng bay vút ra ngoài siêu mượt (160ms) rồi chuyển thẻ
-        const el = cardElementRef.current;
-        const isRight = deltaX > 0;
-        if (el) {
-          el.style.transition = 'transform 0.16s ease-out, opacity 0.16s ease-out';
-          el.style.setProperty('--swipe-x', isRight ? '120vw' : '-120vw');
-          el.style.setProperty('--swipe-rot', isRight ? '15deg' : '-15deg');
-          el.style.opacity = '0';
-        }
+    // KỊCH BẢN 2: TRƯỢT THẺ Ở MẶT SAU (SWIPE CAROUSEL TRANSITION)
+    if (isFlipped && absX > 55 && absX > absY * 1.1) {
+      ignoreNextClickRef.current = true;
+      const el = cardElementRef.current;
+      const isRight = deltaX > 0;
 
-        setTimeout(() => {
-          resetCardStyles(false);
-          handleRate(isRight);
-        }, 160);
+      // Hiệu ứng Smooth Carousel: lướt phẳng ngang sang một bên (180ms)
+      if (el) {
+        el.style.transition = 'transform 0.18s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.18s ease-out';
+        el.style.setProperty('--swipe-x', isRight ? '105%' : '-105%');
+        el.style.opacity = '0';
       }
+
+      setTimeout(() => {
+        // Đặt thẻ mới ở phía đối diện rồi lướt êm vào tâm
+        resetCardStyles(false);
+        if (el) {
+          el.style.setProperty('--swipe-x', isRight ? '-40px' : '40px');
+          el.style.opacity = '0';
+          // Kích hoạt animation slide-in vào tâm
+          requestAnimationFrame(() => {
+            el.style.transition = 'transform 0.22s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.22s ease-out';
+            el.style.setProperty('--swipe-x', '0px');
+            el.style.opacity = '1';
+          });
+        }
+        handleRate(isRight);
+      }, 180);
     } else {
-      // Dưới ngưỡng: Trở về tâm êm ái
+      // Dưới ngưỡng hoặc vuốt ở mặt trước: lướt đàn hồi nhẹ nhàng quay về tâm, KHÔNG lật thẻ
       resetCardStyles(true);
     }
 
@@ -421,9 +431,11 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
     currentDeltaYRef.current = 0;
   };
 
+  // Xử lý Click cho chuột Desktop (trên Mobile, tap đã được xử lý 100% trong onTouchEnd)
   const handleCardClick = () => {
-    if (ignoreClickRef.current) {
-      ignoreClickRef.current = false;
+    // Ngăn chặn các sự kiện click giả lập từ touch di động
+    if (ignoreNextClickRef.current) {
+      ignoreNextClickRef.current = false;
       return;
     }
     handleFlip();
@@ -674,7 +686,7 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
       ) : currentCard ? (
         /* Trình Lật Thẻ Flashcard */
         <div className="flex-1 flex flex-col justify-between overflow-hidden">
-          {/* Khung thẻ bài (Card Canvas với GPU acceleration và CSS Variables) */}
+          {/* Khung thẻ bài (Card Canvas với Smooth Horizontal Carousel phẳng) */}
           <div
             ref={cardElementRef}
             onClick={handleCardClick}
@@ -682,8 +694,9 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
             onTouchMove={handleCardTouchMove}
             onTouchEnd={handleCardTouchEnd}
             style={{
-              transform: 'translate3d(var(--swipe-x, 0px), calc(var(--swipe-y, 0px) * 0.12), 0) rotate(var(--swipe-rot, 0deg))',
-              willChange: 'transform',
+              transform: 'translate3d(var(--swipe-x, 0px), 0, 0)',
+              opacity: 'var(--card-opacity, 1)',
+              willChange: 'transform, opacity',
               touchAction: 'pan-y'
             } as React.CSSProperties}
             className={cn(
@@ -693,14 +706,13 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
                 : 'bg-canvas border-border shadow-xs hover:border-primary/40'
             )}
           >
-            {/* CON DẤU THỊ GIÁC (STAMP BADGES) KHI ĐANG VUỐT THẺ */}
+            {/* CON DẤU THỊ GIÁC PHẲNG (FLAT STAMP BADGES) */}
             {/* 1. Stamp ĐÃ NHỚ khi vuốt sang phải */}
             {isFlipped && (
               <div
-                className="absolute top-4 left-4 z-30 pointer-events-none border-2 border-primary bg-accent-sprout/95 text-primary px-3 py-1.5 rounded-xl font-bold font-serif text-xs sm:text-sm tracking-wider uppercase shadow-md flex items-center gap-1.5 transition-transform duration-75"
+                className="absolute top-4 left-4 z-30 pointer-events-none border-2 border-primary bg-accent-sprout/95 text-primary px-3 py-1.5 rounded-xl font-bold font-serif text-xs sm:text-sm tracking-wider uppercase shadow-md flex items-center gap-1.5 transition-opacity duration-75"
                 style={{
-                  opacity: 'var(--stamp-right-op, 0)',
-                  transform: 'rotate(-8deg) scale(var(--stamp-scale, 0.85))'
+                  opacity: 'var(--stamp-right-op, 0)'
                 }}
               >
                 <CheckCircle2 className="w-4 h-4 text-primary" />
@@ -711,27 +723,13 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
             {/* 2. Stamp CẦN ÔN LẠI khi vuốt sang trái */}
             {isFlipped && (
               <div
-                className="absolute top-4 right-4 z-30 pointer-events-none border-2 border-accent-clay bg-accent-clay/95 text-white px-3 py-1.5 rounded-xl font-bold font-serif text-xs sm:text-sm tracking-wider uppercase shadow-md flex items-center gap-1.5 transition-transform duration-75"
+                className="absolute top-4 right-4 z-30 pointer-events-none border-2 border-accent-clay bg-accent-clay/95 text-white px-3 py-1.5 rounded-xl font-bold font-serif text-xs sm:text-sm tracking-wider uppercase shadow-md flex items-center gap-1.5 transition-opacity duration-75"
                 style={{
-                  opacity: 'var(--stamp-left-op, 0)',
-                  transform: 'rotate(8deg) scale(var(--stamp-scale, 0.85))'
+                  opacity: 'var(--stamp-left-op, 0)'
                 }}
               >
                 <AlertCircle className="w-4 h-4 text-white" />
                 <span>CẦN ÔN LẠI</span>
-              </div>
-            )}
-
-            {/* 3. Stamp LẬT ĐÁP ÁN khi vuốt ở mặt trước */}
-            {!isFlipped && (
-              <div
-                className="absolute top-4 inset-x-0 mx-auto w-fit z-30 pointer-events-none border border-primary/40 bg-surface/95 text-primary px-3.5 py-1.5 rounded-full font-semibold text-xs shadow-md flex items-center gap-2"
-                style={{
-                  opacity: 'var(--stamp-flip-op, 0)'
-                }}
-              >
-                <RotateCw className="w-3.5 h-3.5 text-primary animate-spin" />
-                <span>Thả tay để lật đáp án</span>
               </div>
             )}
 
@@ -767,7 +765,7 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
                     }}
                   />
                   <p className="text-[11px] text-text-tertiary italic">
-                    (Chạm hoặc vuốt ngang để lật đáp án)
+                    (Chạm vào thẻ hoặc bấm nút dưới để xem đáp án)
                   </p>
                 </div>
               ) : (
@@ -795,8 +793,8 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
                 <RotateCw className="w-3 h-3" />
                 <span>
                   {isFlipped
-                    ? 'Vuốt trái: Cần ôn lại  •  Vuốt phải: Đã nhớ'
-                    : 'Chạm hoặc vuốt bất kỳ đâu để lật'}
+                    ? 'Vuốt phẳng trái: Cần ôn lại  •  Vuốt phẳng phải: Đã nhớ'
+                    : 'Chạm nhẹ vào thẻ để xem đáp án'}
                 </span>
               </span>
             </div>
