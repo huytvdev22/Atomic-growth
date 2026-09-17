@@ -29,7 +29,9 @@ export interface AnkiCard {
   id: string;
   deckId: string;
   noteId: string;
-  // Nội dung mặt trước (Từ vựng, câu hỏi, hoặc định dạng Cloze)
+  // Nội dung trường được đánh dấu là "Chính" (trường đầu tiên chọn ở mặt trước) - dùng hiển thị tiêu điểm ở danh sách
+  primaryFront?: string;
+  // Toàn bộ nội dung mặt trước (ghép trường chính và các trường phụ trợ đã chọn)
   front: string;
   // Nội dung mặt sau (Nghĩa, ví dụ, giải thích)
   back: string;

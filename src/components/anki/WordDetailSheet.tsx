@@ -197,17 +197,20 @@ export const WordDetailSheet: React.FC<WordDetailSheetProps> = ({
       isOpen={isOpen}
       onClose={onClose}
       icon={<Sparkles className="h-4.5 w-4.5 text-primary" />}
-      title="Chi Tiết Thẻ Từ Vựng"
-      subtitle={deckTitle || 'Kho từ vựng Zen'}
+      title="Chi Tiết Thẻ Học"
+      subtitle={deckTitle || 'Kho tri thức Zen'}
       className="h-[88dvh] sm:h-auto sm:max-h-[620px]"
       contentClassName="p-4 sm:p-6 overflow-y-auto space-y-5"
     >
-      {/* Khối hiển thị Từ vựng chính & Phát âm */}
+      {/* Khối hiển thị Mặt trước (Trường chính và các trường phụ trợ) */}
       <div className="bg-canvas rounded-2xl p-4 sm:p-5 border border-border shadow-2xs space-y-3">
         <div className="flex items-start justify-between gap-3">
-          <div className="flex-1">
+          <div className="flex-1 space-y-1.5">
+            <span className="text-[10px] font-mono text-text-tertiary uppercase tracking-wider block">
+              Mặt trước
+            </span>
             <div
-              className="text-lg sm:text-xl font-serif font-bold text-text-primary leading-snug"
+              className="text-base sm:text-lg text-text-primary leading-relaxed font-sans"
               dangerouslySetInnerHTML={{ __html: renderedFrontHtml || card.front }}
             />
           </div>

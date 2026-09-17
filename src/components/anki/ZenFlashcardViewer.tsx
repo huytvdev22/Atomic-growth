@@ -231,6 +231,7 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
   }, [currentCard]);
 
   // Dọn dẹp toàn bộ blob URLs khi unmount
+  // Dọn dẹp toàn bộ blob URLs khi unmount
   useEffect(() => {
     return () => {
       activeBlobUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
@@ -667,9 +668,9 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
             <div className="flex-1 overflow-y-auto my-auto flex flex-col justify-center text-center px-1 py-2">
               {!isFlipped ? (
                 /* Mặt trước */
-                <div className="space-y-2 py-4">
+                <div className="space-y-3 py-4">
                   <div
-                    className="font-serif text-2xl sm:text-3xl font-bold text-text-primary tracking-tight"
+                    className="text-2xl sm:text-3xl text-text-primary tracking-tight font-serif font-bold"
                     dangerouslySetInnerHTML={{
                       __html: renderedFrontHtml || currentCard.front
                     }}

@@ -450,18 +450,22 @@ export class AnkiDecoderService {
       const audioIdx = mapping?.audioFieldIndex;
       const imageIdx = mapping?.imageFieldIndex;
 
-      // Xử lý Mặt trước (Hỗ trợ nhiều trường: trường đầu tiên là Heading, các trường sau là phụ đề/gợi ý)
+      // Xử lý Mặt trước (Hỗ trợ nhiều trường: trường đầu tiên #1 là trường "Chính", các trường sau là phụ trợ)
       const frontParts: string[] = [];
       const collectedAudio: string[] = [];
       const collectedImages: string[] = [];
+      let primaryFrontText: string | undefined = undefined;
 
       frontIndices.forEach((fIdx, i) => {
         const fRaw = note.fields[fIdx] || '';
         const fParsed = cleanAnkiField(fRaw);
         if (fParsed.cleanText) {
           if (i === 0) {
+            // Trường chọn đầu tiên được đánh dấu là "Chính"
+            primaryFrontText = fParsed.cleanText;
             frontParts.push(`<div class="text-xl sm:text-2xl font-bold font-serif text-text-primary leading-snug">${fParsed.cleanText}</div>`);
           } else {
+            // Các trường phụ trợ
             frontParts.push(`<div class="text-xs sm:text-sm font-sans text-text-secondary mt-1.5">${fParsed.cleanText}</div>`);
           }
         }
@@ -525,6 +529,7 @@ export class AnkiDecoderService {
         id: `card_${note.id}_${index + 1}`,
         deckId: targetDeckId || note.deckId || 'deck_default',
         noteId: note.id,
+        primaryFront: primaryFrontText,
         front: frontRawHtml || '(Không có nội dung mặt trước)',
         back: backRaw || '(Không có nội dung mặt sau)',
         audioName: collectedAudio[0] || undefined,
