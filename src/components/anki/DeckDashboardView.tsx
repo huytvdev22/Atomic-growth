@@ -3,6 +3,7 @@ import { AnkiDeck, AnkiCard, MemoryVitality, calculateCardVitality } from '../..
 import { indexedDbService } from '../../services/indexedDbService';
 import { ankiFirestoreSync } from '../../services/ankiFirestoreSync';
 import { useAuth } from '../../context/AuthContext';
+import { useHabits } from '../../context/HabitContext';
 import {
   calculateDeckVitalityCounts,
   generateFutureDueForecast,
@@ -77,6 +78,7 @@ export const DeckDashboardView: React.FC<DeckDashboardViewProps> = ({
   onStartReview
 }) => {
   const { user } = useAuth();
+  const { habits } = useHabits();
 
   const [deck, setDeck] = useState<AnkiDeck | null>(null);
   const [cards, setCards] = useState<AnkiCard[]>([]);
@@ -167,6 +169,20 @@ export const DeckDashboardView: React.FC<DeckDashboardViewProps> = ({
   const reviewHistory = useMemo(() => getDeckReviewHistory(deckId), [deckId]);
   const deckStreak = useMemo(() => calculateDeckStreak(reviewHistory), [reviewHistory]);
   const heatmapCells = useMemo(() => generateDeckHeatmapCells(reviewHistory, 28), [reviewHistory]);
+
+  // Tìm thói quen liên kết trên Timeline (nếu có)
+  const linkedHabit = useMemo(() => {
+    if (!deck) return null;
+    return (
+      habits.find(
+        (h) =>
+          (deck.linkedHabitId && h.id === deck.linkedHabitId) ||
+          h.title.toLowerCase().includes('thẻ') ||
+          h.title.toLowerCase().includes('từ vựng') ||
+          h.title.toLowerCase().includes('anki')
+      ) || null
+    );
+  }, [deck, habits]);
 
   // Kiểm tra xem hôm nay người dùng đã ôn tập bộ thẻ này chưa
   const todayStr = new Date().toISOString().split('T')[0];
@@ -288,10 +304,19 @@ export const DeckDashboardView: React.FC<DeckDashboardViewProps> = ({
           </button>
 
           <div className="min-w-0">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <h2 className="font-serif text-xl sm:text-2xl font-bold text-text-primary tracking-tight truncate">
                 {deck.title}
               </h2>
+              {linkedHabit && (
+                <span
+                  className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-accent-sprout/20 text-[#144919] text-[11px] font-semibold border border-accent-sprout/30 shrink-0"
+                  title={`Thói quen liên kết trên Timeline: ${linkedHabit.title}`}
+                >
+                  <Sprout className="w-3 h-3 text-accent-sprout shrink-0" />
+                  <span className="truncate max-w-[140px] sm:max-w-xs">{linkedHabit.title}</span>
+                </span>
+              )}
               {deck.driveFileId && (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-accent-sprout/60 text-primary text-[10px] font-semibold shrink-0">
                   <Cloud className="w-3 h-3" />

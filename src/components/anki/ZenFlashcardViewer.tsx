@@ -261,6 +261,40 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
     }
   };
 
+  // Cử chỉ vuốt thẻ (Swipe Gesture) trên thiết bị di động
+  const swipeTouchStartXRef = useRef<number | null>(null);
+  const swipeTouchStartYRef = useRef<number | null>(null);
+
+  const handleCardTouchStart = (e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    swipeTouchStartXRef.current = touch.clientX;
+    swipeTouchStartYRef.current = touch.clientY;
+  };
+
+  const handleCardTouchEnd = (e: React.TouchEvent) => {
+    if (swipeTouchStartXRef.current === null || swipeTouchStartYRef.current === null) return;
+    const touch = e.changedTouches[0];
+    const deltaX = touch.clientX - swipeTouchStartXRef.current;
+    const deltaY = Math.abs(touch.clientY - swipeTouchStartYRef.current);
+
+    // Nếu vuốt ngang rõ ràng (tối thiểu 50px và không bị lệch dọc quá nhiều)
+    if (Math.abs(deltaX) > 50 && deltaY < 80) {
+      if (!isFlipped) {
+        // Nếu ở mặt trước: Vuốt để lật đáp án
+        handleFlip();
+      } else {
+        // Nếu đã lật: Vuốt trái = Cần ôn lại, Vuốt phải = Đã nhớ
+        if (deltaX < 0) {
+          handleRate(false);
+        } else {
+          handleRate(true);
+        }
+      }
+    }
+    swipeTouchStartXRef.current = null;
+    swipeTouchStartYRef.current = null;
+  };
+
   // Rung phản hồi haptic trên thiết bị di động
   const triggerHaptic = () => {
     if (typeof navigator !== 'undefined' && navigator.vibrate) {
@@ -460,9 +494,11 @@ export const ZenFlashcardViewer: React.FC<ZenFlashcardViewerProps> = ({
       ) : currentCard ? (
         /* Trình Lật Thẻ Flashcard */
         <div className="flex-1 flex flex-col justify-between overflow-hidden">
-          {/* Khung thẻ bài (Card Canvas với hiệu ứng lật) */}
+          {/* Khung thẻ bài (Card Canvas với hiệu ứng lật và cử chỉ vuốt thẻ) */}
           <div
             onClick={handleFlip}
+            onTouchStart={handleCardTouchStart}
+            onTouchEnd={handleCardTouchEnd}
             className={cn(
               'relative flex-1 rounded-2xl border p-4 sm:p-6 flex flex-col justify-between transition-all duration-300 cursor-pointer select-none overflow-hidden',
               isFlipped
