@@ -32,7 +32,7 @@ interface FlashcardsTabProps {
 
 export const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ onSessionCompleted }) => {
   const { driveToken, requestDriveAccess, clearDriveToken } = useAuth();
-  const { setActiveTab } = useHabits();
+  const { setActiveTab, flashcardsResetKey } = useHabits();
 
   const [decks, setDecks] = useState<AnkiDeck[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -67,6 +67,17 @@ export const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ onSessionCompleted
       setIsLoading(false);
     }
   }, []);
+
+  // Khi người dùng bấm vào tab Ôn tập từ Bottom Navigation hoặc bất cứ đâu: Luôn thoát các màn con và reset về danh sách bộ thẻ ngoài cùng
+  useEffect(() => {
+    if (flashcardsResetKey > 0) {
+      setSelectedDashboardDeckId(null);
+      setSelectedLexiconDeckId(null);
+      setActiveReviewDeckId(null);
+      setActiveWordsDeckId(null);
+      loadDecks();
+    }
+  }, [flashcardsResetKey, loadDecks]);
 
   // Tải danh sách tệp từ Google Drive (thư mục Atomic Growth/Anki Decks/)
   const refreshDriveList = useCallback(async (token: string) => {

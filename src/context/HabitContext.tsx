@@ -40,6 +40,8 @@ interface HabitContextType {
   getHabitsByRitual: (ritual: RitualTime) => Habit[];
   activeTab: 'timeline' | 'reflections' | 'flashcards' | 'anki-decoder' | 'archive' | 'dashboard';
   setActiveTab: (tab: 'timeline' | 'reflections' | 'flashcards' | 'anki-decoder' | 'archive' | 'dashboard') => void;
+  flashcardsResetKey: number;
+  resetFlashcardsToList: () => void;
   activeTag: string | null;
   setActiveTag: (tag: string | null) => void;
   searchQuery: string;
@@ -56,7 +58,19 @@ export const HabitProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [logs, setLogs] = useState<HabitLog[]>(() => habitStorage.getLogs());
   const [notes, setNotes] = useState<MicroNote[]>(() => habitStorage.getNotes());
   const [profile, setProfile] = useState<UserProfile>(() => habitStorage.getProfile());
-  const [activeTab, setActiveTab] = useState<'timeline' | 'reflections' | 'flashcards' | 'anki-decoder' | 'archive' | 'dashboard'>('timeline');
+  const [activeTab, setActiveTabState] = useState<'timeline' | 'reflections' | 'flashcards' | 'anki-decoder' | 'archive' | 'dashboard'>('timeline');
+  const [flashcardsResetKey, setFlashcardsResetKey] = useState<number>(0);
+
+  const resetFlashcardsToList = useCallback(() => {
+    setFlashcardsResetKey((k) => k + 1);
+  }, []);
+
+  const setActiveTab = useCallback((tab: 'timeline' | 'reflections' | 'flashcards' | 'anki-decoder' | 'archive' | 'dashboard') => {
+    if (tab === 'flashcards') {
+      setFlashcardsResetKey((k) => k + 1);
+    }
+    setActiveTabState(tab);
+  }, []);
   const [activeTag, setActiveTag] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
 
@@ -340,6 +354,8 @@ export const HabitProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       getHabitsByRitual,
       activeTab,
       setActiveTab,
+      flashcardsResetKey,
+      resetFlashcardsToList,
       activeTag,
       setActiveTag,
       searchQuery,
@@ -366,6 +382,9 @@ export const HabitProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       hasNeverMissTwiceAlert,
       getHabitsByRitual,
       activeTab,
+      setActiveTab,
+      flashcardsResetKey,
+      resetFlashcardsToList,
       activeTag,
       searchQuery,
       isCloudSynced
