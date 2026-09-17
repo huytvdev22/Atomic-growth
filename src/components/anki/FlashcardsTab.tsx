@@ -253,24 +253,6 @@ export const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ onSessionCompleted
     });
   };
 
-  // Nếu người dùng đang mở Dashboard của một bộ thẻ cụ thể
-  if (selectedDashboardDeckId) {
-    return (
-      <DeckDashboardView
-        deckId={selectedDashboardDeckId}
-        onBack={() => {
-          setSelectedDashboardDeckId(null);
-          loadDecks();
-        }}
-        onStartReview={(deckId, targetCardIds, customSubtitle) => {
-          setReviewTargetCardIds(targetCardIds);
-          setReviewCustomSubtitle(customSubtitle);
-          setActiveReviewDeckId(deckId);
-        }}
-      />
-    );
-  }
-
   return (
     <div className="space-y-6 w-full max-w-full overflow-hidden min-w-0">
       {/* Hidden file input cho bộ thẻ cũ */}
@@ -282,7 +264,23 @@ export const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ onSessionCompleted
         className="hidden"
       />
 
-      {/* Header Tab - Thiết kế Responsive thích ứng hoàn hảo với màn hình iPhone */}
+      {selectedDashboardDeckId ? (
+        /* Màn hình Dashboard chi tiết bộ thẻ */
+        <DeckDashboardView
+          deckId={selectedDashboardDeckId}
+          onBack={() => {
+            setSelectedDashboardDeckId(null);
+            loadDecks();
+          }}
+          onStartReview={(deckId, targetCardIds, customSubtitle) => {
+            setReviewTargetCardIds(targetCardIds);
+            setReviewCustomSubtitle(customSubtitle);
+            setActiveReviewDeckId(deckId);
+          }}
+        />
+      ) : (
+        <>
+          {/* Header Tab - Thiết kế Responsive thích ứng hoàn hảo với màn hình iPhone */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-border-subtle min-w-0">
         <div className="min-w-0">
           <h2 className="font-serif text-xl font-bold text-text-primary tracking-tight">
@@ -510,6 +508,8 @@ export const FlashcardsTab: React.FC<FlashcardsTabProps> = ({ onSessionCompleted
           })}
         </div>
       )}
+      </>
+    )}
 
       {/* Modal Nhập Thẻ */}
       <AnkiImportModal

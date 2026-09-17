@@ -11,7 +11,6 @@ import {
   Brain,
   FileCode,
   Hash,
-  X,
   LogOut,
   Cloud,
   CloudOff,
@@ -23,15 +22,16 @@ import { cn } from '../utils/cn';
 import { VersionBadge } from './VersionBadge';
 
 interface SidebarProps {
-  isOpenMobile: boolean;
-  onCloseMobile: () => void;
+  isOpenMobile?: boolean;
+  onCloseMobile?: () => void;
 }
 
 /**
  * Sidebar Điều Hướng Chuẩn Elera (Modern Botanical Zen Sidebar)
  * Tích hợp Widget Obsidian Habit Matrix nền than sẫm sang trọng và menu dạng Pill mềm mại
  */
-export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile }) => {
+export const Sidebar: React.FC<SidebarProps> = () => {
+  const onCloseMobile = () => {};
   const {
     habits,
     logs,
@@ -96,14 +96,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
             title="Cài đặt"
           >
             <Settings className="h-4 w-4" />
-          </button>
-          {/* Nút đóng trên mobile */}
-          <button
-            type="button"
-            onClick={onCloseMobile}
-            className="md:hidden rounded-full p-1.5 text-text-tertiary hover:bg-canvas-subtle hover:text-text-primary transition-colors cursor-pointer"
-          >
-            <X className="h-5 w-5" />
           </button>
         </div>
       </div>
@@ -454,27 +446,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
   );
 
   return (
-    <>
-      {/* 1. Bản Desktop: Sidebar Cố định bên trái */}
-      <aside className="hidden md:flex flex-col w-[260px] lg:w-[275px] shrink-0 border-r border-border h-dvh sticky top-0 z-20 bg-surface">
-        {sidebarContent}
-      </aside>
-
-      {/* 2. Bản Mobile: Off-canvas Drawer trượt từ bên trái ra */}
-      {isOpenMobile && (
-        <div className="fixed inset-0 z-50 md:hidden flex">
-          {/* Lớp phủ Backdrop */}
-          <div
-            onClick={onCloseMobile}
-            className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity duration-300"
-          />
-
-          {/* Khung Drawer */}
-          <div className="relative z-10 w-[290px] h-full shadow-2xl animate-in slide-in-from-left duration-250">
-            {sidebarContent}
-          </div>
-        </div>
-      )}
-    </>
+    <aside className="hidden md:flex flex-col w-[260px] lg:w-[275px] shrink-0 border-r border-border h-dvh sticky top-0 z-20 bg-surface">
+      {sidebarContent}
+    </aside>
   );
 };

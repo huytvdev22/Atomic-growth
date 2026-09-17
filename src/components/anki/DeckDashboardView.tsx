@@ -310,18 +310,6 @@ export const DeckDashboardView: React.FC<DeckDashboardViewProps> = ({
             </p>
           </div>
         </div>
-
-        {/* Nút hành động nhanh trên Header */}
-        <div className="flex items-center gap-2 shrink-0">
-          <button
-            type="button"
-            onClick={() => onStartReview(deckId)}
-            className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-white hover:bg-primary-hover active:scale-95 transition-all shadow-xs cursor-pointer ml-auto sm:ml-0"
-          >
-            <Play className="w-3.5 h-3.5 fill-white" />
-            <span>Ôn 2 Phút Ngay</span>
-          </button>
-        </div>
       </div>
 
       {/* 2. KHỐI TRẠM HÀNH ĐỘNG HÔM NAY (TODAY ACTION HERO) */}
