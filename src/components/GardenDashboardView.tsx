@@ -1,7 +1,7 @@
-import React, { useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useHabits } from '../context/HabitContext';
 import { useAuth } from '../context/AuthContext';
-import { generateGardenHeatmap, calculateGardenActiveStreak } from '../utils/habitCalculations';
+import { generateGardenHeatmap, calculateGardenActiveStreak, HeatmapCell } from '../utils/habitCalculations';
 import { VersionBadge } from './VersionBadge';
 import {
   Sprout,
@@ -20,7 +20,6 @@ import {
   Sunrise,
   Compass,
   Moon,
-  Sparkles,
   ArrowRight,
   TrendingUp,
   ShieldCheck
@@ -30,7 +29,7 @@ import { cn } from '../utils/cn';
 /**
  * Màn Hình Dashboard Sinh Trưởng (Garden Dashboard View)
  * Trung tâm điều khiển và trực quan hóa thành tựu phát triển bản thân theo Atomic Habits.
- * Thiết kế phong cách Modern Botanical Zen & Elera SaaS: Khung nổi, bố cục thoáng đãng, chỉ số sinh động.
+ * Thiết kế phong cách Botanical Zen: Tone sáng thanh thoát, bố cục tối giản, chống rườm rà.
  */
 export const GardenDashboardView: React.FC = () => {
   const {
@@ -40,13 +39,15 @@ export const GardenDashboardView: React.FC = () => {
     completionRate,
     topStreak,
     totalActiveHabits,
-    completedTodayCount,
     getHabitsByRitual,
     setActiveTab,
     isCloudSynced
   } = useHabits();
 
   const { user, loginWithGoogle, logout, isAuthenticating, isConfigured } = useAuth();
+
+  // State tương tác: ô được chọn trong Ma Trận Kiên Trì
+  const [selectedHeatmapCell, setSelectedHeatmapCell] = useState<HeatmapCell | null>(null);
 
   // Tạo dữ liệu cho Ma Trận Kiên Trì 28 ngày (4 tuần gần nhất)
   const heatmapCells = useMemo(() => {
@@ -74,85 +75,40 @@ export const GardenDashboardView: React.FC = () => {
     return counts;
   }, [habits]);
 
-  // Cấp bậc sinh trưởng dựa trên kỷ lục Streak (Identity Level)
-  const growthStage = useMemo(() => {
-    if (topStreak >= 30) {
-      return {
-        title: 'Cây Đại Thụ Kiên Định',
-        desc: 'Bản sắc mới đã hòa vào tiềm thức tự nhiên của bạn.',
-        badgeColor: 'bg-emerald-100 text-emerald-800 border-emerald-300'
-      };
-    }
-    if (topStreak >= 14) {
-      return {
-        title: 'Chồi Non Vươn Mình',
-        desc: 'Quán tính hành vi đang được định hình rõ nét.',
-        badgeColor: 'bg-accent-sprout/25 text-[#144919] border-accent-sprout/40'
-      };
-    }
-    if (topStreak >= 3) {
-      return {
-        title: 'Hạt Mầm Bắt Đầu',
-        desc: 'Những viên gạch đầu tiên đang được đặt vững chắc.',
-        badgeColor: 'bg-amber-100 text-amber-800 border-amber-300'
-      };
-    }
-    return {
-      title: 'Người Khởi Tâm Gieo Hạt',
-      desc: 'Hành trình vạn dặm bắt đầu từ 1 hành động 2 phút.',
-      badgeColor: 'bg-canvas-subtle text-text-secondary border-border'
-    };
-  }, [topStreak]);
-
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
-      {/* 1. Khung Hero: Cấp Bậc Sinh Trưởng & Trạng Thái Đồng Bộ */}
-      <div className="rounded-2xl border border-border bg-surface p-5 sm:p-6 shadow-card space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3.5">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent-sprout/20 text-[#103813] border border-accent-sprout/40 shadow-2xs shrink-0">
-              <Sprout className="h-6 w-6" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="font-serif text-lg sm:text-xl font-bold text-text-primary">
-                  {growthStage.title}
-                </h2>
-                <span className={cn('text-[10px] font-bold px-2 py-0.5 rounded-full border', growthStage.badgeColor)}>
-                  Kỷ lục {topStreak}d
-                </span>
-              </div>
-              <p className="text-xs text-text-secondary mt-0.5">
-                {growthStage.desc}
-              </p>
-            </div>
-          </div>
-
-          {/* Trạng thái Cloud Sync */}
-          <div className="flex items-center gap-2 text-xs">
-            {isCloudSynced ? (
-              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-semantic-green-bg text-[#144919] border border-semantic-green/30 font-semibold">
-                <Cloud className="w-3.5 h-3.5 text-accent-sprout" />
-                <span>Đã đồng bộ Cloud</span>
-              </div>
-            ) : (
-              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-canvas-subtle text-text-tertiary border border-border/70 font-medium">
-                <CloudOff className="w-3.5 h-3.5" />
-                <span>Chế độ Khách (Local)</span>
-              </div>
+      {/* 1. Header Trang Tinh Giản (Loại bỏ khối cồng kềnh "Người khởi tâm gieo hạt", giữ trọn tinh thần Zen Minimalist) */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-border-subtle">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h2 className="font-serif text-xl sm:text-2xl font-bold text-text-primary tracking-tight">
+              Khu Vườn Sinh Trưởng
+            </h2>
+            {topStreak > 0 && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-accent-amber/15 text-[#8A6D3B] text-[11px] font-mono font-bold border border-accent-amber/30 shrink-0">
+                <Flame className="w-3 h-3 text-accent-amber fill-accent-amber" />
+                <span>Kỷ lục {topStreak} ngày</span>
+              </span>
             )}
           </div>
+          <p className="text-xs text-text-secondary mt-0.5">
+            Trực quan hóa thành tựu và tiến trình phát triển bản thân mỗi ngày
+          </p>
         </div>
 
-        {/* Thanh đề từ triết lý James Clear */}
-        <div className="pt-2 border-t border-border-subtle flex items-center justify-between text-xs text-text-tertiary">
-          <span className="flex items-center gap-1.5 italic">
-            <Sparkles className="w-3.5 h-3.5 text-accent-sprout shrink-0" />
-            &ldquo;Tập trung vào hệ thống thay vì mục tiêu viển vông.&rdquo;
-          </span>
-          <span className="font-mono text-[11px] font-semibold text-text-secondary">
-            {completedTodayCount}/{totalActiveHabits} hôm nay
-          </span>
+        {/* Trạng thái Cloud Sync tinh gọn */}
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          {isCloudSynced ? (
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-semantic-green-bg text-[#144919] border border-semantic-green/30 text-xs font-semibold shadow-2xs">
+              <Cloud className="w-3.5 h-3.5 text-accent-sprout" />
+              <span>Đã đồng bộ Cloud</span>
+            </div>
+          ) : (
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-canvas border border-border text-text-tertiary text-xs font-medium shadow-2xs">
+              <CloudOff className="w-3.5 h-3.5" />
+              <span>Chế độ Khách (Local)</span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -229,77 +185,97 @@ export const GardenDashboardView: React.FC = () => {
         </div>
       </div>
 
-      {/* 3. Obsidian Habit Matrix: Lịch Ma Trận Chuỗi Ngày Nền Than Đá Cao Cấp */}
-      <div className="rounded-2xl bg-dark-surface p-5 sm:p-6 text-dark-text shadow-lg border border-[#2F3532] space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#313734] pb-3">
+      {/* 3. Ma Trận Kiên Trì Theme Sáng (Botanical Zen Garden Matrix) */}
+      <div className="rounded-2xl border border-border bg-surface p-5 sm:p-6 space-y-4 shadow-2xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border-subtle pb-3">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-accent-sprout/15 text-accent-sprout border border-accent-sprout/30">
+            <div className="p-2 rounded-xl bg-accent-sprout/60 text-primary">
               <Calendar className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="font-sans text-sm sm:text-base font-bold tracking-tight text-white">
-                Ma Trận Kiên Trì (Obsidian Habit Matrix)
+              <h3 className="font-serif text-sm sm:text-base font-bold tracking-tight text-text-primary">
+                Ma Trận Kiên Trì (Habit Garden Matrix)
               </h3>
-              <p className="text-xs text-dark-text-subtle">
-                Trực quan hóa hành vi trong 4 tuần qua • Chuỗi hiện tại: <span className="text-accent-sprout font-bold">{gardenActiveStreak} ngày</span>
+              <p className="text-xs text-text-secondary">
+                Trực quan hóa 4 tuần qua • Chuỗi hiện tại: <strong className="text-primary font-mono">{gardenActiveStreak} ngày</strong>
               </p>
             </div>
           </div>
 
-          <div className="inline-flex items-center gap-1.5 font-mono text-xs font-bold text-accent-sprout bg-accent-sprout/15 px-3 py-1 rounded-full border border-accent-sprout/30 self-start sm:self-auto">
-            <Flame className="w-3.5 h-3.5 fill-accent-sprout" />
+          <div className="inline-flex items-center gap-1.5 font-mono text-xs font-bold text-accent-amber bg-accent-amber/15 px-3 py-1 rounded-full border border-accent-amber/20 self-start sm:self-auto">
+            <Flame className="w-3.5 h-3.5 text-accent-amber fill-accent-amber" />
             <span>28 ngày gần nhất</span>
           </div>
         </div>
 
-        {/* Lưới 28 ô vuông / tròn ma trận */}
+        {/* Lưới 28 ô vuông sinh trưởng màu sáng Botanical Zen */}
         <div className="grid grid-cols-7 gap-2 sm:gap-2.5 max-w-md mx-auto py-2">
           {heatmapCells.map((cell, i) => {
             const dayNumber = new Date(cell.date).getDate();
-            const isCompleted = cell.level >= 2;
-            const isPartial = cell.level === 1;
+            const isCellSelected = selectedHeatmapCell?.date === cell.date;
+
+            // Phân cấp màu sắc xanh Botanical Zen sáng
+            let cellColorClass = 'bg-[#EFF1ED] border border-border-subtle text-text-tertiary hover:bg-canvas-subtle';
+            if (cell.level === 1) {
+              cellColorClass = 'bg-[#EAF7E6] border border-[#D4EED0] text-[#144919] font-medium';
+            } else if (cell.level === 2) {
+              cellColorClass = 'bg-[#A8DF98] border border-[#8ECBA2] text-[#103813] font-bold';
+            } else if (cell.level === 3) {
+              cellColorClass = 'bg-[#6DC85A] border border-[#528B70] text-white font-bold shadow-2xs';
+            } else if (cell.level === 4) {
+              cellColorClass = 'bg-primary border border-primary text-white font-extrabold shadow-xs';
+            }
 
             return (
-              <div
+              <button
                 key={i}
+                type="button"
+                onClick={() => setSelectedHeatmapCell(cell)}
                 className={cn(
-                  'aspect-square rounded-xl sm:rounded-2xl flex flex-col items-center justify-center font-mono text-xs font-bold transition-all duration-200 cursor-pointer shadow-2xs hover:scale-110 select-none relative group',
-                  isCompleted
-                    ? 'bg-accent-sprout text-[#103813] font-extrabold shadow-sm'
-                    : isPartial
-                    ? 'bg-[#3A4D3E] text-[#9FE58F]'
-                    : 'bg-[#2C312E] text-[#78857D] hover:bg-[#383F3B]',
-                  cell.isToday && 'ring-2 ring-white ring-offset-2 ring-offset-dark-surface'
+                  'aspect-square rounded-xl sm:rounded-2xl flex flex-col items-center justify-center font-mono text-xs transition-all duration-200 cursor-pointer select-none relative group focus:outline-none',
+                  cellColorClass,
+                  isCellSelected ? 'ring-2 ring-accent-clay ring-offset-2 scale-110 z-10' : 'hover:scale-105',
+                  cell.isToday && 'ring-2 ring-primary ring-offset-2 ring-offset-surface'
                 )}
-                title={`${cell.date}: Hoàn thành ${cell.completedCount}/${cell.totalHabits} thói quen`}
+                title={`${cell.date}: Hoàn thành ${cell.completedCount}/${cell.totalHabits} thói quen${cell.isToday ? ' (Hôm nay)' : ''}`}
               >
                 <span>{dayNumber}</span>
                 {cell.completedCount > 0 && (
-                  <span className="text-[8px] font-normal opacity-80 -mt-0.5">
+                  <span className="text-[8px] opacity-85 -mt-0.5">
                     {cell.completedCount}✓
                   </span>
                 )}
-              </div>
+              </button>
             );
           })}
         </div>
 
-        {/* Chú giải trạng thái (Legend) */}
-        <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-dark-text-subtle pt-3 border-t border-[#313734]">
-          <div className="flex items-center gap-4">
-            <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-md bg-[#2C312E]" /> Nghỉ ngơi
+        {/* Chú giải trạng thái & Thông tin ô đang chọn */}
+        <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-text-secondary pt-3 border-t border-border-subtle">
+          <div className="font-mono text-[11px] min-w-0">
+            {selectedHeatmapCell ? (
+              <span className="text-primary font-bold">
+                {selectedHeatmapCell.date}: {selectedHeatmapCell.completedCount}/{selectedHeatmapCell.totalHabits} thói quen hoàn thành
+              </span>
+            ) : (
+              <span className="text-text-tertiary">Chạm vào ô để xem chi tiết ngày</span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-3 text-[11px] text-text-tertiary">
+            <span className="flex items-center gap-1">
+              <span className="w-2.5 h-2.5 rounded-md bg-[#EFF1ED] border border-border-subtle inline-block" /> Nghỉ
             </span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-md bg-[#3A4D3E]" /> Một phần
+            <span className="flex items-center gap-1">
+              <span className="w-2.5 h-2.5 rounded-md bg-[#EAF7E6] border border-[#D4EED0] inline-block" /> Một phần
             </span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-md bg-accent-sprout" /> Đạt chuẩn
+            <span className="flex items-center gap-1">
+              <span className="w-2.5 h-2.5 rounded-md bg-[#A8DF98] inline-block" /> Đạt chuẩn
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="w-2.5 h-2.5 rounded-md bg-primary inline-block" /> Xuất sắc
             </span>
           </div>
-          <span className="text-[11px] italic text-dark-text-subtle/80">
-            *Ô viền trắng là hôm nay
-          </span>
         </div>
       </div>
 
