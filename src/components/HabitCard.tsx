@@ -2,7 +2,7 @@ import React from 'react';
 import { Habit } from '../types/habit';
 import { useHabits } from '../context/HabitContext';
 import { calculateEffectiveHabitStreak } from '../utils/habitCalculations';
-import { Check, Flame, Trash2, Zap, Brain } from 'lucide-react';
+import { Check, Flame, Trash2, Zap, Brain, Play } from 'lucide-react';
 import { cn } from '../utils/cn';
 
 interface HabitCardProps {
@@ -98,7 +98,8 @@ export const HabitCard: React.FC<HabitCardProps> = ({ habit }) => {
                 title="Bắt đầu ngay phiên ôn tập 2 phút cho bộ thẻ này"
               >
                 <Brain className="w-3 h-3 text-accent-sage shrink-0 group-hover/btn:scale-110 transition-transform" />
-                <span>Ôn 2p ▶</span>
+                <span>Ôn 2p</span>
+                <Play className="w-2.5 h-2.5 fill-current opacity-80 shrink-0 group-hover/btn:translate-x-0.5 transition-transform" />
               </button>
             ) : isFlashcardHabit ? (
               <button
