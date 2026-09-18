@@ -122,6 +122,19 @@ spacing:
   xl: 32px
   2xl: 48px
   container-max: 760px # Khổ xem tập trung cho Timeline
+
+icons:
+  library: "lucide-react"
+  stroke-width:
+    default: 2px
+    delicate: 1.75px
+    emphasis: 2.25px
+  sizes:
+    xs: 12px # w-3 h-3 (badge, micro-pill, button suffix)
+    sm: 14px # w-3.5 h-3.5 (compact action, toast close)
+    md: 16px # w-4 h-4 (button primary, input prefix, sidebar menu)
+    lg: 20px # w-5 h-5 (card header, toast status, section title)
+    xl: 24px # w-6 h-6 (modal hero icon, mobile nav active)
 ---
 
 # Modern Botanical Zen Design System
@@ -178,7 +191,53 @@ Kế thừa từ bảng trạng thái trực quan của Elera, các chip trạng
 
 ---
 
-## 4. Ngôn Ngữ Thành Phần "Pill-Centric" & Thẻ Tinh Gọn
+## 4. Quy Chuẩn Iconography (Hệ Thống Biểu Tượng Vector)
+
+Toàn bộ hệ thống biểu tượng trong **Atomic Growth** tuân thủ triết lý: **Đồng bộ — Thanh thoát — Trực quan — Không nhiễu loạn**.
+
+### A. Nguồn Chân Lý & Thư Viện Tiêu Chuẩn
+- **Thư viện duy nhất:** Toàn bộ icon vector bắt buộc nhập khẩu từ **Lucide React** (`lucide-react`).
+- **Nghiêm cấm tuyệt đối:**
+  - ❌ Không sử dụng ký tự unicode / raw emoji hệ điều hành (`▶`, `⚡`, `🌱`, `🔥`, `✓`...) làm icon giao diện, do sự khác biệt về hiển thị và font render thô trên các hệ điều hành (Windows, macOS, Android, iOS).
+  - ❌ Không pha trộn các thư viện icon khác (FontAwesome, Material Icons, Heroicons).
+
+### B. Bảng Phân Cấp Kích Thước Biểu Tượng (Icon Sizing Scale)
+
+| Phân Cấp | Kích Thước | Class Tailwind | Ứng Dụng Thực Tế |
+| :--- | :--- | :--- | :--- |
+| **Micro (Siêu nhỏ)** | `12px × 12px` | `w-3 h-3` | Biểu tượng trong Streak pill, badge danh mục, icon hậu tố trong button nhỏ (`Play` trong nút Ôn 2p) |
+| **Compact (Gọn gàng)** | `14px × 14px` | `w-3.5 h-3.5` | Nút thao tác phụ, icon nút đóng (X), hành động phụ trong Toast |
+| **Standard (Tiêu chuẩn)** | `16px × 16px` | `w-4 h-4` | Nút bấm chính (CTA), tiền tố thanh tìm kiếm, liên kết menu Sidebar |
+| **Focus (Nổi bật)** | `20px × 20px` | `w-5 h-5` | Biểu tượng phân nhóm nhịp sinh học, icon trạng thái Toast, tiêu đề thẻ |
+| **Hero (Trọng tâm)** | `24px × 24px` | `w-6 h-6` | Biểu tượng trên Bottom Navigation bar di động, hero icon trong modal chào mừng |
+
+### C. Độ Dày Nét Vẽ (Stroke Width Hierarchy)
+- **Chuẩn mực (`strokeWidth={2}`):** Sử dụng cho 90% trường hợp giao diện để đảm bảo nét vẽ sắc sảo, cân đối với phông chữ *Plus Jakarta Sans*.
+- **Thanh thoát (`strokeWidth={1.75}`):** Dành riêng cho các biểu tượng lớn (`20px - 24px`) trong không gian thiền định, tránh cảm giác nặng mắt.
+- **Nhấn mạnh tương tác (`strokeWidth={2.25}`):** Dành cho biểu tượng xác nhận thành công (`Check`), hành động check-in 1 chạm.
+
+### D. Bản Đồ Biểu Tượng Cốt Lõi (Core Semantic Icon Mapping)
+
+| Miền Nghiệp Vụ | Biểu Tượng Lucide | Màu Sắc / Class | Ý Nghĩa Hành Vi (Atomic Habits) |
+| :--- | :--- | :--- | :--- |
+| **Bản Sắc & Mầm Sống** | `Sprout` | `text-accent-sprout` / `text-primary` | Nhận diện thương hiệu, gieo mầm thói quen mới |
+| **Bộ Thẻ Trí Nhớ** | `Brain` | `text-accent-sage` / `text-semantic-sky` | Liên kết bộ thẻ Anki / Flashcards vào nhịp sống |
+| **Quy Tắc 2 Phút** | `Play` | `fill-current opacity-80 w-2.5 h-2.5` | Bắt đầu hành động vi mô tức thì, giảm tối đa rào cản |
+| **Ngọn Lửa Chuỗi** | `Flame` | `text-semantic-amber` | Duy trì quán tính hành vi (Never Break the Chain) |
+| **Hồi Phục Ân Hạn** | `AlertTriangle` / `Heart` | `text-semantic-terracotta` | Quy tắc "Never Miss Twice" - phục hồi nhân ái |
+| **Tia Chớp Hành Vi** | `Zap` | `text-semantic-amber` | Gợi ý thói quen vi mô / Habit Stacking |
+| **Check-in Hoàn Thành** | `Check` | `text-white stroke-[2.5]` | Củng cố phần thưởng tức thì (Make it Satisfying) |
+| **Nhịp Sáng (Morning)** | `Sunrise` / `Sun` | `text-semantic-amber` | Nghi thức khởi đầu ngày mới tỉnh thức |
+| **Nhịp Chiều (Midday)** | `SunMedium` / `Compass` | `text-primary` | Nhịp duy trì năng lượng và sự tập trung cao độ |
+| **Nhịp Tối (Evening)** | `Moon` / `Sparkles` | `text-semantic-lilac` | Nghi thức phục hồi, lắng đọng và phản tư |
+
+### E. Hiệu Ứng Vi Tương Tác (Micro-Interactions)
+- **Hiệu ứng thu phóng khi hover:** Thêm class `group-hover:scale-110 transition-transform` cho biểu tượng trạng thái để tạo cảm giác sống động.
+- **Hiệu ứng đẩy nhẹ định hướng:** Thêm class `group-hover:translate-x-0.5 transition-transform` cho icon hành động chuyển tiếp (`Play`, `ArrowRight`).
+
+---
+
+## 5. Ngôn Ngữ Thành Phần "Pill-Centric" & Thẻ Tinh Gọn
 
 Một trong những đặc điểm cuốn hút nhất của Elera là sự xuất hiện xuyên suốt của hình khối **Pill (Viên thuốc - `rounded-full`)**, tạo cảm giác thân thiện, mềm mại và tân tiến:
 
@@ -210,7 +269,7 @@ Học hỏi từ thanh thông báo ngữ cảnh thông minh của Elera (như th
 
 ---
 
-## 5. Các Mẫu Trực Quan Hóa Đột Phá (Breakthrough Visual Patterns)
+## 6. Các Mẫu Trực Quan Hóa Đột Phá (Breakthrough Visual Patterns)
 
 ### A. Widget "Obsidian Habit Matrix" (Lấy cảm hứng từ Elera Volume Calendar)
 - **Ý tưởng:** Lấy cảm hứng từ thẻ lịch đen sang trọng trong màn hình Dashboard của Elera (`d1ad3837866a06345f7b3.jpg`).
@@ -232,7 +291,7 @@ Học hỏi từ thanh thông báo ngữ cảnh thông minh của Elera (như th
 
 ---
 
-## 6. Bảng Phân Chia Không Gian Ứng Dụng (Layout & Space Partitioning)
+## 7. Bảng Phân Chia Không Gian Ứng Dụng (Layout & Space Partitioning)
 
 Ứng dụng duy trì sự phân tách rõ ràng giữa 3 khu vực chính:
 
@@ -255,12 +314,12 @@ Học hỏi từ thanh thông báo ngữ cảnh thông minh của Elera (như th
 |  Calendar Widget  |                                                               |
 |                   |  [Clean Empty State nếu chưa có dữ liệu]                      |
 |  [User & Sync]    |                                                               |
-+-------------------+---------------------------------------------------------------+
+|-------------------+---------------------------------------------------------------+
 ```
 
 ---
 
-## 7. Do's and Don'ts (Bộ Quy Tắc Bất Di Bất Dịch)
+## 8. Do's and Don'ts (Bộ Quy Tắc Bất Di Bất Dịch)
 
 ### Do's (Khuyến khích & Chuẩn hóa)
 - ✅ **Bo góc lớn & Mềm mại:** Sử dụng `rounded-2xl` (16px) cho thẻ thói quen và `rounded-full` (9999px) cho nút bấm, badge, tabs, search.
