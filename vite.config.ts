@@ -11,7 +11,14 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'prompt',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'vite.svg', 'sql-wasm.wasm'],
+      includeAssets: [
+        'apple-touch-icon.png',
+        'pwa-192x192.png',
+        'pwa-512x512.png',
+        'favicon-32x32.png',
+        'vite.svg',
+        'sql-wasm.wasm'
+      ],
       manifest: {
         name: 'Atomic Growth — Xây Dựng Thói Quen & Phát Triển Bản Thân',
         short_name: 'Atomic Growth',
@@ -22,13 +29,25 @@ export default defineConfig({
         orientation: 'portrait',
         icons: [
           {
-            src: 'vite.svg',
+            src: '/pwa-192x192.png',
             sizes: '192x192',
-            type: 'image/svg+xml'
+            type: 'image/png',
+            purpose: 'any maskable'
           },
           {
-            src: 'vite.svg',
+            src: '/pwa-512x512.png',
             sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any maskable'
+          },
+          {
+            src: '/apple-touch-icon.png',
+            sizes: '180x180',
+            type: 'image/png'
+          },
+          {
+            src: '/vite.svg',
+            sizes: '100x100',
             type: 'image/svg+xml'
           }
         ]
