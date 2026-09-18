@@ -19,6 +19,7 @@ import {
   syncProfile,
   seedUserDataIfEmpty
 } from '../services/firestoreSync';
+import { toast } from './ToastContext';
 
 interface HabitContextType {
   habits: Habit[];
@@ -59,7 +60,7 @@ interface HabitContextType {
 const HabitContext = createContext<HabitContextType | null>(null);
 
 export const HabitProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user } = useAuth();
+  const { user, loading: isAuthLoading } = useAuth();
 
   // Khởi tạo state: Luôn thanh lọc dữ liệu demo cũ và ưu tiên trạng thái sạch
   const [habits, setHabits] = useState<Habit[]>(() => {
@@ -107,8 +108,13 @@ export const HabitProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // 1. Luôn loại bỏ dữ liệu demo cũ khỏi LocalStorage
     habitStorage.cleanLegacyDemoData();
 
+    // Chờ phiên xác thực hoàn tất trước khi quyết định luồng nạp dữ liệu
+    if (isAuthLoading) {
+      return;
+    }
+
     if (!user) {
-      // Khi chưa đăng nhập: Tải dữ liệu sạch cục bộ từ LocalStorage
+      // Khi chưa đăng nhập (Guest): Tải dữ liệu sạch cục bộ từ LocalStorage
       setHabits(habitStorage.getHabits());
       setLogs(habitStorage.getLogs());
       setNotes(habitStorage.getNotes());
@@ -125,7 +131,9 @@ export const HabitProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const userId = user.uid;
 
     // Khởi tạo hồ sơ người dùng sạch trên Cloud nếu là lần đầu đăng nhập (Clean Slate)
-    seedUserDataIfEmpty(userId, user.displayName || undefined);
+    seedUserDataIfEmpty(userId, user.displayName || undefined).catch(err => {
+      console.warn('[HabitContext] Lỗi khi seedUserDataIfEmpty:', err);
+    });
 
     // Lắng nghe danh sách thói quen thực từ Cloud
     const unsubHabits = subscribeToHabits(
@@ -175,32 +183,32 @@ export const HabitProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       unsubNotes?.();
       unsubProfile?.();
     };
-  }, [user]);
+  }, [user, isAuthLoading]);
 
-  // Luôn lưu dự phòng xuống LocalStorage để ứng dụng mở tức thì kể cả khi mất mạng
+  // Luôn lưu dữ liệu ngoại tuyến xuống LocalStorage khi ở chế độ Guest (đã hoàn tất nạp auth)
   useEffect(() => {
-    if (!user) {
+    if (!isAuthLoading && !user) {
       habitStorage.saveHabits(habits);
     }
-  }, [habits, user]);
+  }, [habits, user, isAuthLoading]);
 
   useEffect(() => {
-    if (!user) {
+    if (!isAuthLoading && !user) {
       habitStorage.saveLogs(logs);
     }
-  }, [logs, user]);
+  }, [logs, user, isAuthLoading]);
 
   useEffect(() => {
-    if (!user) {
+    if (!isAuthLoading && !user) {
       habitStorage.saveNotes(notes);
     }
-  }, [notes, user]);
+  }, [notes, user, isAuthLoading]);
 
   useEffect(() => {
-    if (!user) {
+    if (!isAuthLoading && !user) {
       habitStorage.saveProfile(profile);
     }
-  }, [profile, user]);
+  }, [profile, user, isAuthLoading]);
 
   const isHabitCompletedToday = useCallback(
     (habitId: string): boolean => {
@@ -266,10 +274,14 @@ export const HabitProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setLogs(prev => [...prev.filter(l => !(l.habitId === habitId && l.date === todayDate)), newLog]);
         setHabits(prev => prev.map(h => (h.id === habitId ? updatedHabit : h)));
 
-        // Nếu đã đăng nhập -> Lưu lên Firestore
+        // Nếu đã đăng nhập -> Lưu lên Firestore an toàn
         if (user) {
-          syncLog(user.uid, newLog);
-          syncHabit(user.uid, updatedHabit);
+          syncLog(user.uid, newLog).catch(err => {
+            console.error('[HabitContext] Lỗi khi đồng bộ log hoàn thành lên Firestore:', err);
+          });
+          syncHabit(user.uid, updatedHabit).catch(err => {
+            console.error('[HabitContext] Lỗi khi đồng bộ thói quen cập nhật lên Firestore:', err);
+          });
         }
 
         if (profile.soundEnabled) {
@@ -291,9 +303,13 @@ export const HabitProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
         if (user) {
           if (logToRemove) {
-            removeLog(user.uid, logToRemove.id);
+            removeLog(user.uid, logToRemove.id).catch(err => {
+              console.error('[HabitContext] Lỗi khi xóa log check-in khỏi Firestore:', err);
+            });
           }
-          syncHabit(user.uid, updatedHabit);
+          syncHabit(user.uid, updatedHabit).catch(err => {
+            console.error('[HabitContext] Lỗi khi hoàn tác thói quen trên Firestore:', err);
+          });
         }
       }
     },
@@ -322,7 +338,15 @@ export const HabitProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
 
       if (user) {
-        await syncHabit(user.uid, newHabit);
+        try {
+          await syncHabit(user.uid, newHabit);
+          toast.success('Đã gieo mầm thói quen', `"${newHabit.title}" đã được lưu trữ an toàn.`);
+        } catch (err) {
+          console.error('[HabitContext] Lỗi khi lưu thói quen mới lên Cloud Firestore:', err);
+          toast.warning('Đồng bộ Cloud gián đoạn', 'Thói quen tạm lưu cục bộ trên thiết bị của bạn.');
+        }
+      } else {
+        toast.success('Đã gieo mầm thói quen', `"${newHabit.title}" đã được lưu ở chế độ Ngoại tuyến.`);
       }
     },
     [habits.length, user]
@@ -341,7 +365,15 @@ export const HabitProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setLogs(prev => prev.filter(l => l.habitId !== habitId));
 
       if (user) {
-        await removeHabit(user.uid, habitId);
+        try {
+          await removeHabit(user.uid, habitId);
+          toast.info('Đã xóa thói quen', 'Thói quen đã được loại bỏ khỏi hành trình.');
+        } catch (err) {
+          console.error('[HabitContext] Lỗi khi xóa thói quen khỏi Cloud Firestore:', err);
+          toast.warning('Cảnh báo đồng bộ', 'Không thể xóa trên máy chủ Cloud Firestore.');
+        }
+      } else {
+        toast.info('Đã xóa thói quen', 'Thói quen đã được loại bỏ khỏi hành trình.');
       }
     },
     [habits, user]
@@ -387,7 +419,11 @@ export const HabitProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setNotes(prev => [newNote, ...prev]);
 
       if (user) {
-        await syncNote(user.uid, newNote);
+        try {
+          await syncNote(user.uid, newNote);
+        } catch (err) {
+          console.error('[HabitContext] Lỗi khi đồng bộ ghi chép phản tư lên Firestore:', err);
+        }
       }
 
       if (profile.soundEnabled) {
@@ -401,7 +437,11 @@ export const HabitProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     async (id: string) => {
       setNotes(prev => prev.filter(n => n.id !== id));
       if (user) {
-        await removeNote(user.uid, id);
+        try {
+          await removeNote(user.uid, id);
+        } catch (err) {
+          console.error('[HabitContext] Lỗi khi xóa ghi chép phản tư khỏi Firestore:', err);
+        }
       }
     },
     [user]
@@ -412,7 +452,11 @@ export const HabitProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const updated = { ...profile, ...updates };
       setProfile(updated);
       if (user) {
-        await syncProfile(user.uid, updated);
+        try {
+          await syncProfile(user.uid, updated);
+        } catch (err) {
+          console.error('[HabitContext] Lỗi khi đồng bộ hồ sơ người dùng lên Firestore:', err);
+        }
       }
     },
     [profile, user]

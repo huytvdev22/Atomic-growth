@@ -10,6 +10,7 @@ import {
   requestGoogleDriveAccess
 } from '../services/firebase';
 import { habitStorage } from '../services/habitStorage';
+import { toast } from './ToastContext';
 
 interface AuthContextType {
   user: User | null;
@@ -68,6 +69,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Sau khi đăng nhập xong, tắt guest mode
       habitStorage.setGuestMode(false);
       setIsGuestModeState(false);
+      toast.success('Đăng nhập thành công', 'Chào mừng bạn quay trở lại với Atomic Growth!');
     } catch (err: any) {
       // Nếu người dùng chỉ đơn giản là tắt popup hoặc mở popup mới đè lên, không quăng lỗi crash
       if (
@@ -78,7 +80,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
       console.error('Đăng nhập Google thất bại:', err);
-      alert('Không thể hoàn tất đăng nhập Google: ' + (err?.message || 'Có lỗi xảy ra'));
+      toast.error('Đăng nhập thất bại', err?.message || 'Không thể hoàn tất đăng nhập tài khoản Google.');
       throw err;
     } finally {
       setIsAuthenticating(false);
@@ -109,8 +111,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Khi đăng xuất, trở về trạng thái đón tiếp (không tự động ở guest mode)
       habitStorage.setGuestMode(false);
       setIsGuestModeState(false);
+      toast.info('Đã đăng xuất', 'Phiên làm việc đã kết thúc an toàn.');
     } catch (err) {
       console.error('Đăng xuất thất bại:', err);
+      toast.error('Đăng xuất thất bại', 'Không thể hoàn tất đăng xuất tài khoản.');
       throw err;
     }
   }, []);

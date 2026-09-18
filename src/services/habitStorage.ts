@@ -79,8 +79,7 @@ export function cleanLegacyDemoData(): void {
       }
     }
 
-    // 4. Xóa cờ guest mode cũ
-    localStorage.removeItem(STORAGE_KEYS.GUEST_MODE);
+    // Lưu ý: Không xóa cờ STORAGE_KEYS.GUEST_MODE tại đây để người dùng ngoại tuyến không bị văng ra màn hình chào mừng khi tải lại trang
   } catch (err) {
     console.warn('[habitStorage] Lỗi khi làm sạch dữ liệu demo cũ:', err);
   }

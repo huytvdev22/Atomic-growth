@@ -119,12 +119,32 @@ export function subscribeToProfile(
 }
 
 /**
+ * Loại bỏ các thuộc tính mang giá trị undefined khỏi object trước khi gửi lên Cloud Firestore.
+ * Giúp dữ liệu an toàn tuyệt đối, tránh lỗi "Unsupported field value: undefined".
+ */
+export function sanitizeForFirestore<T extends Record<string, any>>(obj: T): Record<string, any> {
+  const clean: Record<string, any> = {};
+  for (const [key, value] of Object.entries(obj)) {
+    if (value !== undefined) {
+      clean[key] = value;
+    }
+  }
+  return clean;
+}
+
+/**
  * Lưu hoặc cập nhật một thói quen lên Cloud Firestore
  */
 export async function syncHabit(userId: string, habit: Habit): Promise<void> {
   if (!db) return;
-  const docRef = doc(db, 'users', userId, 'habits', habit.id);
-  await setDoc(docRef, habit, { merge: true });
+  try {
+    const docRef = doc(db, 'users', userId, 'habits', habit.id);
+    const sanitizedData = sanitizeForFirestore(habit);
+    await setDoc(docRef, sanitizedData, { merge: true });
+  } catch (err) {
+    console.error(`[firestoreSync] Lỗi khi lưu thói quen ${habit.id} lên Firestore:`, err);
+    throw err;
+  }
 }
 
 /**
@@ -132,8 +152,13 @@ export async function syncHabit(userId: string, habit: Habit): Promise<void> {
  */
 export async function removeHabit(userId: string, habitId: string): Promise<void> {
   if (!db) return;
-  const docRef = doc(db, 'users', userId, 'habits', habitId);
-  await deleteDoc(docRef);
+  try {
+    const docRef = doc(db, 'users', userId, 'habits', habitId);
+    await deleteDoc(docRef);
+  } catch (err) {
+    console.error(`[firestoreSync] Lỗi khi xóa thói quen ${habitId} khỏi Firestore:`, err);
+    throw err;
+  }
 }
 
 /**
@@ -141,8 +166,14 @@ export async function removeHabit(userId: string, habitId: string): Promise<void
  */
 export async function syncLog(userId: string, log: HabitLog): Promise<void> {
   if (!db) return;
-  const docRef = doc(db, 'users', userId, 'logs', log.id);
-  await setDoc(docRef, log, { merge: true });
+  try {
+    const docRef = doc(db, 'users', userId, 'logs', log.id);
+    const sanitizedData = sanitizeForFirestore(log);
+    await setDoc(docRef, sanitizedData, { merge: true });
+  } catch (err) {
+    console.error(`[firestoreSync] Lỗi khi lưu log check-in ${log.id} lên Firestore:`, err);
+    throw err;
+  }
 }
 
 /**
@@ -150,8 +181,13 @@ export async function syncLog(userId: string, log: HabitLog): Promise<void> {
  */
 export async function removeLog(userId: string, logId: string): Promise<void> {
   if (!db) return;
-  const docRef = doc(db, 'users', userId, 'logs', logId);
-  await deleteDoc(docRef);
+  try {
+    const docRef = doc(db, 'users', userId, 'logs', logId);
+    await deleteDoc(docRef);
+  } catch (err) {
+    console.error(`[firestoreSync] Lỗi khi xóa log ${logId} khỏi Firestore:`, err);
+    throw err;
+  }
 }
 
 /**
@@ -159,8 +195,14 @@ export async function removeLog(userId: string, logId: string): Promise<void> {
  */
 export async function syncNote(userId: string, note: MicroNote): Promise<void> {
   if (!db) return;
-  const docRef = doc(db, 'users', userId, 'notes', note.id);
-  await setDoc(docRef, note, { merge: true });
+  try {
+    const docRef = doc(db, 'users', userId, 'notes', note.id);
+    const sanitizedData = sanitizeForFirestore(note);
+    await setDoc(docRef, sanitizedData, { merge: true });
+  } catch (err) {
+    console.error(`[firestoreSync] Lỗi khi lưu note ${note.id} lên Firestore:`, err);
+    throw err;
+  }
 }
 
 /**
@@ -168,8 +210,13 @@ export async function syncNote(userId: string, note: MicroNote): Promise<void> {
  */
 export async function removeNote(userId: string, noteId: string): Promise<void> {
   if (!db) return;
-  const docRef = doc(db, 'users', userId, 'notes', noteId);
-  await deleteDoc(docRef);
+  try {
+    const docRef = doc(db, 'users', userId, 'notes', noteId);
+    await deleteDoc(docRef);
+  } catch (err) {
+    console.error(`[firestoreSync] Lỗi khi xóa note ${noteId} khỏi Firestore:`, err);
+    throw err;
+  }
 }
 
 /**
@@ -177,8 +224,14 @@ export async function removeNote(userId: string, noteId: string): Promise<void> 
  */
 export async function syncProfile(userId: string, profile: UserProfile): Promise<void> {
   if (!db) return;
-  const docRef = doc(db, 'users', userId, 'profile', 'main');
-  await setDoc(docRef, profile, { merge: true });
+  try {
+    const docRef = doc(db, 'users', userId, 'profile', 'main');
+    const sanitizedData = sanitizeForFirestore(profile);
+    await setDoc(docRef, sanitizedData, { merge: true });
+  } catch (err) {
+    console.error(`[firestoreSync] Lỗi khi lưu profile lên Firestore:`, err);
+    throw err;
+  }
 }
 
 /**

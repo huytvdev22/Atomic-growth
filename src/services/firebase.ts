@@ -50,10 +50,12 @@ if (isFirebaseConfigured()) {
     googleProvider.setCustomParameters({ prompt: 'select_account' });
 
     // Kích hoạt IndexedDB Persistent Cache cho Firestore để hỗ trợ Offline-First
+    // ignoreUndefinedProperties: true để bỏ qua các trường tùy chọn mang giá trị undefined thay vì throw exception
     db = initializeFirestore(app, {
       localCache: persistentLocalCache({
         tabManager: persistentMultipleTabManager()
-      })
+      }),
+      ignoreUndefinedProperties: true
     });
     console.info('[Atomic Growth] Firebase & Cloud Firestore đã khởi tạo thành công với Offline Cache.');
   } catch (err) {
